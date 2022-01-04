@@ -42,7 +42,7 @@ if not LOCAL_RUN:
     RESULTS_FOLDER = "/groups/pupko/noaeker/RAxML_params_tuning_results"
     MSAs_CSV_PATH = "/groups/pupko/noaeker/data/sampled_datasets.csv"
     GENERAL_MSA_DIR = "/groups/pupko/noaeker/data/single-gene_alignments"
-    MAIN_CODE_PATH = "/Users/noa/Workspace/RAxML_params_tuning/tune_params.py"
+    MAIN_CODE_PATH = "/groups/pupko/noaeker/RAxML_params_tuning/tune_params.py"
     R_CODE_PATH = "/groups/pupko/noaeker/lasso_positions_sampling/R_code/lasso_glmnet.R"
     RAXML_HPC_EXE = "/groups/pupko/noaeker/standard-RAxML/raxmlHPC"
     RATE4SITE_COMMAND_PREFIX = "/groups/pupko/noaeker/rate4site/rate4site"
