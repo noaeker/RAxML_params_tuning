@@ -329,13 +329,12 @@ def main_parser():
     parser.add_argument('--n_raxml_parsimony_trees', action='store', type=int, default=N_PARSIMONY_RAXML_SEARCH)
     parser.add_argument('--n_raxml_random_trees', action='store', type=int, default=N_RANDOM_RAXML_SEARCH)
     parser.add_argument('--use_raxml_search', action='store_true', default= True)  # change
-    parser.add_argument('--run_raxml_commands_locally', action='store_true')
     parser.add_argument('--queue', type=str, default="pupkolab")
     parser.add_argument('--n_cpus_per_job', action='store', type=int, default=N_CPUS_PER_JOB)
     parser.add_argument('--n_cpus_raxml', action='store', type=int, default=N_CPUS_RAXML)
     parser.add_argument('--spr_radius_grid', action='store', type=str, default=SPR_RADIUS_GRID)
     parser.add_argument('--spr_cutoff_grid', action='store', type=str, default=SPR_CUTOFF_GRID)
-    parser.add_argument('--trim_msa',action='store_true', default= True)
+    parser.add_argument('--trim_msa',action='store_true')
     parser.add_argument('--remove_output_files',action='store_true' )
     return parser
 

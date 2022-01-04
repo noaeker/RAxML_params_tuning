@@ -2,16 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/IQTREE.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/analayze_raw_results.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/help_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/help_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/raxml.py" beforeDir="false" afterPath="$PROJECT_DIR$/raxml.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/tp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/trees_manipulation.py" beforeDir="false" afterPath="$PROJECT_DIR$/trees_manipulation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tune_params.py" beforeDir="false" afterPath="$PROJECT_DIR$/tune_params.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tune_starting_tree.py" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -21,11 +12,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="51">
-              <caret line="3" selection-start-line="3" selection-end-line="3" />
+            <state relative-caret-position="144">
+              <caret line="26" selection-start-line="26" selection-end-line="26" />
             </state>
           </provider>
         </entry>
@@ -66,11 +57,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/help_functions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="130">
-              <caret line="280" selection-start-line="280" selection-end-line="280" />
+            <state relative-caret-position="266">
+              <caret line="334" column="84" selection-start-line="334" selection-start-column="84" selection-end-line="334" selection-end-column="84" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -101,8 +92,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>process</find>
-      <find>process_msa_RAxML_runs</find>
       <find>rf_from_bes</find>
       <find>best_elapsed_time</find>
       <find>elapsed_time</find>
@@ -131,6 +120,8 @@
       <find>pipe</find>
       <find>shutil</find>
       <find>MSA_search_params_tuning_analysis</find>
+      <find>re</find>
+      <find>re.</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -148,11 +139,11 @@
         <option value="$PROJECT_DIR$/analayze_raw_results.py" />
         <option value="$PROJECT_DIR$/trees_manipulation.py" />
         <option value="$PROJECT_DIR$/tp.py" />
-        <option value="$PROJECT_DIR$/help_functions.py" />
         <option value="$PROJECT_DIR$/test.py" />
         <option value="$PROJECT_DIR$/raxml.py" />
         <option value="$PROJECT_DIR$/tune_params.py" />
         <option value="$PROJECT_DIR$/config.py" />
+        <option value="$PROJECT_DIR$/help_functions.py" />
       </list>
     </option>
   </component>
@@ -570,16 +561,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/help_functions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="130">
-          <caret line="280" selection-start-line="280" selection-end-line="280" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/tp.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="17">
@@ -622,8 +603,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="51">
-          <caret line="3" selection-start-line="3" selection-end-line="3" />
+        <state relative-caret-position="144">
+          <caret line="26" selection-start-line="26" selection-end-line="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/help_functions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="266">
+          <caret line="334" column="84" selection-start-line="334" selection-start-column="84" selection-end-line="334" selection-end-column="84" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
