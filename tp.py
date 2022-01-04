@@ -60,16 +60,21 @@ def main():
     all_jobs_csv = os.path.join(all_jobs_results_folder, OUTPUT_CSV_NAME + '.csv')
     all_jobs_backup_csv = os.path.join(all_jobs_results_folder, "backup.csv")
     logging.info('#Started running')
-    file_path_list = extract_alignment_files_from_dir(args.alternative_files_folder)
-    logging.info("There are overall {nMSAs} available ".format(nMSAs=len(file_path_list)))
+    file_path_list = extract_alignment_files_from_dirs(args.general_msa_dir)
+    logging.info("There are overall {nMSAs} available MSAs ".format(nMSAs=len(file_path_list)))
     if os.path.exists(all_jobs_backup_csv) and os.path.os.stat(all_jobs_backup_csv).st_size > 0:
         shutil.copy(all_jobs_backup_csv, all_jobs_csv)
         file_path_list = [f for f in file_path_list if f not in pd.read_csv(all_jobs_backup_csv)["dataset_id"].unique()]
         logging.info(
             "After removing files that exist in {} there are {} MSAs".format(all_jobs_backup_csv, len(file_path_list)))
-    file_path_list = remove_MSAs_with_not_enough_seq_and_locis(file_path_list, args.min_n_seq, args.min_n_loci)
+    file_path_list = remove_MSAs_with_not_enough_seq_and_locis(file_path_list[:100], args.min_n_seq, args.min_n_loci)
     logging.info("There are {} MSAs with at least {} sequences and {} positions".format(len(file_path_list), args.min_n_seq, args.min_n_loci))
-    file_path_list = file_path_list[args.first_msa_ind:(args.first_msa_ind + args.n_MSAs)]
+    #file_path_list = file_path_list[args.first_msa_ind:(args.first_msa_ind + args.n_MSAs)]
+    logging.info(
+        f"Sampling {args.n_MSAs} random MSAs")
+
+    random.seed(SEED)
+    file_path_list = random.sample(file_path_list,args.n_MSAs)
     logging.debug("Alignment files are " + str(file_path_list))
     csv_path_to_status_path_dict = distribute_MSAs_over_jobs(file_path_list, all_jobs_results_folder, args)
     while len(csv_path_to_status_path_dict) > 0:

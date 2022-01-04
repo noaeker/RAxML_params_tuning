@@ -11,40 +11,41 @@ import numpy as np
 import time
 from config import *
 import random
+from raxml import *
+from sklearn.model_selection import ParameterGrid
+from subprocess import PIPE, STDOUT
 
 
-def handle_msa(curr_run_directory, original_alignment_path, required_n_seq, required_n_loci):
-    file_type = extract_file_type(original_alignment_path, False)
-    file_type_biopython = extract_file_type(original_alignment_path, True)
-    with open(original_alignment_path) as original:
-        original_alignment_data = list(SeqIO.parse(original, file_type_biopython))
-    alignment_df = alignment_list_to_df(original_alignment_data)
-    n_seq_orig, n_loci_orig = alignment_df.shape
-    file_name = "test_file"
-    if required_n_loci != n_loci_orig or required_n_seq != n_seq_orig:
-        trimmed_msa_path = os.path.join(curr_run_directory, file_name + "_trimmed" + file_type)
-        trim_MSA(original_alignment_data, trimmed_msa_path, required_n_seq, file_type_biopython,
-                 required_n_loci, 0)
-    with open(trimmed_msa_path) as trimmed:
-        trimmed_alignment_data = list(SeqIO.parse(trimmed, file_type_biopython))
-    trimmed_alignment_df = alignment_list_to_df(trimmed_alignment_data)
-    n_seq_trimmed, n_loci_trimmed = trimmed_alignment_df.shape
-    if n_seq_trimmed != required_n_seq or required_n_loci != required_n_loci:
-        logging.error(
-            f"Problem in trimming MSA: required number of sequences is {required_n_seq} and got {n_seq_trimmed},required number of sites is {required_n_loci} and got {n_loci_trimmed}")
+def str_to_linspace(str):
+    linespace_nums = [float(n) for n in str.split("_")]
+    return np.linspace(linespace_nums[0],linespace_nums[1],int(linespace_nums[2]))
 
-    return {"trimmed_msa_path": trimmed_msa_path, "n_seq_orig": n_seq_orig, "n_loci_orig": n_loci_orig,
-            "n_loci": required_n_loci, "n_seq": required_n_seq}
+
+def get_param_obj(param_grid_dict_str):
+    param_grid_obj = {}
+    for param_name in param_grid_dict_str:
+        if param_grid_dict_str[param_name]!= "default":
+            linspace = str_to_linspace(param_grid_dict_str[param_name])
+            param_grid_obj[param_name] = linspace
+    param_obj = (ParameterGrid(param_grid_obj))
+    return param_obj
+
+
+#
+# p = Popen(
+#             [SC.RAXML_NG_SCRIPT, '--evaluate', '--msa', msa_file, '--threads', '1', '--opt-branches', 'on',
+#              '--opt-model',
+#              'off', '--model', model_line_params, '--nofiles', '--tree', tree_rampath],
+#             stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+#
 
 def execute_commnand_and_write_to_log(command, curr_run_directory="", job_folder_name="", job_name="", log_file_path="",
-                                      cpus=-1, nodes=-1, queue="pupkolab", extra_file_path="", run_locally=False):
+                                      cpus=-1, queue="pupkolab", extra_file_path="", run_locally=False):
     if LOCAL_RUN or run_locally:
-        # logging.info("*** About to run locally " + command)
-        subprocess.run(command, shell=True)
-        # logging.info("*** Previous command completed")
+        subprocess.run(command, shell=True,stdout=PIPE, stdin=PIPE, stderr=STDOUT)
     else:
         job_folder = os.path.join(curr_run_directory, job_folder_name)
-        submit_linux_job(job_name, job_folder, command, cpus, nodes, queue=queue)
+        submit_linux_job(job_name, job_folder, command, cpus,  queue=queue)
         logging.info(f"*** Waiting for elapsed time in log file {log_file_path}")
         while not (os.path.exists(log_file_path) and (
                 os.path.exists(extra_file_path) or extra_file_path == "") and (extract_param_from_raxmlNG_log(log_file_path,
@@ -81,7 +82,10 @@ def generate_argument_str(args):
     return output.strip()
 
 
-def submit_linux_job(job_name, job_folder, run_command, cpus, nodes, job_ind="job", queue='pupkolab'):
+
+
+
+def submit_linux_job(job_name, job_folder, run_command, cpus, job_ind="job", queue='pupkolab'):
     create_dir_if_not_exists(job_folder)
     cmds_path = os.path.join(job_folder, str(job_ind) + ".cmds")
     job_log_path = os.path.join(job_folder, str(job_ind) + "_tmp_log")
@@ -89,7 +93,7 @@ def submit_linux_job(job_name, job_folder, run_command, cpus, nodes, job_ind="jo
     logging.debug("About to run on {} queue: {}".format(queue, job_line))
     with open(cmds_path, 'w') as cmds_f:
         cmds_f.write(job_line)
-    command = f'/groups/pupko/noaeker/lasso_positions_sampling/parallel_code/submit_mpi_job.py {cmds_path} {job_log_path} --cpu {cpus} --nodes {nodes} -q {queue}'
+    command = f'{PBS_FILE_GENERATOR_CODE} {cmds_path} {job_log_path} --cpu {cpus} --q {queue}'
     logging.info(f'About to submit a pbs file to {queue} queue based on cmds:{cmds_path}')
     os.system(command)
 
@@ -109,17 +113,6 @@ def remove_MSAs_with_not_enough_seq(file_path_list, min_seq):
                 proper_file_path_list.append(path)
     return proper_file_path_list
 
-
-def write_to_sampled_alignment_path(original_alignment_data, sampled_alignment_path, samp_indexes, file_type):
-    sampled_sequence = []
-    for original_record in original_alignment_data:
-        sampled_seq = Seq(''.join([str(original_record.seq[ind]) for ind in samp_indexes]))
-        sampled_record = SeqRecord(sampled_seq, id=original_record.id, name=original_record.name,
-                                   description=original_record.description)
-        sampled_sequence.append(sampled_record)
-    val = SeqIO.write(sampled_sequence, sampled_alignment_path, file_type)
-    if not val == len(original_alignment_data):
-        logging.error("   #ERROR: Sampled columns not written succesfully to file " + sampled_alignment_path)
 
 
 def remove_gaps_and_trim_locis(sample_records, max_n_loci, loci_shift):
@@ -163,7 +156,7 @@ def count_unique_n_seq(original_seq_records):
     return len(seq_values)
 
 
-def trim_MSA(original_alignment_data, trimmed_alignment_path, number_of_sequences, file_type, max_n_loci, loci_shift):
+def trim_MSA(original_alignment_data, trimmed_alignment_path, number_of_sequences,max_n_loci, loci_shift):
     obtained_n_seq = -1
     i = 0
     while obtained_n_seq < number_of_sequences and i <= 100:
@@ -173,7 +166,7 @@ def trim_MSA(original_alignment_data, trimmed_alignment_path, number_of_sequence
         i = i + 1
     logging.info("obtained {obtained_n_seq} sequences after {i} iterations!".format(obtained_n_seq=obtained_n_seq, i=i))
     try:
-        SeqIO.write(loci_trimmed_seq_records, trimmed_alignment_path, file_type)
+        SeqIO.write(loci_trimmed_seq_records, trimmed_alignment_path, 'fasta')
         logging.info(" {} sequences written succesfully to new file {}".format(len(seq_trimmed_seq_records),
                                                                                trimmed_alignment_path))
     except:
@@ -198,39 +191,39 @@ def delete_file_content(file_path):
         pass
 
 
-def extract_alignment_files_from_dir(path):
-    if os.path.isfile(path):
-        return [path]
+def extract_alignment_files_from_dirs(general_dir_path):
     files_list = []
-    if os.path.exists(path):
-        for file in os.listdir(path):
-            if file.endswith(".phy") or file.endswith(".fasta"):  # or file.endswith(".nex")
-                files_list.append(os.path.join(path, file))
+    if os.path.exists(general_dir_path):
+        for sub_dir in os.listdir(general_dir_path):
+            sub_dir_path = os.path.join(general_dir_path, sub_dir)
+            if os.path.isdir(sub_dir_path):
+                for file in os.listdir(sub_dir_path):
+                    files_list.append(os.path.join(sub_dir_path, file))
     return files_list
 
 
-def extract_dir_list_from_csv(dir_list_csv_path):
-    df = pd.read_csv(dir_list_csv_path)
-    df.sort_values(by='nchars', ascending=False, inplace=True)
-    dir_list = [os.path.join(MSAs_FOLDER, path) for path in list(df["path"])]
-    logging.debug("Number of paths in original csv = {n_paths}".format(n_paths=len(df.index)))
-    return dir_list
-
-
-def extract_alignment_files_from_general_csv(dir_list_csv_path):
-    files_list = []
-    logging.debug("Extracting alignments from {}".format(dir_list_csv_path))
-    dir_list = extract_dir_list_from_csv(dir_list_csv_path)
-    for dir in dir_list:
-        if os.path.exists(dir):
-            for file in os.listdir(dir):
-                if (file.endswith(".phy") or file.endswith(".fasta")):
-                    files_list.append(os.path.join(dir, file))
-                    break
-        else:
-            logging.error("Following MSA dir does not exist {dir}".format(dir=dir))
-    logging.debug("Overalls number of MSAs found in the given directories is: {nMSAs}".format(nMSAs=len(files_list)))
-    return files_list
+# def extract_dir_list_from_csv(dir_list_csv_path):
+#     df = pd.read_csv(dir_list_csv_path)
+#     df.sort_values(by='nchars', ascending=False, inplace=True)
+#     dir_list = [os.path.join(MSAs_FOLDER, path) for path in list(df["path"])]
+#     logging.debug("Number of paths in original csv = {n_paths}".format(n_paths=len(df.index)))
+#     return dir_list
+#
+#
+# def extract_alignment_files_from_general_csv(dir_list_csv_path):
+#     files_list = []
+#     logging.debug("Extracting alignments from {}".format(dir_list_csv_path))
+#     dir_list = extract_dir_list_from_csv(dir_list_csv_path)
+#     for dir in dir_list:
+#         if os.path.exists(dir):
+#             for file in os.listdir(dir):
+#                 if (file.endswith(".phy") or file.endswith(".fasta")):
+#                     files_list.append(os.path.join(dir, file))
+#                     break
+#         else:
+#             logging.error("Following MSA dir does not exist {dir}".format(dir=dir))
+#     logging.debug("Overalls number of MSAs found in the given directories is: {nMSAs}".format(nMSAs=len(files_list)))
+#     return files_list
 
 
 def alignment_list_to_df(alignment_data):
@@ -314,17 +307,17 @@ def get_positions_stats(alignment_df):
 def get_job_related_files_paths(curr_job_folder, job_ind):
     job_status_file = os.path.join(curr_job_folder, str(job_ind) + "_status")
     job_csv_path = os.path.join(curr_job_folder, str(job_ind) + ".csv")
-    job_only_best_csv_path = os.path.join(curr_job_folder, str(job_ind) + "_best.csv")
     job_msa_paths_file = os.path.join(curr_job_folder, "file_paths_" + str(job_ind))
     general_log_path = os.path.join(curr_job_folder, "job_" + str(job_ind) + "_general_log.log")
     return {"job_status_file": job_status_file, "job_csv_path": job_csv_path, "job_msa_paths_file": job_msa_paths_file,
-            "general_log_path": general_log_path, "job_only_best_csv_path": job_only_best_csv_path}
+            "general_log_path": general_log_path}
 
 
 
 def main_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--run_prefix', action='store', type=str, default=CURR_RUN_PREFIX)
+    parser.add_argument('--general_msa_dir',type=str, default = GENERAL_MSA_DIR)
     parser.add_argument('--jobs_prefix', action='store', type=str, default=CURR_JOBS_PREFIX)
     parser.add_argument('--n_MSAs', action='store', type=int, default=N_MSAS)
     parser.add_argument('--n_jobs', action='store', type=int, default=N_JOBS)
@@ -335,36 +328,69 @@ def main_parser():
     parser.add_argument('--min_n_loci', type=int, default=MIN_N_LOCI)
     parser.add_argument('--n_raxml_parsimony_trees', action='store', type=int, default=N_PARSIMONY_RAXML_SEARCH)
     parser.add_argument('--n_raxml_random_trees', action='store', type=int, default=N_RANDOM_RAXML_SEARCH)
-    parser.add_argument('--training_size', action='store', type=int, default=TRAINING_SIZE)
     parser.add_argument('--use_raxml_search', action='store_true', default= True)  # change
     parser.add_argument('--run_raxml_commands_locally', action='store_true')
     parser.add_argument('--queue', type=str, default="pupkolab")
     parser.add_argument('--n_cpus_per_job', action='store', type=int, default=N_CPUS_PER_JOB)
-    parser.add_argument('--n_cpus_training', action='store', type=int, default=N_CPUS_PER_TRAINING)
     parser.add_argument('--n_cpus_raxml', action='store', type=int, default=N_CPUS_RAXML)
-    parser.add_argument('--alternative_files_folder', action='store', type=str, default=ALTERNATIVER_FILES_FOLDER)
-    parser.add_argument('--exp_brlen', action='store_true')
-    parser.add_argument('--opt_brlen', action='store_true', default= True)
-    parser.add_argument('--n_parsimony_grid', action = 'store', type= str, default = "default")
-    parser.add_argument('--n_random_grid', action='store', type=str, default="default")
-    parser.add_argument('--spr_radius_grid', action='store', type=str, default="2_8_2")
-    parser.add_argument('--use_parsimony_training_trees', action='store_true')
-    parser.add_argument('--training_set_baseline_run_prefix', action='store', default=BASELINE)
-    parser.add_argument('--random_trees_per_msa', action='store', default = N_RANDOM_TREES_PER_MSA)
+    parser.add_argument('--spr_radius_grid', action='store', type=str, default=SPR_RADIUS_GRID)
+    parser.add_argument('--spr_cutoff_grid', action='store', type=str, default=SPR_CUTOFF_GRID)
+    parser.add_argument('--trim_msa',action='store_true', default= True)
+    parser.add_argument('--remove_output_files',action='store_true' )
     return parser
 
+
+
+
+def get_alignment_data(msa_path):
+    with open(msa_path) as file:
+        try:
+            file_type_biopython = extract_file_type(msa_path, True)
+            data = list(SeqIO.parse(file, file_type_biopython))
+        except:
+            try:
+                data = list(SeqIO.parse(file, 'fasta'))
+            except:
+                try:
+                    data = list(SeqIO.parse(file, 'phylip-relaxed'))
+                except:
+                    return -1
+        if len(data) == 0:
+            return -1
+        return data
 
 def remove_MSAs_with_not_enough_seq_and_locis(file_path_list, min_seq, min_n_loci):
     proper_file_path_list = []
     for path in file_path_list:
-        file_type_biopython = extract_file_type(path, True)
-        with open(path) as file:
-            data = list(SeqIO.parse(file, file_type_biopython))
-            n_seq = len(data)
-            n_loci = len(data[0])
-            if n_seq >= min_seq and n_loci>= min_n_loci:
-                proper_file_path_list.append(path)
+        data = get_alignment_data(path)
+        if data==-1:
+            continue
+        n_seq = len(data)
+        n_loci = len(data[0])
+        if n_seq >= min_seq and n_loci>= min_n_loci:
+            proper_file_path_list.append(path)
     return proper_file_path_list
+
+def extract_mad_file_statistic(mad_log_path):
+    pattern = "MAD=([\d.]+)"
+    with open(mad_log_path) as mad_output:
+        data = mad_output.read()
+        match = re.search(pattern, data, re.IGNORECASE)
+    if match:
+        value = float(match.group(1))
+    else:
+        error_msg = "Param  not found in mad file in {}".format(mad_log_path)
+        logging.error(error_msg)
+        raise GENERAL_RAXML_ERROR(error_msg)
+    return value
+
+def compute_tree_divergence(tree_path):
+    total_dist = 0
+    tree = generate_tree_object_from_newick(tree_path)
+    for node in tree.iter_descendants():
+        # Do some analysis on node
+        total_dist = total_dist + node.dist
+    return total_dist
 
 
 

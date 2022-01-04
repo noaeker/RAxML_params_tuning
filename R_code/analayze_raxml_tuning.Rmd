@@ -1,0 +1,77 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(lme4)
+library(ggplot2)
+library(plotrix)
+library(visreg)
+library(stringr)
+library(tidyverse)
+library(ggpubr)
+library(gridExtra)
+library(tidyverse)
+library(tidymodels)
+library(vip) 
+library(plm)
+```
+
+
+
+
+```{r}
+tuning_data<- read_csv("/Users/noa/Workspace/raxml_deep_learning_results/tune_raxml.csv")
+```
+
+```{r}
+tuning_data %>% filter (is_best_run==TRUE)
+```
+
+```{r}
+
+best_results_per_tree_search <- tuning_data %>% filter (is_best_run=="TRUE") %>% select (msa_name,run_name, starting_tree_ind,tree_type,elapsed_running_time, final_ll,spr_cutoff,spr_radius,rf_from_best_tree_search_topology, rf_from_overall_msa_best_topology,delta_ll_from_best_tree_search_topology) %>% rename(best_tree_search_elapsed_time = elapsed_running_time,tree_search_best_ll = final_ll,tree_search_best_spr_cutoff = spr_cutoff,tree_search_best_spr_radius = spr_radius, ,best_tree_search_rf_from_overall_msa_best_topology = rf_from_overall_msa_best_topology, test_zero = rf_from_best_tree_search_topology,
+                                                       test_zero2 = delta_ll_from_best_tree_search_topology                                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                      )
+
+default_results_per_tree_search <- tuning_data %>% filter (run_name=="default") %>% select (msa_name, starting_tree_ind,tree_type,elapsed_running_time, final_ll, rf_from_best_tree_search_topology,rf_from_overall_msa_best_topology,spr_cutoff,spr_radius,delta_ll_from_best_tree_search_topology) %>% rename(default_tree_search_elapsed_time= elapsed_running_time , tree_search_default_ll  = final_ll,default_spr_cutoff = spr_cutoff,default_spr_radius = spr_radius,  default_rf_from_best_tree_search_topology = rf_from_best_tree_search_topology, default_rf_from_overall_msa_best_topology =rf_from_overall_msa_best_topology, default_delta_ll_from_best_tree_search_topology = delta_ll_from_best_tree_search_topology )
+best_vs_default<-best_results_per_tree_search %>% inner_join(default_results_per_tree_search)
+best_vs_default
+
+
+```
+
+
+```{r}
+best_vs_default %>% filter (run_name=="default")
+```
+
+
+
+
+```{r}
+tuning_data  %>% ggplot(aes(x=spr_radius,y=final_ll, group = interaction(tree_type, starting_tree_ind),colour = interaction(tree_type, starting_tree_ind))) + geom_point()+geom_line() +facet_grid(rows = vars(spr_cutoff), cols = vars(interaction(tree_type, starting_tree_ind)))
+
+
+
+```
+
+
+```{r}
+
+```
+
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

@@ -118,7 +118,7 @@ def generate_multiple_tree_object_from_newick(trees_path):
         newicks = trees_path.read().split("\n")
         newicks = [t for t in newicks if len(t) > 0]
         tree_objects = [generate_tree_object_from_newick(newick) for newick in newicks]
-        return tree_objects if len(tree_objects) > 1 else tree_objects[0]
+        return tree_objects
 
 
 def get_tree_string(tree_path):
@@ -143,26 +143,7 @@ def assign_brlen_to_tree_object(tree_object, brlen_list):
 
 
 
-def extract_mad_file_statistic(mad_log_path):
-    pattern = "MAD=([\d.]+)"
-    with open(mad_log_path) as mad_output:
-        data = mad_output.read()
-        match = re.search(pattern, data, re.IGNORECASE)
-    if match:
-        value = float(match.group(1))
-    else:
-        error_msg = "Param  not found in mad file in {}".format(mad_log_path)
-        logging.error(error_msg)
-        raise GENERAL_RAXML_ERROR(error_msg)
-    return value
 
-def compute_tree_divergence(tree_path):
-    total_dist = 0
-    tree = generate_tree_object_from_newick(tree_path)
-    for node in tree.iter_descendants():
-        # Do some analysis on node
-        total_dist = total_dist + node.dist
-    return total_dist
 
 
 

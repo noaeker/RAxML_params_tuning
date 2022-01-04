@@ -1,9 +1,7 @@
-
 from raxml import *
+from help_functions import *
 import numpy as np
-from sklearn.model_selection import ParameterGrid
-from generate_training_data import *
-from generate_SPR import *
+import pandas as pd
 
 
 def calculate_rf_dist(rf_file_path, curr_run_directory, prefix="rf"):
@@ -17,148 +15,235 @@ def calculate_rf_dist(rf_file_path, curr_run_directory, prefix="rf"):
     return relative_rf_dist
 
 
-def rf_distance(curr_run_directory, tree_path_a, tree_path_b):
+def rf_distance(curr_run_directory, tree_str_a, tree_str_b):
     rf_folder = os.path.join(curr_run_directory, f"rf_calculations")
     create_or_clean_dir(rf_folder)
     rf_output_path = os.path.join(rf_folder, "rf_calculations")
-    rf_first_phase_trees = unify_text_files([tree_path_a, tree_path_b], rf_output_path)
+    rf_first_phase_trees = unify_text_files([tree_str_a, tree_str_b], rf_output_path, str_given=True)
     rf = calculate_rf_dist(rf_first_phase_trees, rf_folder,
                            prefix="rf_calculations")
     return rf
 
 
-def analyze_RAxML_given_msa_runs(curr_run_directory, given_msa_data):
-    best_ll = max(given_msa_data["best_ll"])
-    best_tree_topology = max(given_msa_data[given_msa_data["best_ll"] == best_ll]['best_tree_topology_path'])
-    default_tree_ll = max(given_msa_data[given_msa_data["run_name"] == "default"]['best_ll'])
-    default_tree_topology = max(given_msa_data[given_msa_data["run_name"] == "default"]['best_tree_topology_path'])
-    given_msa_data["rf_from_best_topology"] = given_msa_data["best_tree_topology_path"].apply(
-        lambda x: rf_distance(curr_run_directory, x, best_tree_topology))
-    given_msa_data["rf_from_default_topology"] = given_msa_data["best_tree_topology_path"].apply(
-        lambda x: rf_distance(curr_run_directory, x, default_tree_topology))
-    given_msa_data["delta_ll_from_best_topology"] = given_msa_data["best_ll"] - best_ll
-    given_msa_data["delta_ll_from_default_topology"] = given_msa_data["best_ll"] - default_tree_ll
+def process_spefic_starting_tree_search_RAxML_runs(curr_run_directory, given_tree_search_data):
+    '''
+
+    :param curr_run_directory:
+    :param given_tree_search_data:
+    :return:
+    '''
+    best_tree_search_ll = max(given_tree_search_data["final_ll"])
+    best_tree_search_topology = max(
+        given_tree_search_data[given_tree_search_data["final_ll"] == best_tree_search_ll]['final_tree_topology'])
+    given_tree_search_data["rf_from_curr_starting_tree_best_topology"] = given_tree_search_data["final_tree_topology"].apply(
+        lambda x: rf_distance(curr_run_directory, x, best_tree_search_topology))
+    given_tree_search_data["delta_ll_from_curr_starting_tree_best_topology"] = np.where(
+        (given_tree_search_data["rf_from_curr_starting_tree_best_topology"]) > 0,
+        best_tree_search_ll - given_tree_search_data["final_ll"], 0)
+    return given_tree_search_data
+
+
+def process_all_msa_RAxML_runs(curr_run_directory, given_msa_data):
+    '''
+
+    :param curr_run_directory:
+    :param given_msa_data:
+    :return:
+    '''
+    best_msa_ll = max(given_msa_data["final_ll"])
+    given_msa_data["best_msa_ll"] = best_msa_ll
+    best_msa_tree_topology = max(given_msa_data[given_msa_data["final_ll"] == best_msa_ll]['final_tree_topology'])
+    given_msa_data["rf_from_overall_msa_best_topology"] = given_msa_data["final_tree_topology"].apply(
+        lambda x: rf_distance(curr_run_directory, x, best_msa_tree_topology))
+    given_msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
+        (given_msa_data["rf_from_overall_msa_best_topology"]) > 0, best_msa_ll - given_msa_data["final_ll"], 0)
     return given_msa_data
 
 
-def RAxML_runs_on_given_msa(msa_stats,msa_path, curr_run_directory, param_obj):
-    all_msa_runs = pd.DataFrame()
+def single_tree_RAxML_run(curr_run_directory, msa_path, starting_tree_path, path_prefix, param_obj, msa_stats, cpus):
+    '''
+
+    :param curr_run_directory:
+    :param msa_path:
+    :param starting_tree_path:
+    :param path_prefix:
+    :param param_obj:
+    :param cpus:
+    :return: Runs RAxML starting from starting_tree_path based on a grid of parameters
+    '''
+    tree_results = pd.DataFrame()
+    path_run_directory = os.path.join(curr_run_directory, path_prefix)
+    create_or_clean_dir(path_run_directory)
     default_prefix = f"params_default"
-    default_param_run_directory = os.path.join(curr_run_directory, default_prefix)
+    default_param_run_directory = os.path.join(path_run_directory, default_prefix)
     create_or_clean_dir(default_param_run_directory)
-    default_raxml_search_results = raxml_search(default_param_run_directory, msa_path, default_prefix, {},
-                                                cpus=1)
+    default_raxml_search_results = raxml_search(msa_stats,default_param_run_directory, msa_path, default_prefix, {},
+                                                cpus=cpus, starting_tree_path=starting_tree_path)
     default_raxml_search_results["run_name"] = "default"
-    all_msa_runs = all_msa_runs.append(default_raxml_search_results, ignore_index=True)
-    for i, params_config in enumerate(param_obj):
-        prefix = f"params_{i}"
-        curr_param_run_directory = os.path.join(curr_run_directory, prefix)
+    default_raxml_search_results.update(msa_stats)
+    tree_results = tree_results.append(default_raxml_search_results, ignore_index=True)
+    for j, params_config in enumerate(param_obj):
+        prefix = f"params_{j}"
+        curr_param_run_directory = os.path.join(path_run_directory, prefix)
         create_or_clean_dir(curr_param_run_directory)
-        curr_raxml_search_results = raxml_search(curr_param_run_directory, msa_path, prefix, params_config,
-                                                 cpus=1)
-        curr_raxml_search_results["run_name"] = str(i)
+        curr_raxml_search_results = raxml_search(msa_stats,curr_param_run_directory, msa_path, prefix, params_config,
+                                                 cpus=cpus, starting_tree_path=starting_tree_path)
+        curr_raxml_search_results["run_name"] = prefix
         curr_raxml_search_results.update(msa_stats)
-        #delete_dir_content(curr_param_run_directory)
-        all_msa_runs = all_msa_runs.append(curr_raxml_search_results, ignore_index=True)
-    return all_msa_runs
+        if msa_stats["remove_output_files"]:
+            shutil.rmtree(curr_param_run_directory)
+        tree_results = tree_results.append(curr_raxml_search_results, ignore_index=True)
+    if msa_stats["remove_output_files"]:
+        shutil.rmtree(path_run_directory)
+
+    return tree_results
 
 
+def run_raxml_on_several_spcific_tree_type(curr_run_directory, msa_path, msa_stats, param_obj, tree_type):
+    '''
 
-def extract_msa_features(n, alpha, original_file_path, curr_run_directory,
-                                                   curr_msa_stats, seed):
-    random_tree_path, elapsed_running_time =generate_n_random_tree_topology_constant_brlen(n, alpha, original_file_path, curr_run_directory,
-                                                   curr_msa_stats, seed)
-    ll_n_random_trees = raxml_optimize_trees_for_given_msa(original_file_path, "evaluating ll of random trees", random_tree_path, curr_msa_stats,
-                                       curr_run_directory, opt_brlen=True, weights=None, return_trees_file=False,
-                                       n_cpus=1)
+    :param curr_run_directory:
+    :param msa_path:
+    :param msa_stats:
+    :param param_obj:
+    :param tree_type:
+    :return: The function generates the required number of trees of a given type and runs RAxML on each of them
+    '''
+    all_given_tree_type_results = pd.DataFrame()
+    parsimony_topologies_path, elapsed_time_p = generate_n_tree_topologies(
+        n=msa_stats["n_raxml_parsimony_trees"],
+        original_file_path=msa_path,
+        curr_run_directory=curr_run_directory,
+        curr_msa_stats=msa_stats, seed=SEED,
+        tree_type=tree_type)
+    parsimony_objects = generate_multiple_tree_object_from_newick(parsimony_topologies_path)
+    logging.info("Running RAxML on parsimony trees")
+    starting_tree_path = os.path.join(curr_run_directory, f"curr_{tree_type}_starting_tree_path.tree")
+    for i, starting_tree_obj in enumerate(parsimony_objects):
+        with open(starting_tree_path, 'w') as STARTING_PATH:
+            STARTING_PATH.write(starting_tree_obj.write(format=1))
+        single_tree_results = single_tree_RAxML_run(curr_run_directory, msa_path, starting_tree_path,
+                                                    path_prefix=f"{tree_type}_{i}", param_obj=param_obj,
+                                                    msa_stats=msa_stats,
+                                                    cpus=msa_stats["n_cpus_raxml"])
+        processed_single_tree_results = process_spefic_starting_tree_search_RAxML_runs(curr_run_directory, single_tree_results)
+        processed_single_tree_results["starting_tree_ind"] = i
+        all_given_tree_type_results = pd.concat([all_given_tree_type_results, processed_single_tree_results],
+                                                sort=False)
+        logging.debug(f"single_tree_results {i}")
+    return all_given_tree_type_results
 
 
+def RAxML_runs_on_given_msa(msa_stats, msa_path, curr_run_directory, param_obj):
+    '''
+
+    :param msa_stats:
+    :param msa_path:
+    :param curr_run_directory:
+    :param param_obj:
+    :return:  The function runs RAxML on random and parsimony trees for each configuration in param_obj (including the default configuraiton)
+    '''
+    logging.info("About to run RAxML on parsimony trees")
+    parsimony_trees_results = run_raxml_on_several_spcific_tree_type(curr_run_directory, msa_path, msa_stats, param_obj,
+                                                                     "pars")
+    parsimony_df = pd.DataFrame(parsimony_trees_results)
+    parsimony_df["tree_type"] = "parsimony"
+    logging.info("About to run RAxML on random trees")
+    random_trees_results = run_raxml_on_several_spcific_tree_type(curr_run_directory, msa_path, msa_stats, param_obj,
+                                                                  "rand")
+    random_df = pd.DataFrame(random_trees_results)
+    random_df["tree_type"] = "random"
+    all_tree_runs = pd.concat([parsimony_df, random_df], sort=False)
+    processed_msa_runs = process_all_msa_RAxML_runs(curr_run_directory, all_tree_runs)
+
+    return processed_msa_runs
 
 
+def generate_msa_stats(original_alignment_path, args):
+    logging.info("Generating general MSA stats")
+    msa_name = original_alignment_path.replace(args.general_msa_dir, "").replace(os.path.sep,
+                                                                                 "_")
+    curr_msa_folder = os.path.join(args.curr_job_folder, msa_name)
+    create_or_clean_dir(curr_msa_folder)
+    file_type = extract_file_type(original_alignment_path, False)
+    original_alignment_data = get_alignment_data(
+        original_alignment_path)  # list(SeqIO.parse(original, file_type_biopython))
+    alignment_df = alignment_list_to_df(original_alignment_data)
+    n_seq, n_loci = alignment_df.shape
+    msa_path = original_alignment_path
+    msa_path_no_extension = os.path.splitext(msa_path)[0]
+    if re.search('\w+D[\da-z]+',msa_path_no_extension.split(os.sep)[-2]) is not None:
+        msa_type = "DNA"
+    else:
+        msa_type = "AA"
+    if (args.n_loci != n_loci or args.n_seq != n_seq) and args.trim_msa:
+        processed_msa_path = os.path.join(curr_msa_folder, "trimmed_msa" + file_type)
+        trim_MSA(original_alignment_data,  processed_msa_path, args.n_seq,
+                 args.n_loci, 0)
+        processed_alignment_data = get_alignment_data(
+            processed_msa_path)
+        msa_path = processed_msa_path
+        alignment_df = alignment_list_to_df(processed_alignment_data)
+        n_seq, n_loci = alignment_df.shape
+        if n_seq != args.n_seq or n_loci != args.n_loci:
+            logging.error(
+                f"Problem in trimming MSA: required number of sequences is {args.n_seq} and got {n_seq},required number of sites is {args.n_loci} and got {n_loci}")
+
+    msa_stats = {"msa_name": msa_name, "msa_path": msa_path,
+                 "n_loci": n_loci, "n_seq": n_seq, "msa_folder": curr_msa_folder, "msa_type": msa_type}
+    msa_stats.update(vars(args))
+    logging.info("Succesfully obtained MSA stats")
+    return msa_stats
 
 
-def RAxML_on_MSA(msa_stats, msa_path, curr_run_directory, param_obj):
-    logging.info(f" Running RAxML on msa in: {msa_path} ")
-    curr_msa_run_directory = os.path.join(curr_run_directory, "RAxML_runs")
-    create_or_clean_dir(curr_msa_run_directory)
-    curr_msa_RAxML_runs = RAxML_runs_on_given_msa(msa_stats,msa_stats["trimmed_msa_path"], curr_msa_run_directory, param_obj)
-    curr_msa_data_analysis = analyze_RAxML_given_msa_runs(curr_run_directory, curr_msa_RAxML_runs)
-    return curr_msa_data_analysis
+def MSA_search_params_tuning_analysis(msa_stats):
+    '''
 
+    :param msa_stats:
+    :return: The function generates a grid of parameters based on the user's input, runs RAxML on different starting trees based on
+    different values of the grid
+    '''
 
-
-
-
-def str_to_linspace(str):
-    linespace_nums = [int(n) for n in str.split("_")]
-    return np.linspace(linespace_nums[0],linespace_nums[1],linespace_nums[2])
-
-
-def get_param_obj(n_parsimony_grid_str, n_random_grid_str, spr_radius_grid_str):
-    param_grid = {}
-    for param_name, param_grid_str in zip(['n_parsimony','n_random','spr_radius'], [n_parsimony_grid_str, n_random_grid_str, spr_radius_grid_str]):
-        if param_grid_str!="default":
-            linspace = str_to_linspace(param_grid_str)
-            param_grid[param_name] = linspace
-    param_obj = (ParameterGrid(param_grid))
-    return param_obj
+    param_grid_str = {"spr_radius": msa_stats["spr_radius_grid"], "spr_cutoff": msa_stats["spr_cutoff_grid"]}
+    param_obj = get_param_obj(param_grid_str)
+    curr_msa_RAxML_directory = os.path.join(msa_stats["msa_folder"], "RAxML_runs")
+    create_or_clean_dir(curr_msa_RAxML_directory)
+    raw_msa_RAxML_results = RAxML_runs_on_given_msa(msa_stats, msa_stats["msa_path"], curr_msa_RAxML_directory,
+                                                    param_obj)
+    return raw_msa_RAxML_results
 
 
 def main():
     parser = job_parser()
     args = parser.parse_args()
     job_related_file_paths = get_job_related_files_paths(args.curr_job_folder, args.job_ind)
-    job_msa_paths_file, general_log_path, job_csv_path, job_best_csv_path, curr_job_status_file = \
-    job_related_file_paths[
-        "job_msa_paths_file"], \
-    job_related_file_paths[
-        "general_log_path"], \
-    job_related_file_paths[
-        "job_csv_path"], \
-    job_related_file_paths["job_only_best_csv_path"], \
-    job_related_file_paths[
-        "job_status_file"]
+    job_msa_paths_file, general_log_path, job_csv_path, curr_job_status_file = \
+        job_related_file_paths[
+            "job_msa_paths_file"], \
+        job_related_file_paths[
+            "general_log_path"], \
+        job_related_file_paths[
+            "job_csv_path"], \
+        job_related_file_paths[
+            "job_status_file"]
     with open(job_msa_paths_file, "r") as paths_file:
         curr_job_file_path_list = paths_file.read().splitlines()
     logging.basicConfig(filename=general_log_path, level=LOGGING_LEVEL)
-    logging.info('#Started running on job' + str(args.job_ind))
-    logging.info("Job arguments : {}".format(args))
+    logging.info(f'#Started running on job {args.job_ind}\nJob arguments are: {args}')
 
     job_results = pd.DataFrame(
     )
-    job_results.to_csv(job_csv_path, index=False)
+    job_results.to_csv(job_csv_path, sep='\t')
 
-
-    job_best_results = pd.DataFrame(
-    )
-    job_best_results.to_csv(job_best_csv_path, index=False)
     for file_ind, original_alignment_path in enumerate(curr_job_file_path_list):
-        msa_name = original_alignment_path.replace(MSAs_FOLDER, "").replace("ref_msa.aa.phy", "").replace(os.path.sep,
-                                                                                                          "_")
-        logging.info(
-            f'#running on file name {msa_name} and ind (relativ to job) {file_ind}  original path= {original_alignment_path}')
-        curr_msa_folder = os.path.join(args.curr_job_folder, msa_name)
-        create_or_clean_dir(curr_msa_folder)
-        msa_stats = handle_msa(curr_msa_folder, original_alignment_path, args.n_seq, args.n_loci)
-        msa_stats.update(vars(args))
-        extract_raxml_statistics_from_msa(original_alignment_path, f"msa_{file_ind}", msa_stats,  curr_msa_folder)
-        logging.info(f"Basic MSA stats {msa_stats}\n")
-        param_obj = get_param_obj(args.n_parsimony_grid, args.n_random_grid, args.spr_radius_grid)
-        if msa_stats["use_raxml_search"]:
-            curr_msa_data_analysis = RAxML_on_MSA(msa_stats, original_alignment_path, curr_msa_folder, param_obj)
-        else:
-            curr_msa_data_analysis = SPR_on_MSA(msa_stats, original_alignment_path, curr_msa_folder, param_obj)
-        job_results = job_results.append(curr_msa_data_analysis, ignore_index=True)
-        best_raxml_result = (curr_msa_data_analysis[ curr_msa_data_analysis["rf_from_best_topology"] == 0]).sort_values(
-            'elapsed_running_time', ascending=True).head(1)
-        job_best_results = job_best_results.append(best_raxml_result)
-        job_results.to_csv(job_csv_path)
-        job_best_results.to_csv(job_best_csv_path)
+        print(f"file ind = {file_ind} original_alignment_path= {original_alignment_path}")
+        msa_stats = generate_msa_stats(original_alignment_path, args)
+        curr_msa_data_analysis = MSA_search_params_tuning_analysis(msa_stats).drop(columns=COLUMNS_TO_IGNORE_CSV)
+        curr_msa_data_analysis.to_csv(job_csv_path,mode='a',header = file_ind==0,sep='\t')
 
     with open(curr_job_status_file, 'w') as job_status_f:
         job_status_f.write("Done")
     logging.info("Current job is done")
-
 
 
 if __name__ == "__main__":
