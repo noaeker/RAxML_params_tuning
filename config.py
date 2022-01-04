@@ -39,7 +39,7 @@ COLUMNS_TO_IGNORE_CSV = ["run_raxml_commands_locally", "run_prefix", "remove_out
 if not LOCAL_RUN:
     RAXML_NG_EXE = "/groups/pupko/noaeker/raxml-ng-float-mpi/raxml-ng --extra thread-pin "
     MAD_COMMAND_PREFIX = "/groups/pupko/noaeker/mad"
-    RESULTS_FOLDER = "/groups/pupko/noaeker/lasso_positions_sampling_results"
+    RESULTS_FOLDER = "/groups/pupko/noaeker/RAxML_params_tuning_results"
     MSAs_CSV_PATH = "/groups/pupko/noaeker/data/sampled_datasets.csv"
     GENERAL_MSA_DIR = "/groups/pupko/noaeker/data/single-gene_alignments"
     MAIN_CODE_PATH = "/groups/pupko/noaeker/lasso_positions_sampling/parallel_code/MSA_positions_sampling.py"
