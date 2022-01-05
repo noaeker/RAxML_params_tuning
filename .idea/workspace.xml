@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/tp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/R_code/analayze_raxml_tuning.Rmd" beforeDir="false" afterPath="$PROJECT_DIR$/R_code/analayze_raxml_tuning.Rmd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/R_code/analayze_raxml_tuning.nb.html" beforeDir="false" afterPath="$PROJECT_DIR$/R_code/analayze_raxml_tuning.nb.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/help_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/help_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tune_params.py" beforeDir="false" afterPath="$PROJECT_DIR$/tune_params.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -13,7 +16,7 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/config.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="34">
@@ -37,8 +40,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tune_params.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="334">
-              <caret line="244" column="38" selection-start-line="244" selection-start-column="38" selection-end-line="244" selection-end-column="38" />
+            <state relative-caret-position="-235">
+              <caret line="35" column="55" selection-start-line="35" selection-start-column="27" selection-end-line="35" selection-end-column="55" />
               <folding>
                 <element signature="e#0#19#0" expanded="true" />
               </folding>
@@ -67,7 +70,7 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/help_functions.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="121">
@@ -102,8 +105,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>try</find>
-      <find>random tree was not generated in</find>
       <find>AxML_runs_on_given_msa</find>
       <find>WAG</find>
       <find>wag</find>
@@ -132,6 +133,8 @@
       <find>logging.info</find>
       <find>dd_csvs_content</find>
       <find>re.</find>
+      <find>COLUMNS_TO_INCLUDE_CSV</find>
+      <find>msa_folder</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -150,10 +153,10 @@
         <option value="$PROJECT_DIR$/trees_manipulation.py" />
         <option value="$PROJECT_DIR$/raxml.py" />
         <option value="$PROJECT_DIR$/test.py" />
-        <option value="$PROJECT_DIR$/tune_params.py" />
         <option value="$PROJECT_DIR$/tp.py" />
-        <option value="$PROJECT_DIR$/help_functions.py" />
+        <option value="$PROJECT_DIR$/tune_params.py" />
         <option value="$PROJECT_DIR$/config.py" />
+        <option value="$PROJECT_DIR$/help_functions.py" />
       </list>
     </option>
   </component>
@@ -341,7 +344,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32833582" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.40629685" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.29985008" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.32533732" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -360,7 +363,7 @@
       <breakpoints>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/tune_params.py</url>
-          <line>98</line>
+          <line>99</line>
           <option name="timeStamp" value="21" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -596,16 +599,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tune_params.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="334">
-          <caret line="244" column="38" selection-start-line="244" selection-start-column="38" selection-end-line="244" selection-end-column="38" />
-          <folding>
-            <element signature="e#0#19#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/tp.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="206">
@@ -616,12 +609,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/help_functions.py">
+    <entry file="file://$PROJECT_DIR$/tune_params.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="121">
-          <caret line="328" column="56" selection-start-line="328" selection-start-column="56" selection-end-line="328" selection-end-column="56" />
+        <state relative-caret-position="-235">
+          <caret line="35" column="55" selection-start-line="35" selection-start-column="27" selection-end-line="35" selection-end-column="55" />
           <folding>
-            <element signature="e#0#9#0" expanded="true" />
+            <element signature="e#0#19#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -630,6 +623,16 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="34">
           <caret line="2" column="17" selection-start-line="2" selection-start-column="17" selection-end-line="2" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/help_functions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="121">
+          <caret line="328" column="56" selection-start-line="328" selection-start-column="56" selection-end-line="328" selection-end-column="56" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

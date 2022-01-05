@@ -33,6 +33,7 @@ def process_spefic_starting_tree_search_RAxML_runs(curr_run_directory, given_tre
     :return:
     '''
     best_tree_search_ll = max(given_tree_search_data["final_ll"])
+    given_tree_search_data["curr_starting_tree_best_ll"] = best_tree_search_ll
     best_tree_search_topology = max(
         given_tree_search_data[given_tree_search_data["final_ll"] == best_tree_search_ll]['final_tree_topology'])
     given_tree_search_data["rf_from_curr_starting_tree_best_topology"] = given_tree_search_data["final_tree_topology"].apply(
@@ -190,6 +191,7 @@ def generate_msa_stats(original_alignment_path, args):
                 f"Problem in trimming MSA: required number of sequences is {args.n_seq} and got {n_seq},required number of sites is {args.n_loci} and got {n_loci}")
 
     msa_stats = {"msa_name": msa_name, "msa_path": msa_path,
+                 "original_alignment_path": original_alignment_path,
                  "n_loci": n_loci, "n_seq": n_seq, "msa_folder": curr_msa_folder, "msa_type": msa_type}
     msa_stats.update(vars(args))
     logging.info("Succesfully obtained MSA stats")
@@ -234,7 +236,7 @@ def main():
     for file_ind, original_alignment_path in enumerate(curr_job_file_path_list):
         print(f"file ind = {file_ind} original_alignment_path= {original_alignment_path}")
         msa_stats = generate_msa_stats(original_alignment_path, args)
-        curr_msa_data_analysis = MSA_search_params_tuning_analysis(msa_stats).drop(columns=COLUMNS_TO_IGNORE_CSV)
+        curr_msa_data_analysis = MSA_search_params_tuning_analysis(msa_stats)[COLUMNS_TO_INCLUDE_CSV]
         curr_msa_data_analysis.to_csv(job_csv_path,mode='a',header = file_ind==0,sep=CSV_SEP)
         if args.remove_output_files:
             shutil.rmtree(msa_stats["msa_folder"])

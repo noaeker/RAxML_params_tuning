@@ -13,11 +13,11 @@ N_CPUS_PER_TRAINING = 1
 N_CPUS_RAXML = 1
 N_MSAS = 2
 N_JOBS = 1
-N_SEQ = 10
+N_SEQ = 15
 MIN_N_SEQ = 10
 N_PARSIMONY_RAXML_SEARCH = 2
 N_RANDOM_RAXML_SEARCH = 2
-N_LOCI = 100
+N_LOCI = 1000
 MIN_N_LOCI = 1
 LOGGING_LEVEL = logging.DEBUG
 OUTPUT_CSV_NAME = "tune_raxml"
@@ -29,12 +29,12 @@ SPR_CUTOFF_GRID = "0.1_10_2"
 CSV_SEP = "\t"
 CSV_SUFFIX = ".tsv"
 
-COLUMNS_TO_IGNORE_CSV = ["run_raxml_commands_locally", "run_prefix", "remove_output_files", "queue", "n_jobs",
-                         "n_cpus_raxml", "n_cpus_per_job", "n_MSAs", "curr_job_folder", "msa_name", "min_n_loci",
-                         "min_n_seq",
-                         "jobs_prefix", "job_ind", "final_tree_topology", "first_msa_ind", "jobs_prefix", "job_ind",
-                         "n_raxml_parsimony_trees", "n_raxml_random_trees",
-                         "queue", "remove_output_files", "trim_msa", "spr_radius_grid", "spr_cutoff_grid"]
+COLUMNS_TO_INCLUDE_CSV = ["msa_folder","original_alignment_path","msa_name","elapsed_running_time", "msa_type", "n_loci", "n_seq", "run_name",
+                         "spr_cutoff","spr_radius","starting_tree_ll","final_ll","rf_from_curr_starting_tree_best_topology","curr_starting_tree_best_ll",
+                         "delta_ll_from_curr_starting_tree_best_topology","starting_tree_ind","tree_type","best_msa_ll","rf_from_overall_msa_best_topology",
+                         "delta_ll_from_overall_msa_best_topology"]
+
+
 
 # PATH CONFIGURATION
 
