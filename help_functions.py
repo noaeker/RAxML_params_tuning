@@ -39,20 +39,11 @@ def get_param_obj(param_grid_dict_str):
 #             stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 #
 
-def execute_commnand_and_write_to_log(command, curr_run_directory="", job_folder_name="", job_name="", log_file_path="",
-                                      cpus=-1, queue="pupkolab", extra_file_path="", run_locally=False):
-    if LOCAL_RUN or run_locally:
+def execute_commnand_and_write_to_log(command, print_to_log = False):
+        if print_to_log:
+            logging.info(f"About to run: {command}")
         subprocess.run(command, shell=True,stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-    else:
-        job_folder = os.path.join(curr_run_directory, job_folder_name)
-        submit_linux_job(job_name, job_folder, command, cpus,  queue=queue)
-        logging.info(f"*** Waiting for elapsed time in log file {log_file_path}")
-        while not (os.path.exists(log_file_path) and (
-                os.path.exists(extra_file_path) or extra_file_path == "") and (extract_param_from_raxmlNG_log(log_file_path,
-                                                                                                     'time',
-                                                                                                             raise_error=False)) is not None):
-            time.sleep(30)
-        logging.info("*** current time: {} previous job is completed!!***".format(datetime.now()))
+
 
 
 def generate_argument_list(args):
@@ -274,22 +265,22 @@ def unify_text_files(input_path_list, output_file_path, str_given=False):
 
 
 def add_csvs_content(csvs_path_list, unified_csv_path):
-    existing_df = [pd.read_csv(unified_csv_path)] if os.path.exists(unified_csv_path) else []
-    existing_df_size = pd.read_csv(unified_csv_path).size if os.path.exists(unified_csv_path) else 0
+    existing_df = [pd.read_csv(unified_csv_path,sep=CSV_SEP)] if os.path.exists(unified_csv_path) else []
+    existing_df_size = pd.read_csv(unified_csv_path,sep=CSV_SEP).size if os.path.exists(unified_csv_path) else 0
     logging.info('Existing df size is: {}'.format(existing_df_size))
-    non_empty_df = [pd.read_csv(f) for f in csvs_path_list if not pd.read_csv(f).empty]
+    non_empty_df = [pd.read_csv(f,sep=CSV_SEP) for f in csvs_path_list if not pd.read_csv(f,sep=CSV_SEP).empty]
     combined_df = pd.concat(non_empty_df + existing_df, sort=False)
     combined_df_size = combined_df.size
     logging.info('Combined df size is: {}'.format(combined_df_size))
-    combined_df.to_csv(unified_csv_path, index=False)
+    combined_df.to_csv(unified_csv_path,sep = CSV_SEP)
     return combined_df
 
 
 def remove_empty_columns(csv_path):
     if os.path.exists((csv_path)):
-        df = pd.read_csv(csv_path)
+        df = pd.read_csv(csv_path, sep =CSV_SEP)
         df = df.dropna(how='all', axis=1)
-        df.to_csv(csv_path, index=False)
+        df.to_csv(csv_path, index=False, sep = CSV_SEP)
 
 
 def get_positions_stats(alignment_df):
@@ -306,7 +297,7 @@ def get_positions_stats(alignment_df):
 
 def get_job_related_files_paths(curr_job_folder, job_ind):
     job_status_file = os.path.join(curr_job_folder, str(job_ind) + "_status")
-    job_csv_path = os.path.join(curr_job_folder, str(job_ind) + ".csv")
+    job_csv_path = os.path.join(curr_job_folder, str(job_ind) + CSV_SUFFIX)
     job_msa_paths_file = os.path.join(curr_job_folder, "file_paths_" + str(job_ind))
     general_log_path = os.path.join(curr_job_folder, "job_" + str(job_ind) + "_general_log.log")
     return {"job_status_file": job_status_file, "job_csv_path": job_csv_path, "job_msa_paths_file": job_msa_paths_file,
@@ -336,7 +327,8 @@ def main_parser():
     parser.add_argument('--spr_radius_grid', action='store', type=str, default=SPR_RADIUS_GRID)
     parser.add_argument('--spr_cutoff_grid', action='store', type=str, default=SPR_CUTOFF_GRID)
     parser.add_argument('--trim_msa',action='store_true')
-    parser.add_argument('--remove_output_files',action='store_true' )
+    parser.add_argument('--remove_output_files',action='store_true', default= True)
+    parser.add_argument('--print_commands_to_log', action='store_true')
     return parser
 
 

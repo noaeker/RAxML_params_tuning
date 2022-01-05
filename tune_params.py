@@ -9,7 +9,7 @@ def calculate_rf_dist(rf_file_path, curr_run_directory, prefix="rf"):
     rf_command = (
         "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
         raxml_exe_path=RAXML_NG_EXE, rf_file_path=rf_file_path, prefix=rf_prefix)
-    execute_commnand_and_write_to_log(rf_command, run_locally=True)
+    execute_commnand_and_write_to_log(rf_command)
     rf_log_file_path = rf_prefix + ".raxml.log"
     relative_rf_dist = extract_param_from_raxmlNG_log(rf_log_file_path, "rf_dist")
     return relative_rf_dist
@@ -99,7 +99,7 @@ def single_tree_RAxML_run(curr_run_directory, msa_path, starting_tree_path, path
     return tree_results
 
 
-def run_raxml_on_several_spcific_tree_type(curr_run_directory, msa_path, msa_stats, param_obj, tree_type):
+def run_raxml_on_several_spcific_tree_type(curr_run_directory, msa_path, msa_stats, param_obj, tree_type, n):
     '''
 
     :param curr_run_directory:
@@ -111,7 +111,7 @@ def run_raxml_on_several_spcific_tree_type(curr_run_directory, msa_path, msa_sta
     '''
     all_given_tree_type_results = pd.DataFrame()
     parsimony_topologies_path, elapsed_time_p = generate_n_tree_topologies(
-        n=msa_stats["n_raxml_parsimony_trees"],
+        n=n,
         original_file_path=msa_path,
         curr_run_directory=curr_run_directory,
         curr_msa_stats=msa_stats, seed=SEED,
@@ -145,12 +145,12 @@ def RAxML_runs_on_given_msa(msa_stats, msa_path, curr_run_directory, param_obj):
     '''
     logging.info("About to run RAxML on parsimony trees")
     parsimony_trees_results = run_raxml_on_several_spcific_tree_type(curr_run_directory, msa_path, msa_stats, param_obj,
-                                                                     "pars")
+                                                                     "pars", n= msa_stats["n_raxml_parsimony_trees"])
     parsimony_df = pd.DataFrame(parsimony_trees_results)
     parsimony_df["tree_type"] = "parsimony"
     logging.info("About to run RAxML on random trees")
     random_trees_results = run_raxml_on_several_spcific_tree_type(curr_run_directory, msa_path, msa_stats, param_obj,
-                                                                  "rand")
+                                                                  "rand", n = msa_stats["n_raxml_random_trees"])
     random_df = pd.DataFrame(random_trees_results)
     random_df["tree_type"] = "random"
     all_tree_runs = pd.concat([parsimony_df, random_df], sort=False)
@@ -233,13 +233,14 @@ def main():
 
     job_results = pd.DataFrame(
     )
-    job_results.to_csv(job_csv_path, sep='\t')
 
     for file_ind, original_alignment_path in enumerate(curr_job_file_path_list):
         print(f"file ind = {file_ind} original_alignment_path= {original_alignment_path}")
         msa_stats = generate_msa_stats(original_alignment_path, args)
         curr_msa_data_analysis = MSA_search_params_tuning_analysis(msa_stats).drop(columns=COLUMNS_TO_IGNORE_CSV)
-        curr_msa_data_analysis.to_csv(job_csv_path,mode='a',header = file_ind==0,sep='\t')
+        curr_msa_data_analysis.to_csv(job_csv_path,mode='a',header = file_ind==0,sep=CSV_SEP)
+        if args.remove_output_files:
+            shutil.rmtree(msa_stats["msa_folder"])
 
     with open(curr_job_status_file, 'w') as job_status_f:
         job_status_f.write("Done")

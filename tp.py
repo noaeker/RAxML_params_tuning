@@ -28,7 +28,7 @@ def distribute_MSAs_over_jobs(file_path_list, all_jobs_results_folder, args):
         status_file_path_list.append(job_related_files_paths["job_status_file"])
         raw_results = pd.DataFrame(
         )
-        raw_results.to_csv(job_related_files_paths["job_csv_path"], index=False)
+        raw_results.to_csv(job_related_files_paths["job_csv_path"], index=False, sep = '\t')
         with open(job_related_files_paths["job_msa_paths_file"], 'w') as f:
             for path in job_msa_paths:
                 f.write("%s\n" % path)
@@ -57,14 +57,14 @@ def main():
     all_jobs_general_log_file = os.path.join(all_jobs_results_folder, "log_file.log")
     logging.basicConfig(filename=all_jobs_general_log_file, level=LOGGING_LEVEL)
     logging.info("Args = {args}".format(args=args))
-    all_jobs_csv = os.path.join(all_jobs_results_folder, OUTPUT_CSV_NAME + '.csv')
-    all_jobs_backup_csv = os.path.join(all_jobs_results_folder, "backup.csv")
+    all_jobs_csv = os.path.join(all_jobs_results_folder, OUTPUT_CSV_NAME + CSV_SUFFIX)
+    all_jobs_backup_csv = os.path.join(all_jobs_results_folder, f"backup{CSV_SUFFIX}")
     logging.info('#Started running')
     file_path_list = extract_alignment_files_from_dirs(args.general_msa_dir)
     logging.info("There are overall {nMSAs} available MSAs ".format(nMSAs=len(file_path_list)))
     if os.path.exists(all_jobs_backup_csv) and os.path.os.stat(all_jobs_backup_csv).st_size > 0:
         shutil.copy(all_jobs_backup_csv, all_jobs_csv)
-        file_path_list = [f for f in file_path_list if f not in pd.read_csv(all_jobs_backup_csv)["dataset_id"].unique()]
+        file_path_list = [f for f in file_path_list if f not in pd.read_csv(all_jobs_backup_csv, sep = CSV_SEP)["dataset_id"].unique()]
         logging.info(
             "After removing files that exist in {} there are {} MSAs".format(all_jobs_backup_csv, len(file_path_list)))
     file_path_list = remove_MSAs_with_not_enough_seq_and_locis(file_path_list, args.min_n_seq, args.min_n_loci)

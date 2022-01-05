@@ -93,9 +93,7 @@ def iqtree_search(curr_run_directory, msa_path, prefix,params_config, cpus):
         msa_path=msa_path, starting_trees_command=starting_trees_command, seed=SEED,
         prefix=search_prefix, spr_radius_command = spr_radius_command, spr_cutoff_command = spr_cutoff_command)
     raxml_log_file = search_prefix + ".raxml.log"
-    execute_commnand_and_write_to_log(search_command, curr_run_directory, job_folder_name="raxml_search_job",
-                                      job_name="raxml_search", log_file_path=raxml_log_file, cpus=cpus,
-                                      run_locally=LOCAL_RUN)
+    execute_commnand_and_write_to_log(search_command)
     elapsed_running_time = extract_param_from_IQTREE_log(raxml_log_file, 'time')
     best_ll = extract_param_from_IQTREE_log(raxml_log_file, 'search_ll')
     best_tree_topology_path = search_prefix + ".raxml.bestTree"

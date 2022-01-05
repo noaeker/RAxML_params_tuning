@@ -26,6 +26,8 @@ TRAINING_SIZE = 1000
 EPSILON = 0.1
 SPR_RADIUS_GRID = "1_30_2"
 SPR_CUTOFF_GRID = "0.1_10_2"
+CSV_SEP = "\t"
+CSV_SUFFIX = ".tsv"
 
 COLUMNS_TO_IGNORE_CSV = ["run_raxml_commands_locally", "run_prefix", "remove_output_files", "queue", "n_jobs",
                          "n_cpus_raxml", "n_cpus_per_job", "n_MSAs", "curr_job_folder", "msa_name", "min_n_loci",
@@ -37,15 +39,13 @@ COLUMNS_TO_IGNORE_CSV = ["run_raxml_commands_locally", "run_prefix", "remove_out
 # PATH CONFIGURATION
 
 if not LOCAL_RUN:
-    RAXML_NG_EXE = "/groups/pupko/noaeker/raxml-ng-float-mpi/raxml-ng --extra thread-pin "
+    RAXML_NG_EXE = "/groups/pupko/noaeker/programs/tree_search_programs/raxml-ng/raxml-ng  "
     MAD_COMMAND_PREFIX = "/groups/pupko/noaeker/mad"
     RESULTS_FOLDER = "/groups/pupko/noaeker/RAxML_params_tuning_results"
-    MSAs_CSV_PATH = "/groups/pupko/noaeker/data/sampled_datasets.csv"
     GENERAL_MSA_DIR = "/groups/pupko/noaeker/data/single-gene_alignments"
     MAIN_CODE_PATH = "/groups/pupko/noaeker/RAxML_params_tuning/tune_params.py"
-    R_CODE_PATH = "/groups/pupko/noaeker/lasso_positions_sampling/R_code/lasso_glmnet.R"
     RAXML_HPC_EXE = "/groups/pupko/noaeker/standard-RAxML/raxmlHPC"
-    RATE4SITE_COMMAND_PREFIX = "/groups/pupko/noaeker/rate4site/rate4site"
+    RATE4SITE_COMMAND_PREFIX = "/groups/pupko/noaeker/programs/other_programs/rate4site/rate4site"
 elif LOCAL_RUN:
     IQTREE_EXE = "/Users/noa/Programs/iqtree-2.1.3-MacOSX/bin/iqtree2"
     RAXML_NG_EXE = "/Users/noa/Programs/Raxml/raxml-ng  "

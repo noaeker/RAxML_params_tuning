@@ -50,9 +50,9 @@ def get_distance_between_edges(tree, pruned_edge,regraft_edge):
 def get_possible_spr_moves(starting_tree, rearr_dist=-1):
     edges_list = []
     main_tree_root_pointer_cp = starting_tree.copy()
-    for i, prune_node in enumerate(main_tree_root_pointer_cp.iter_descendants("levelorder")):
-        if prune_node.up:
-            edge = Edge(node_a=prune_node.name, node_b=prune_node.up.name)
+    for i, node in enumerate(main_tree_root_pointer_cp.iter_descendants("levelorder")):
+        if node.up:
+            edge = Edge(node_a=node.name, node_b=node.up.name)
             edges_list.append(edge)
     possible_moves = []
     for prune_edge in edges_list:

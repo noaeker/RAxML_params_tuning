@@ -139,7 +139,7 @@ def filter_unique_topologies(curr_run_directory, trees_path, n):
     rf_command = (
         "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
         raxml_exe_path=RAXML_NG_EXE, rf_file_path=trees_path, prefix=rf_prefix)
-    execute_commnand_and_write_to_log(rf_command, run_locally=True)
+    execute_commnand_and_write_to_log(rf_command)
     rf_distances_file_path = rf_prefix + ".raxml.rfDistances"
     unique_file_path = trees_path + "_unique"
     unique_topology_inds = set(list(range(n)))
@@ -160,7 +160,7 @@ def filter_unique_topologies(curr_run_directory, trees_path, n):
     rf_command = (
         "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
         raxml_exe_path=RAXML_NG_EXE, rf_file_path=unique_file_path, prefix=rf_prefix)
-    execute_commnand_and_write_to_log(rf_command, run_locally=True)
+    execute_commnand_and_write_to_log(rf_command)
     return unique_file_path
 
 def generate_n_tree_topologies(n, original_file_path, curr_run_directory,
@@ -174,11 +174,7 @@ def generate_n_tree_topologies(n, original_file_path, curr_run_directory,
         msa_path=original_file_path,  prefix=prefix, seed=seed, model = model)
     trees_path = prefix + ".raxml.startTree"
     raxml_log_file = prefix + ".raxml.log"
-    execute_commnand_and_write_to_log(random_tree_generation_command, curr_run_directory,
-                                      job_folder_name="generate_random_trees_job", job_name="rand_trees",
-                                      log_file_path=raxml_log_file, cpus=1, queue=curr_msa_stats["queue"],
-                                      run_locally=curr_msa_stats["run_raxml_commands_locally"])
-    wait_for_file_existence(trees_path, "random tree")
+    execute_commnand_and_write_to_log(random_tree_generation_command,curr_msa_stats["print_commands_to_log"])
     elapsed_running_time = extract_param_from_raxmlNG_log(raxml_log_file, 'time')
     if tree_type=="pars" and n>1:
         logging.info("Removing duplicates parismony topologies")
@@ -186,7 +182,7 @@ def generate_n_tree_topologies(n, original_file_path, curr_run_directory,
         rf_command = (
             "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
             raxml_exe_path=RAXML_NG_EXE, rf_file_path=trees_path, prefix=rf_prefix)
-        execute_commnand_and_write_to_log(rf_command, run_locally=True)
+        execute_commnand_and_write_to_log(rf_command,curr_msa_stats["print_commands_to_log"])
         rf_distances_file_path = rf_prefix + ".raxml.rfDistances"
         trees_path = extract_parsimony_unique_topologies(curr_run_directory, trees_path,
                                                                rf_distances_file_path, n)
@@ -197,7 +193,7 @@ def extract_parsimony_unique_topologies(curr_run_directory, trees_path, dist_pat
     rf_command = (
         "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
         raxml_exe_path=RAXML_NG_EXE, rf_file_path=trees_path, prefix=rf_prefix)
-    execute_commnand_and_write_to_log(rf_command, run_locally=True)
+    execute_commnand_and_write_to_log(rf_command)
     unique_file_path = trees_path + "_unique"
     unique_topology_inds = set(list(range(n)))
     with open(dist_path, 'r') as DIST, open(trees_path, 'r') as TREES, open(unique_file_path, 'w') as UNIQUE_TREES:
@@ -216,7 +212,7 @@ def extract_parsimony_unique_topologies(curr_run_directory, trees_path, dist_pat
     rf_command = (
         "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
         raxml_exe_path=RAXML_NG_EXE, rf_file_path=unique_file_path, prefix=rf_prefix)
-    execute_commnand_and_write_to_log(rf_command, run_locally=True)
+    execute_commnand_and_write_to_log(rf_command)
     return unique_file_path
 
 def raxml_search(curr_msa_stats,curr_run_directory, msa_path, prefix,params_config, cpus, starting_tree_path):
@@ -234,9 +230,7 @@ def raxml_search(curr_msa_stats,curr_run_directory, msa_path, prefix,params_conf
         msa_path=msa_path, starting_trees_command=starting_trees_command, seed=SEED,
         prefix=search_prefix, spr_radius_command = spr_radius_command, spr_cutoff_command = spr_cutoff_command, model = model)
     raxml_log_file = search_prefix + ".raxml.log"
-    execute_commnand_and_write_to_log(search_command, curr_run_directory, job_folder_name="raxml_search_job",
-                                      job_name="raxml_search", log_file_path=raxml_log_file, cpus=cpus,
-                                      run_locally=LOCAL_RUN)
+    execute_commnand_and_write_to_log(search_command,curr_msa_stats["print_commands_to_log"])
     elapsed_running_time = extract_param_from_raxmlNG_log(raxml_log_file, 'time')
     best_ll = extract_param_from_raxmlNG_log(raxml_log_file, 'search_ll')
     starting_tree_ll  = extract_param_from_raxmlNG_log(raxml_log_file, 'starting_tree_ll')
@@ -273,10 +267,7 @@ def raxml_optimize_trees_for_given_msa(curr_msa_stats,full_data_path, ll_on_data
     optimized_trees_path = prefix + ".raxml.mlTrees"
     best_tree_path = prefix + ".raxml.bestTree"
     raxml_log_file = prefix + ".raxml.log"
-    execute_commnand_and_write_to_log(compute_ll_run_command, curr_run_directory,
-                                      job_folder_name="raxml_optimize_test_trees_job", job_name="trees_opt",
-                                      log_file_path=raxml_log_file, cpus=n_cpus, queue=msa_stats["queue"],
-                                      run_locally=msa_stats["run_raxml_commands_locally"])
+    execute_commnand_and_write_to_log(compute_ll_run_command,curr_msa_stats["print_commands_to_log"])
 
     trees_ll_on_data = extract_param_from_raxmlNG_log(raxml_log_file, "ll")
     elapsed_running_time = extract_param_from_raxmlNG_log(raxml_log_file, 'time')
