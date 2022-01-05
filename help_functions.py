@@ -321,6 +321,7 @@ def main_parser():
     parser.add_argument('--jobs_prefix', action='store', type=str, default=CURR_JOBS_PREFIX)
     parser.add_argument('--n_MSAs', action='store', type=int, default=N_MSAS)
     parser.add_argument('--n_jobs', action='store', type=int, default=N_JOBS)
+    parser.add_argument('--run_raxml_commands_locally',action='store_true', default= True)
     parser.add_argument('--first_msa_ind', action='store', type=int, default=0)
     parser.add_argument('--n_seq', action='store', type=int, default=N_SEQ)
     parser.add_argument('--min_n_seq', action='store', type=int, default=MIN_N_SEQ)
