@@ -61,6 +61,8 @@ def main():
     all_jobs_backup_csv = os.path.join(all_jobs_results_folder, f"backup{CSV_SUFFIX}")
     logging.info('#Started running')
     file_path_list = extract_alignment_files_from_dirs(args.general_msa_dir)
+    if LOCAL_RUN:
+        file_path_list = file_path_list[:100]
     logging.info("There are overall {nMSAs} available MSAs ".format(nMSAs=len(file_path_list)))
     if os.path.exists(all_jobs_backup_csv) and os.path.os.stat(all_jobs_backup_csv).st_size > 0:
         shutil.copy(all_jobs_backup_csv, all_jobs_csv)

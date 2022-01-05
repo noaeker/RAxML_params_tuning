@@ -231,9 +231,6 @@ def main():
     logging.basicConfig(filename=general_log_path, level=LOGGING_LEVEL)
     logging.info(f'#Started running on job {args.job_ind}\nJob arguments are: {args}')
 
-    job_results = pd.DataFrame(
-    )
-
     for file_ind, original_alignment_path in enumerate(curr_job_file_path_list):
         print(f"file ind = {file_ind} original_alignment_path= {original_alignment_path}")
         msa_stats = generate_msa_stats(original_alignment_path, args)
@@ -241,10 +238,13 @@ def main():
         curr_msa_data_analysis.to_csv(job_csv_path,mode='a',header = file_ind==0,sep=CSV_SEP)
         if args.remove_output_files:
             shutil.rmtree(msa_stats["msa_folder"])
+        open(general_log_path, 'w').close()
 
     with open(curr_job_status_file, 'w') as job_status_f:
         job_status_f.write("Done")
-    logging.info("Current job is done")
+    logging.info("Current job is Done!")
+
+
 
 
 if __name__ == "__main__":
