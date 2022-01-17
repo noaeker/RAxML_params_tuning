@@ -103,6 +103,7 @@ def add_internal_names(original_tree):
     for i, node in enumerate(original_tree.traverse()):
         if not node.is_leaf():
             node.name = "N{}".format(i)
+        original_tree.get_tree_root().name = "ROOT"
     return original_tree
 
 
@@ -145,5 +146,20 @@ def assign_brlen_to_tree_object(tree_object, brlen_list):
 
 
 
+def main():
+    t = Tree('((((H,K)D,(F,I)G)B,E)A,((L,(N,Q)O)J,(P,S)M)C);', format=1)
+    add_internal_names(t)
+    (print(t.get_ascii(attributes=['name'], show_internal=True)))
+    # for i, pruning_head_node in enumerate(t.iter_descendants("levelorder")):
+    #     if not pruning_head_node.up.is_root(): # if this is not one of the two direct child nodes of the root
+    #         pruning_edge = Edge(node_a=pruning_head_node.name, node_b=pruning_head_node.up.name)
+    #     for j, regrafting_head_node in enumerate(t.iter_descendants("levelorder")):
+    #         if not regrafting_head_node.up.is_root():
+    #             regrafting_edge = Edge(node_a=regrafting_head_node.name, node_b=regrafting_head_node.up.name)
+    #             if not ((pruning_edge.node_a == regrafting_edge.node_a) or (pruning_edge.node_b == regrafting_edge.node_b) or (
+    #                     pruning_edge.node_b == regrafting_edge.node_a) or (pruning_edge.node_a == regrafting_edge.node_b))
 
 
+
+if __name__ == "__main__":
+    main()

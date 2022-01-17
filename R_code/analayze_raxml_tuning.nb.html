@@ -1741,106 +1741,20 @@ pre code {
 <p>Try executing this chunk by clicking the <em>Run</em> button within the chunk or by placing your cursor inside it and pressing <em>Cmd+Shift+Enter</em>.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShsbWU0KVxuYGBgIn0= -->
-<pre class="r"><code>library(lme4)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBNYXRyaXhcbiJ9 -->
-<pre><code>Loading required package: Matrix</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShnZ3Bsb3QyKVxubGlicmFyeShwbG90cml4KVxubGlicmFyeSh2aXNyZWcpXG5saWJyYXJ5KHN0cmluZ3IpXG5saWJyYXJ5KHRpZHl2ZXJzZSlcbmBgYCJ9 -->
-<pre class="r"><code>library(ggplot2)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShsbWU0KVxubGlicmFyeShnZ3Bsb3QyKVxubGlicmFyeShwbG90cml4KVxubGlicmFyeSh2aXNyZWcpXG5saWJyYXJ5KHN0cmluZ3IpXG5saWJyYXJ5KHRpZHl2ZXJzZSlcbmxpYnJhcnkoZ2dwdWJyKVxubGlicmFyeShncmlkRXh0cmEpXG5saWJyYXJ5KHRpZHl2ZXJzZSlcbmxpYnJhcnkodGlkeW1vZGVscylcbmxpYnJhcnkodmlwKSBcbmxpYnJhcnkocGxtKVxuYGBgIn0= -->
+<pre class="r"><code>library(lme4)
+library(ggplot2)
 library(plotrix)
 library(visreg)
 library(stringr)
-library(tidyverse)</code></pre>
+library(tidyverse)
+library(ggpubr)
+library(gridExtra)
+library(tidyverse)
+library(tidymodels)
+library(vip) 
+library(plm)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiUmVnaXN0ZXJlZCBTMyBtZXRob2RzIG92ZXJ3cml0dGVuIGJ5ICdkYnBseXInOlxuICBtZXRob2QgICAgICAgICBmcm9tXG4gIHByaW50LnRibF9sYXp5ICAgICBcbiAgcHJpbnQudGJsX3NxbCAgICAgIFxu4pSA4pSAIEF0dGFjaGluZyBwYWNrYWdlcyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgdGlkeXZlcnNlIDEuMy4wIOKUgOKUgFxu4pyTIHRpYmJsZSAgMy4xLjAgICAgIOKckyBwdXJyciAgIDAuMy40XG7inJMgdGlkeXIgICAxLjEuMiAgICAg4pyTIGRwbHlyICAgMS4wLjRcbuKckyByZWFkciAgIDEuNC4wICAgICDinJMgZm9yY2F0cyAwLjUuMFxu4pSA4pSAIENvbmZsaWN0cyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgdGlkeXZlcnNlX2NvbmZsaWN0cygpIOKUgOKUgFxueCB0aWR5cjo6ZXhwYW5kKCkgbWFza3MgTWF0cml4OjpleHBhbmQoKVxueCBkcGx5cjo6ZmlsdGVyKCkgbWFza3Mgc3RhdHM6OmZpbHRlcigpXG54IGRwbHlyOjpsYWcoKSAgICBtYXNrcyBzdGF0czo6bGFnKClcbnggdGlkeXI6OnBhY2soKSAgIG1hc2tzIE1hdHJpeDo6cGFjaygpXG54IHRpZHlyOjp1bnBhY2soKSBtYXNrcyBNYXRyaXg6OnVucGFjaygpXG4ifQ== -->
-<pre><code>Registered S3 methods overwritten by &#39;dbplyr&#39;:
-  method         from
-  print.tbl_lazy     
-  print.tbl_sql      
-── Attaching packages ───────────────────────────────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──
-✓ tibble  3.1.0     ✓ purrr   0.3.4
-✓ tidyr   1.1.2     ✓ dplyr   1.0.4
-✓ readr   1.4.0     ✓ forcats 0.5.0
-── Conflicts ──────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
-x tidyr::expand() masks Matrix::expand()
-x dplyr::filter() masks stats::filter()
-x dplyr::lag()    masks stats::lag()
-x tidyr::pack()   masks Matrix::pack()
-x tidyr::unpack() masks Matrix::unpack()</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShnZ3B1YnIpXG5gYGAifQ== -->
-<pre class="r"><code>library(ggpubr)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiUmVnaXN0ZXJlZCBTMyBtZXRob2Qgb3ZlcndyaXR0ZW4gYnkgJ2RhdGEudGFibGUnOlxuICBtZXRob2QgICAgICAgICAgIGZyb21cbiAgcHJpbnQuZGF0YS50YWJsZSAgICAgXG5SZWdpc3RlcmVkIFMzIG1ldGhvZHMgb3ZlcndyaXR0ZW4gYnkgJ2Nhcic6XG4gIG1ldGhvZCAgICAgICAgICAgICAgICAgICAgICAgICAgZnJvbVxuICBpbmZsdWVuY2UubWVyTW9kICAgICAgICAgICAgICAgIGxtZTRcbiAgY29va3MuZGlzdGFuY2UuaW5mbHVlbmNlLm1lck1vZCBsbWU0XG4gIGRmYmV0YS5pbmZsdWVuY2UubWVyTW9kICAgICAgICAgbG1lNFxuICBkZmJldGFzLmluZmx1ZW5jZS5tZXJNb2QgICAgICAgIGxtZTRcbiJ9 -->
-<pre><code>Registered S3 method overwritten by &#39;data.table&#39;:
-  method           from
-  print.data.table     
-Registered S3 methods overwritten by &#39;car&#39;:
-  method                          from
-  influence.merMod                lme4
-  cooks.distance.influence.merMod lme4
-  dfbeta.influence.merMod         lme4
-  dfbetas.influence.merMod        lme4</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShncmlkRXh0cmEpXG5gYGAifQ== -->
-<pre class="r"><code>library(gridExtra)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYZ3JpZEV4dHJh4oCZXG5cblRoZSBmb2xsb3dpbmcgb2JqZWN0IGlzIG1hc2tlZCBmcm9tIOKAmHBhY2thZ2U6ZHBseXLigJk6XG5cbiAgICBjb21iaW5lXG4ifQ== -->
-<pre><code>
-Attaching package: ‘gridExtra’
-
-The following object is masked from ‘package:dplyr’:
-
-    combine</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5dmVyc2UpXG5saWJyYXJ5KHRpZHltb2RlbHMpXG5gYGAifQ== -->
-<pre class="r"><code>library(tidyverse)
-library(tidymodels)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoi4pSA4pSAIEF0dGFjaGluZyBwYWNrYWdlcyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgdGlkeW1vZGVscyAwLjEuMiDilIDilIBcbuKckyBicm9vbSAgICAgMC43LjMgICAgICDinJMgcmVjaXBlcyAgIDAuMS4xNVxu4pyTIGRpYWxzICAgICAwLjAuOSAgICAgIOKckyByc2FtcGxlICAgMC4wLjkgXG7inJMgaW5mZXIgICAgIDAuNS40ICAgICAg4pyTIHR1bmUgICAgICAwLjEuMyBcbuKckyBtb2RlbGRhdGEgMC4xLjAgICAgICDinJMgd29ya2Zsb3dzIDAuMi4yIFxu4pyTIHBhcnNuaXAgICAwLjEuNSAgICAgIOKckyB5YXJkc3RpY2sgMC4wLjggXG7ilIDilIAgQ29uZmxpY3RzIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCB0aWR5bW9kZWxzX2NvbmZsaWN0cygpIOKUgOKUgFxueCBncmlkRXh0cmE6OmNvbWJpbmUoKSBtYXNrcyBkcGx5cjo6Y29tYmluZSgpXG54IHNjYWxlczo6ZGlzY2FyZCgpICAgIG1hc2tzIHB1cnJyOjpkaXNjYXJkKClcbnggdGlkeXI6OmV4cGFuZCgpICAgICAgbWFza3MgTWF0cml4OjpleHBhbmQoKVxueCBkcGx5cjo6ZmlsdGVyKCkgICAgICBtYXNrcyBzdGF0czo6ZmlsdGVyKClcbnggcmVjaXBlczo6Zml4ZWQoKSAgICAgbWFza3Mgc3RyaW5ncjo6Zml4ZWQoKVxueCBkcGx5cjo6bGFnKCkgICAgICAgICBtYXNrcyBzdGF0czo6bGFnKClcbnggdGlkeXI6OnBhY2soKSAgICAgICAgbWFza3MgTWF0cml4OjpwYWNrKClcbnggeWFyZHN0aWNrOjpzcGVjKCkgICAgbWFza3MgcmVhZHI6OnNwZWMoKVxueCByZWNpcGVzOjpzdGVwKCkgICAgICBtYXNrcyBzdGF0czo6c3RlcCgpXG54IHRpZHlyOjp1bnBhY2soKSAgICAgIG1hc2tzIE1hdHJpeDo6dW5wYWNrKClcbnggcmVjaXBlczo6dXBkYXRlKCkgICAgbWFza3MgTWF0cml4Ojp1cGRhdGUoKSwgc3RhdHM6OnVwZGF0ZSgpXG4ifQ== -->
-<pre><code>── Attaching packages ──────────────────────────────────────────────────────────────────────────────────────── tidymodels 0.1.2 ──
-✓ broom     0.7.3      ✓ recipes   0.1.15
-✓ dials     0.0.9      ✓ rsample   0.0.9 
-✓ infer     0.5.4      ✓ tune      0.1.3 
-✓ modeldata 0.1.0      ✓ workflows 0.2.2 
-✓ parsnip   0.1.5      ✓ yardstick 0.0.8 
-── Conflicts ─────────────────────────────────────────────────────────────────────────────────────────── tidymodels_conflicts() ──
-x gridExtra::combine() masks dplyr::combine()
-x scales::discard()    masks purrr::discard()
-x tidyr::expand()      masks Matrix::expand()
-x dplyr::filter()      masks stats::filter()
-x recipes::fixed()     masks stringr::fixed()
-x dplyr::lag()         masks stats::lag()
-x tidyr::pack()        masks Matrix::pack()
-x yardstick::spec()    masks readr::spec()
-x recipes::step()      masks stats::step()
-x tidyr::unpack()      masks Matrix::unpack()
-x recipes::update()    masks Matrix::update(), stats::update()</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh2aXApIFxuYGBgIn0= -->
-<pre class="r"><code>library(vip) </code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYdmlw4oCZXG5cblRoZSBmb2xsb3dpbmcgb2JqZWN0IGlzIG1hc2tlZCBmcm9tIOKAmHBhY2thZ2U6dXRpbHPigJk6XG5cbiAgICB2aVxuIn0= -->
-<pre><code>
-Attaching package: ‘vip’
-
-The following object is masked from ‘package:utils’:
-
-    vi</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShwbG0pXG5gYGAifQ== -->
-<pre class="r"><code>library(plm)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYcGxt4oCZXG5cblRoZSBmb2xsb3dpbmcgb2JqZWN0cyBhcmUgbWFza2VkIGZyb20g4oCYcGFja2FnZTpkcGx5cuKAmTpcblxuICAgIGJldHdlZW4sIGxhZywgbGVhZFxuIn0= -->
-<pre><code>
-Attaching package: ‘plm’
-
-The following objects are masked from ‘package:dplyr’:
-
-    between, lag, lead</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
@@ -1866,13 +1780,15 @@ cols(
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudHVuaW5nX2RhdGEgJT4lIHNlbGVjdCAobXNhX25hbWUsIHN0YXJ0aW5nX3RyZWVfaW5kLHNwcl9jdXRvZmYsIHNwcl9yYWRpdXMsIHJ1bl9uYW1lLCB0cmVlX3R5cGUsc3RhcnRpbmdfdHJlZV9sbCwgZGVsdGFfbGxfZnJvbV9jdXJyX3N0YXJ0aW5nX3RyZWVfYmVzdF90b3BvbG9neSxkZWx0YV9sbF9mcm9tX292ZXJhbGxfbXNhX2Jlc3RfdG9wb2xvZ3kpXG5gYGAifQ== -->
-<pre class="r"><code>tuning_data %&gt;% select (msa_name, starting_tree_ind,spr_cutoff, spr_radius, run_name, tree_type,starting_tree_ll, delta_ll_from_curr_starting_tree_best_topology,delta_ll_from_overall_msa_best_topology)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudHVuaW5nX2RhdGEgJT4lIHNlbGVjdCAobXNhX25hbWUsIHN0YXJ0aW5nX3RyZWVfaW5kLHRyZWVfdHlwZSxzcHJfY3V0b2ZmLCBzcHJfcmFkaXVzLCBydW5fbmFtZSwgZmluYWxfbGwsY3Vycl9zdGFydGluZ190cmVlX2Jlc3RfbGwscmZfZnJvbV9jdXJyX3N0YXJ0aW5nX3RyZWVfYmVzdF90b3BvbG9neSxkZWx0YV9sbF9mcm9tX2N1cnJfc3RhcnRpbmdfdHJlZV9iZXN0X3RvcG9sb2d5LCBiZXN0X21zYV9sbCxcbiAgICAgICAgICAgICAgICAgICAgICAgIHJmX2Zyb21fb3ZlcmFsbF9tc2FfYmVzdF90b3BvbG9neSxcbiAgICAgICAgICAgICAgICAgICAgICAgIGRlbHRhX2xsX2Zyb21fb3ZlcmFsbF9tc2FfYmVzdF90b3BvbG9neSkgJT4lIGZpbHRlciAodHJlZV90eXBlPT0ncmFuZG9tJyxkZWx0YV9sbF9mcm9tX2N1cnJfc3RhcnRpbmdfdHJlZV9iZXN0X3RvcG9sb2d5PT0wLCBkZWx0YV9sbF9mcm9tX292ZXJhbGxfbXNhX2Jlc3RfdG9wb2xvZ3k+MCAgKVxuYGBgIn0= -->
+<pre class="r"><code>tuning_data %&gt;% select (msa_name, starting_tree_ind,tree_type,spr_cutoff, spr_radius, run_name, final_ll,curr_starting_tree_best_ll,rf_from_curr_starting_tree_best_topology,delta_ll_from_curr_starting_tree_best_topology, best_msa_ll,
+                        rf_from_overall_msa_best_topology,
+                        delta_ll_from_overall_msa_best_topology) %&gt;% filter (tree_type==&#39;random&#39;,delta_ll_from_curr_starting_tree_best_topology==0, delta_ll_from_overall_msa_best_topology&gt;0  )</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6NDAsIm5jb2wiOjl9LCJyZGYiOiJINHNJQUFBQUFBQUFBd3R5aVREbWl1QmlZR0JnWm1BQlltWldJSk9CTlRURVRkZUNnWUdGQ2NoaEJFcHdndWdLb0NKaElBUEVFUUJpRGFpRVJIeEVwb3RKdkhOT2FYRkphcEd4Z2JHcFhsNkpYbUpPM3FqOHFEemQ1VTFOemN4SDVVZmw2U0hQd01BSExnZUpCUFlmaUtOSG9IbmdjSVNMNzV3SkFyTmd0SU1LUkJ4R2o2ckRyZzRXamc0aXFQb2M3TER6aVZhblFxUzZZV0l2QTJyN2hqMGxOUzJ4TktjRXl1VW9TQ3hLekMyT04wRGpHNkx4amRENHhxUEdqUnBIbkhHbzZZOFRLRjZjbVp1ZlZ6bllCZGlLRXZOUzhuTUhCVyt3aE1sUUNUVm8zWEdnWTYvL3ZhMDZjd25URTdmUC92djlCVUc2TzRaSFF5ZnZNMkY2L2U1cjh0SFBDTkpUU214UGxQcWJFNmJ6aXBpZjJmVVJwczgvOGxxNzJJWXdmVis5WUM5akhTR2FnY1EySWFuQXdYWHpCVVBXNkFhQzZuaGZmTkYvb2NiZ0lHdVNwcjJPaGNFK2pWV1Y2UU1Eby8wN3RZTUxQSjdBMWRsSFpacGZBbmJ1N2FPYWtsenovLzlINThQVjFRVGUyZ2YwbFgzd1gxNjJCbVQrajlzZUU0RDAyV3lsM3BNSVo5bGZ6MXJ4MmszL3Y5MXY1NkFVRUgrYnp3c0JlUWVFL0ZVaHpyZjdHeGpzLzh4ZHRzUkZnc0hlVmZEK0g2QzAvZjdGcWFmTkdCZ1phQitPZDBOdStkekhKVy9mZk5vdVBCZ1Vqbi8yNTlsWEFzUFJ6dnZVemJXTmNQbDNwZTltTGpOZ3NQOHFlc2VCUGZ5Ly9WZVpzdDdmTnhpQmRNMk5HVnNZTVBqN2VzeHV0UVA5ZTBCamxiTXBVUCsrTzlwOEMxSDRVdTRyRHpBU0c0NzJVK2YwVEZZRThxOWxYOXIyY1FLai9aOHZFdGNtekdHd24rWXFQWmtaR0grSFdsM0sveXN3b0EzaXNPWWw1cVlXTTBBcUdFNVl4Wk5ibkJnUGtvRHlCWXRMRW90S012UFM0MHVLVWxQak0vTlNvQkpjeFFWRjhjbWxKZmxwYWNnaVJZa3BtYVhGTU1PS1N2T1FEZU1FbTFGU1dRQVRFRUExUFNjSEtxNlhrcHBUa2dqa3g2Y1Y1ZWNDclNrcWlrZFZtcFJhWEJKZmtsK1FuNU9mRGlzODFWRjE1WmVsRmlVQ09TQWZvU3BIRFFmT292eHlQVmhZOEFJeEV5akkvLy8vZndNOXdKSnpFb3RoQVFZVDVFcEpMRW5VU3lzQytaS0I0UithRnZiOGdwTE0vRHlnSmliUWNCa3JtbWJHSWpRQi90SThrRXRTZEpNelN2T3lkUTFCRm9DbElZQVh5dFpBWW5OQ3JHVDZEeldLRlZhWXArYWxaK2JCUXBvMUp6RXBGUmE4ZkVBZmd6MnNWMUNVbVFkcm8zQUJSWXYxU3ZKTEVtSHF1Skx6YzJBaVlMOHgvQU1BOE01dHR5VVVBQUE9In0= -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MywibmNvbCI6MTN9LCJyZGYiOiJINHNJQUFBQUFBQUFBNlZVUDIvVU1CVDM1WnEybCtxT0lqcFViQ0FrdWx6NGMwVkNERzJCcWg4QXFIUUxXRzdpSE5FNWRtUTdRRGZtemwzYW1XL1FpYTFJZkFPRStBTHNNTExRWU9mc05PZTJxSWduT2UvUDcvM0pleS9PczgzaElCZ0dBSUEybUZHbjdTc1IrTnN2dHZvUEFaanhsTkpTUUVmemQ4cnBtaEs2Nml5YUNBMHN3Mkc2dVFxZmtrSkl6QWQzQnc5Q0trTkU2SC9qQVBTcU9nNnQvNnpGNW52TWNrUmpsdjFWTXhuWFB4NW9PdHk0ZFNaamhXK3NUWlNhTDUxYmNUNUhIR1VDM25QMGdkSG5ZcHlnZ2tpYjl2aUlmcU1mYnU2ZDhtelplMFMrWHhaM0I5R2dTK0hIUitPRi9TZVBQN3U4SHN2WDdlYy94aSszWEY2UHBmZnF5NVhaTzJYTlFjUStEWCsxbkMvRnB5akR3c3lxYTJlVENRUTFZUFNyUWlJdVV6cUNrbU1NVXhvYm9GUHBjamUzbm9ISU9Zd0t5WktrYWVFb1RndGhzL09DTnJQUEp5bEZCQkppOU90UndUbWNMcm1EaFR6MVdPRUpURGpMNEVXZWt1V01zTkd1OFE5alRDUlM4ZjhVdFZBWjlTanF3amRzWWZZR2M2VHlhZlM4Mk52VEZTOTJuOTVHaDdPM29kMkl2cnZlZS9Vb3kvSzN1N2FJSUdIWFpvMUJqQ1FLRTY1SEM4Q0pFekxIY3BreXFvSTgvV2Z3bmVBV2R3eUxCZFZ2RXZlajF3VWQ5Kyt2NmdvVlBxR3VrZHNOdVR1cDZaVW1sMit2TkthamxOcUYrd1R0WUR2U25tcTU2ampNZVVxbGJVVlpSU2laUk5ZdmlCaXhscW81Y1BJSGlDM1BJUkVGQUFBPSJ9 -->
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["msa_name"],"name":[1],"type":["chr"],"align":["left"]},{"label":["starting_tree_ind"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["spr_cutoff"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["spr_radius"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["run_name"],"name":[5],"type":["chr"],"align":["left"]},{"label":["tree_type"],"name":[6],"type":["chr"],"align":["left"]},{"label":["starting_tree_ll"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["delta_ll_from_curr_starting_tree_best_topology"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["delta_ll_from_overall_msa_best_topology"],"name":[9],"type":["dbl"],"align":["right"]}],"data":[{"1":"_XiD4_Cluster3035.nt.aln","2":"0","3":"1.0","4":"5","5":"default","6":"parsimony","7":"-791.663999","8":"0.000000000e+00","9":"0.000000000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"0","3":"0.1","4":"1","5":"params_0","6":"parsimony","7":"-791.663999","8":"0.000000000e+00","9":"0.000000000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"0","3":"0.1","4":"30","5":"params_1","6":"parsimony","7":"-791.663999","8":"0.000000000e+00","9":"0.000000000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"0","3":"10.0","4":"1","5":"params_2","6":"parsimony","7":"-791.663999","8":"0.000000000e+00","9":"0.000000000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"0","3":"10.0","4":"30","5":"params_3","6":"parsimony","7":"-791.663999","8":"0.000000000e+00","9":"0.000000000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"1","3":"1.0","4":"5","5":"default","6":"parsimony","7":"-786.214653","8":"0.000000000e+00","9":"0.000000000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"1","3":"0.1","4":"1","5":"params_0","6":"parsimony","7":"-786.214653","8":"0.000000000e+00","9":"0.000000000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"1","3":"0.1","4":"30","5":"params_1","6":"parsimony","7":"-786.214653","8":"0.000000000e+00","9":"0.000000000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"1","3":"10.0","4":"1","5":"params_2","6":"parsimony","7":"-786.214653","8":"0.000000000e+00","9":"0.000000000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"1","3":"10.0","4":"30","5":"params_3","6":"parsimony","7":"-786.214653","8":"0.000000000e+00","9":"0.000000000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"0","3":"1.0","4":"10","5":"default","6":"random","7":"-875.505936","8":"0.000000000e+00","9":"0.000000000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"0","3":"0.1","4":"1","5":"params_0","6":"random","7":"-875.505936","8":"4.340479100e+01","9":"4.340519200e+01"},{"1":"_XiD4_Cluster3035.nt.aln","2":"0","3":"0.1","4":"30","5":"params_1","6":"random","7":"-875.505936","8":"0.000000000e+00","9":"0.000000000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"0","3":"10.0","4":"1","5":"params_2","6":"random","7":"-875.505936","8":"0.000000000e+00","9":"0.000000000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"0","3":"10.0","4":"30","5":"params_3","6":"random","7":"-875.505936","8":"0.000000000e+00","9":"0.000000000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"1","3":"1.0","4":"5","5":"default","6":"random","7":"-885.966717","8":"0.000000000e+00","9":"9.665000000e-03"},{"1":"_XiD4_Cluster3035.nt.aln","2":"1","3":"0.1","4":"1","5":"params_0","6":"random","7":"-885.966717","8":"3.738747000e+00","9":"3.748412000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"1","3":"0.1","4":"30","5":"params_1","6":"random","7":"-885.966717","8":"7.301171000e+00","9":"7.310836000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"1","3":"10.0","4":"1","5":"params_2","6":"random","7":"-885.966717","8":"2.688000000e-03","9":"0.000000000e+00"},{"1":"_XiD4_Cluster3035.nt.aln","2":"1","3":"10.0","4":"30","5":"params_3","6":"random","7":"-885.966717","8":"9.422310000e-01","9":"9.518960000e-01"},{"1":"_XiD4_Cluster5567.nt.aln","2":"0","3":"1.0","4":"5","5":"default","6":"parsimony","7":"-1309.060335","8":"0.000000000e+00","9":"1.317837000e+00"},{"1":"_XiD4_Cluster5567.nt.aln","2":"0","3":"0.1","4":"1","5":"params_0","6":"parsimony","7":"-1309.060335","8":"1.612000000e-03","9":"1.319449000e+00"},{"1":"_XiD4_Cluster5567.nt.aln","2":"0","3":"0.1","4":"30","5":"params_1","6":"parsimony","7":"-1309.060335","8":"1.618000000e-03","9":"1.319455000e+00"},{"1":"_XiD4_Cluster5567.nt.aln","2":"0","3":"10.0","4":"1","5":"params_2","6":"parsimony","7":"-1309.060335","8":"1.612000000e-03","9":"1.319449000e+00"},{"1":"_XiD4_Cluster5567.nt.aln","2":"0","3":"10.0","4":"30","5":"params_3","6":"parsimony","7":"-1309.060335","8":"1.618000000e-03","9":"1.319455000e+00"},{"1":"_XiD4_Cluster5567.nt.aln","2":"1","3":"1.0","4":"10","5":"default","6":"parsimony","7":"-1307.611343","8":"0.000000000e+00","9":"1.193270000e-01"},{"1":"_XiD4_Cluster5567.nt.aln","2":"1","3":"0.1","4":"1","5":"params_0","6":"parsimony","7":"-1307.611343","8":"6.914000000e-03","9":"1.262410000e-01"},{"1":"_XiD4_Cluster5567.nt.aln","2":"1","3":"0.1","4":"30","5":"params_1","6":"parsimony","7":"-1307.611343","8":"1.220000000e-03","9":"1.205470000e-01"},{"1":"_XiD4_Cluster5567.nt.aln","2":"1","3":"10.0","4":"1","5":"params_2","6":"parsimony","7":"-1307.611343","8":"6.914000000e-03","9":"1.262410000e-01"},{"1":"_XiD4_Cluster5567.nt.aln","2":"1","3":"10.0","4":"30","5":"params_3","6":"parsimony","7":"-1307.611343","8":"1.219000000e-03","9":"1.205460000e-01"},{"1":"_XiD4_Cluster5567.nt.aln","2":"0","3":"1.0","4":"5","5":"default","6":"random","7":"-1331.970988","8":"2.298320000e-01","9":"2.298320000e-01"},{"1":"_XiD4_Cluster5567.nt.aln","2":"0","3":"0.1","4":"1","5":"params_0","6":"random","7":"-1331.970988","8":"0.000000000e+00","9":"0.000000000e+00"},{"1":"_XiD4_Cluster5567.nt.aln","2":"0","3":"0.1","4":"30","5":"params_1","6":"random","7":"-1331.970988","8":"3.658850000e-01","9":"3.658850000e-01"},{"1":"_XiD4_Cluster5567.nt.aln","2":"0","3":"10.0","4":"1","5":"params_2","6":"random","7":"-1331.970988","8":"2.599999993e-05","9":"2.599999993e-05"},{"1":"_XiD4_Cluster5567.nt.aln","2":"0","3":"10.0","4":"30","5":"params_3","6":"random","7":"-1331.970988","8":"8.711100000e-02","9":"8.711100000e-02"},{"1":"_XiD4_Cluster5567.nt.aln","2":"1","3":"1.0","4":"5","5":"default","6":"random","7":"-1335.788516","8":"0.000000000e+00","9":"2.110500000e-02"},{"1":"_XiD4_Cluster5567.nt.aln","2":"1","3":"0.1","4":"1","5":"params_0","6":"random","7":"-1335.788516","8":"3.292260000e-01","9":"3.503310000e-01"},{"1":"_XiD4_Cluster5567.nt.aln","2":"1","3":"0.1","4":"30","5":"params_1","6":"random","7":"-1335.788516","8":"1.788489000e+00","9":"1.809594000e+00"},{"1":"_XiD4_Cluster5567.nt.aln","2":"1","3":"10.0","4":"1","5":"params_2","6":"random","7":"-1335.788516","8":"6.429999999e-04","9":"2.174800000e-02"},{"1":"_XiD4_Cluster5567.nt.aln","2":"1","3":"10.0","4":"30","5":"params_3","6":"random","7":"-1335.788516","8":"1.235870000e-01","9":"1.446920000e-01"}],"options":{"columns":{"min":{},"max":[10],"total":[9]},"rows":{"min":[10],"max":[10],"total":[40]},"pages":{}}}
+{"columns":[{"label":["msa_name"],"name":[1],"type":["chr"],"align":["left"]},{"label":["starting_tree_ind"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["tree_type"],"name":[3],"type":["chr"],"align":["left"]},{"label":["spr_cutoff"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["spr_radius"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["run_name"],"name":[6],"type":["chr"],"align":["left"]},{"label":["final_ll"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["curr_starting_tree_best_ll"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["rf_from_curr_starting_tree_best_topology"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["delta_ll_from_curr_starting_tree_best_topology"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["best_msa_ll"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["rf_from_overall_msa_best_topology"],"name":[12],"type":["dbl"],"align":["right"]},{"label":["delta_ll_from_overall_msa_best_topology"],"name":[13],"type":["dbl"],"align":["right"]}],"data":[{"1":"_XiD4_Cluster3035.nt.aln","2":"0","3":"random","4":"0.1","5":"30","6":"params_1","7":"-4974.841532","8":"-4974.841532","9":"0","10":"0","11":"-4971.045231","12":"0.333333","13":"3.796301"},{"1":"_XiD4_Cluster3035.nt.aln","2":"0","3":"random","4":"10.0","5":"30","6":"params_3","7":"-4974.841532","8":"-4974.841532","9":"0","10":"0","11":"-4971.045231","12":"0.333333","13":"3.796301"},{"1":"_XiD4_Cluster3035.nt.aln","2":"1","3":"random","4":"1.0","5":"5","6":"default","7":"-4973.093784","8":"-4973.093784","9":"0","10":"0","11":"-4971.045231","12":"0.333333","13":"2.048553"}],"options":{"columns":{"min":{},"max":[10],"total":[13]},"rows":{"min":[10],"max":[10],"total":[3]},"pages":{}}}
   </script>
 </div>
 <!-- rnb-frame-end -->
@@ -1887,7 +1803,7 @@ cols(
 <p>The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike <em>Knit</em>, <em>Preview</em> does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.</p>
 <!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiUiBOb3RlYm9vayIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKVGhpcyBpcyBhbiBbUiBNYXJrZG93bl0oaHR0cDovL3JtYXJrZG93bi5yc3R1ZGlvLmNvbSkgTm90ZWJvb2suIFdoZW4geW91IGV4ZWN1dGUgY29kZSB3aXRoaW4gdGhlIG5vdGVib29rLCB0aGUgcmVzdWx0cyBhcHBlYXIgYmVuZWF0aCB0aGUgY29kZS4gCgpUcnkgZXhlY3V0aW5nIHRoaXMgY2h1bmsgYnkgY2xpY2tpbmcgdGhlICpSdW4qIGJ1dHRvbiB3aXRoaW4gdGhlIGNodW5rIG9yIGJ5IHBsYWNpbmcgeW91ciBjdXJzb3IgaW5zaWRlIGl0IGFuZCBwcmVzc2luZyAqQ21kK1NoaWZ0K0VudGVyKi4gCgpgYGB7cn0KbGlicmFyeShsbWU0KQpsaWJyYXJ5KGdncGxvdDIpCmxpYnJhcnkocGxvdHJpeCkKbGlicmFyeSh2aXNyZWcpCmxpYnJhcnkoc3RyaW5ncikKbGlicmFyeSh0aWR5dmVyc2UpCmxpYnJhcnkoZ2dwdWJyKQpsaWJyYXJ5KGdyaWRFeHRyYSkKbGlicmFyeSh0aWR5dmVyc2UpCmxpYnJhcnkodGlkeW1vZGVscykKbGlicmFyeSh2aXApIApsaWJyYXJ5KHBsbSkKYGBgCgoKCgpgYGB7cn0KdHVuaW5nX2RhdGE8LSByZWFkX3RzdigiL1VzZXJzL25vYS9Xb3Jrc3BhY2UvcmF4bWxfZGVlcF9sZWFybmluZ19yZXN1bHRzL3R1bmVfcmF4bWwudHN2IikKYGBgCgpgYGB7cn0KdHVuaW5nX2RhdGEgJT4lIHNlbGVjdCAobXNhX25hbWUsIHN0YXJ0aW5nX3RyZWVfaW5kLHNwcl9jdXRvZmYsIHNwcl9yYWRpdXMsIHJ1bl9uYW1lLCB0cmVlX3R5cGUsc3RhcnRpbmdfdHJlZV9sbCwgZGVsdGFfbGxfZnJvbV9jdXJyX3N0YXJ0aW5nX3RyZWVfYmVzdF90b3BvbG9neSxkZWx0YV9sbF9mcm9tX292ZXJhbGxfbXNhX2Jlc3RfdG9wb2xvZ3kpCmBgYAoKYGBge3J9CgpgYGAKCgoKCgpBZGQgYSBuZXcgY2h1bmsgYnkgY2xpY2tpbmcgdGhlICpJbnNlcnQgQ2h1bmsqIGJ1dHRvbiBvbiB0aGUgdG9vbGJhciBvciBieSBwcmVzc2luZyAqQ21kK09wdGlvbitJKi4KCldoZW4geW91IHNhdmUgdGhlIG5vdGVib29rLCBhbiBIVE1MIGZpbGUgY29udGFpbmluZyB0aGUgY29kZSBhbmQgb3V0cHV0IHdpbGwgYmUgc2F2ZWQgYWxvbmdzaWRlIGl0IChjbGljayB0aGUgKlByZXZpZXcqIGJ1dHRvbiBvciBwcmVzcyAqQ21kK1NoaWZ0K0sqIHRvIHByZXZpZXcgdGhlIEhUTUwgZmlsZSkuIAoKVGhlIHByZXZpZXcgc2hvd3MgeW91IGEgcmVuZGVyZWQgSFRNTCBjb3B5IG9mIHRoZSBjb250ZW50cyBvZiB0aGUgZWRpdG9yLiBDb25zZXF1ZW50bHksIHVubGlrZSAqS25pdCosICpQcmV2aWV3KiBkb2VzIG5vdCBydW4gYW55IFIgY29kZSBjaHVua3MuIEluc3RlYWQsIHRoZSBvdXRwdXQgb2YgdGhlIGNodW5rIHdoZW4gaXQgd2FzIGxhc3QgcnVuIGluIHRoZSBlZGl0b3IgaXMgZGlzcGxheWVkLgoK</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiUiBOb3RlYm9vayIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKVGhpcyBpcyBhbiBbUiBNYXJrZG93bl0oaHR0cDovL3JtYXJrZG93bi5yc3R1ZGlvLmNvbSkgTm90ZWJvb2suIFdoZW4geW91IGV4ZWN1dGUgY29kZSB3aXRoaW4gdGhlIG5vdGVib29rLCB0aGUgcmVzdWx0cyBhcHBlYXIgYmVuZWF0aCB0aGUgY29kZS4gCgpUcnkgZXhlY3V0aW5nIHRoaXMgY2h1bmsgYnkgY2xpY2tpbmcgdGhlICpSdW4qIGJ1dHRvbiB3aXRoaW4gdGhlIGNodW5rIG9yIGJ5IHBsYWNpbmcgeW91ciBjdXJzb3IgaW5zaWRlIGl0IGFuZCBwcmVzc2luZyAqQ21kK1NoaWZ0K0VudGVyKi4gCgpgYGB7cn0KbGlicmFyeShsbWU0KQpsaWJyYXJ5KGdncGxvdDIpCmxpYnJhcnkocGxvdHJpeCkKbGlicmFyeSh2aXNyZWcpCmxpYnJhcnkoc3RyaW5ncikKbGlicmFyeSh0aWR5dmVyc2UpCmxpYnJhcnkoZ2dwdWJyKQpsaWJyYXJ5KGdyaWRFeHRyYSkKbGlicmFyeSh0aWR5dmVyc2UpCmxpYnJhcnkodGlkeW1vZGVscykKbGlicmFyeSh2aXApIApsaWJyYXJ5KHBsbSkKYGBgCgoKCgpgYGB7cn0KdHVuaW5nX2RhdGE8LSByZWFkX3RzdigiL1VzZXJzL25vYS9Xb3Jrc3BhY2UvcmF4bWxfZGVlcF9sZWFybmluZ19yZXN1bHRzL3R1bmVfcmF4bWwudHN2IikKYGBgCgpgYGB7cn0KdHVuaW5nX2RhdGEgJT4lIHNlbGVjdCAobXNhX25hbWUsIHN0YXJ0aW5nX3RyZWVfaW5kLHRyZWVfdHlwZSxzcHJfY3V0b2ZmLCBzcHJfcmFkaXVzLCBydW5fbmFtZSwgZmluYWxfbGwsY3Vycl9zdGFydGluZ190cmVlX2Jlc3RfbGwscmZfZnJvbV9jdXJyX3N0YXJ0aW5nX3RyZWVfYmVzdF90b3BvbG9neSxkZWx0YV9sbF9mcm9tX2N1cnJfc3RhcnRpbmdfdHJlZV9iZXN0X3RvcG9sb2d5LCBiZXN0X21zYV9sbCwKICAgICAgICAgICAgICAgICAgICAgICAgcmZfZnJvbV9vdmVyYWxsX21zYV9iZXN0X3RvcG9sb2d5LAogICAgICAgICAgICAgICAgICAgICAgICBkZWx0YV9sbF9mcm9tX292ZXJhbGxfbXNhX2Jlc3RfdG9wb2xvZ3kpICU+JSBmaWx0ZXIgKHRyZWVfdHlwZT09J3JhbmRvbScsZGVsdGFfbGxfZnJvbV9jdXJyX3N0YXJ0aW5nX3RyZWVfYmVzdF90b3BvbG9neT09MCwgZGVsdGFfbGxfZnJvbV9vdmVyYWxsX21zYV9iZXN0X3RvcG9sb2d5PjAgICkKYGBgCgpgYGB7cn0KCmBgYAoKCgoKCkFkZCBhIG5ldyBjaHVuayBieSBjbGlja2luZyB0aGUgKkluc2VydCBDaHVuayogYnV0dG9uIG9uIHRoZSB0b29sYmFyIG9yIGJ5IHByZXNzaW5nICpDbWQrT3B0aW9uK0kqLgoKV2hlbiB5b3Ugc2F2ZSB0aGUgbm90ZWJvb2ssIGFuIEhUTUwgZmlsZSBjb250YWluaW5nIHRoZSBjb2RlIGFuZCBvdXRwdXQgd2lsbCBiZSBzYXZlZCBhbG9uZ3NpZGUgaXQgKGNsaWNrIHRoZSAqUHJldmlldyogYnV0dG9uIG9yIHByZXNzICpDbWQrU2hpZnQrSyogdG8gcHJldmlldyB0aGUgSFRNTCBmaWxlKS4gCgpUaGUgcHJldmlldyBzaG93cyB5b3UgYSByZW5kZXJlZCBIVE1MIGNvcHkgb2YgdGhlIGNvbnRlbnRzIG9mIHRoZSBlZGl0b3IuIENvbnNlcXVlbnRseSwgdW5saWtlICpLbml0KiwgKlByZXZpZXcqIGRvZXMgbm90IHJ1biBhbnkgUiBjb2RlIGNodW5rcy4gSW5zdGVhZCwgdGhlIG91dHB1dCBvZiB0aGUgY2h1bmsgd2hlbiBpdCB3YXMgbGFzdCBydW4gaW4gdGhlIGVkaXRvciBpcyBkaXNwbGF5ZWQuCgo=</div>
 
 
 

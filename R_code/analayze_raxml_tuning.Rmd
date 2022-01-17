@@ -30,7 +30,9 @@ tuning_data<- read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/tune_ra
 ```
 
 ```{r}
-tuning_data %>% select (msa_name, starting_tree_ind,spr_cutoff, spr_radius, run_name, tree_type,starting_tree_ll, delta_ll_from_curr_starting_tree_best_topology,delta_ll_from_overall_msa_best_topology)
+tuning_data %>% select (msa_name, starting_tree_ind,tree_type,spr_cutoff, spr_radius, run_name, final_ll,curr_starting_tree_best_ll,rf_from_curr_starting_tree_best_topology,delta_ll_from_curr_starting_tree_best_topology, best_msa_ll,
+                        rf_from_overall_msa_best_topology,
+                        delta_ll_from_overall_msa_best_topology) %>% filter (tree_type=='random',delta_ll_from_curr_starting_tree_best_topology==0, delta_ll_from_overall_msa_best_topology>0  )
 ```
 
 ```{r}
