@@ -1,6 +1,15 @@
 from help_functions import *
 
 
+def unify_csvs(csvs_path_list, unified_csv_path):
+    tmp_dataframes = []
+    for csv_path in range(len(csvs_path_list)):
+        tmp_df = pd.read_csv(csv_path,sep=CSV_SEP)
+        print("size = "+ str(len(tmp_df.index)))
+        tmp_dataframes.append(tmp_df)
+    combined_df = pd.concat(tmp_dataframes, sort=False)
+    combined_df.to_csv(unified_csv_path,sep = CSV_SEP)
+    return combined_df
 
 def main():
     parser = argparse.ArgumentParser()
@@ -10,7 +19,7 @@ def main():
     args = parser.parse_args()
     csvs_path_list = [f'{args.folder}/job_{n}/{n}{CSV_SUFFIX}' for n in range(args.n_jobs)]
     output_csv_path = os.path.join(args.output_folder, "all_jobs_tmp_results.tsv")
-    add_csvs_content(csvs_path_list,output_csv_path)
+    unify_csvs(csvs_path_list,output_csv_path)
 
 
 
