@@ -166,7 +166,6 @@ def generate_msa_stats(original_alignment_path, args):
                                                                                  "_")
     curr_msa_folder = os.path.join(args.curr_job_folder, msa_name)
     create_or_clean_dir(curr_msa_folder)
-    file_type = extract_file_type(original_alignment_path, False)
     original_alignment_data = get_alignment_data(
         original_alignment_path)  # list(SeqIO.parse(original, file_type_biopython))
     alignment_df = alignment_list_to_df(original_alignment_data)
@@ -177,24 +176,11 @@ def generate_msa_stats(original_alignment_path, args):
         msa_type = "DNA"
     else:
         msa_type = "AA"
-    if (args.n_loci != n_loci or args.n_seq != n_seq) and args.trim_msa:
-        processed_msa_path = os.path.join(curr_msa_folder, "trimmed_msa" + file_type)
-        trim_MSA(original_alignment_data,  processed_msa_path, args.n_seq,
-                 args.n_loci, 0)
-        processed_alignment_data = get_alignment_data(
-            processed_msa_path)
-        msa_path = processed_msa_path
-        alignment_df = alignment_list_to_df(processed_alignment_data)
-        n_seq, n_loci = alignment_df.shape
-        if n_seq != args.n_seq or n_loci != args.n_loci:
-            logging.error(
-                f"Problem in trimming MSA: required number of sequences is {args.n_seq} and got {n_seq},required number of sites is {args.n_loci} and got {n_loci}")
-
     msa_stats = {"msa_name": msa_name, "msa_path": msa_path,
                  "original_alignment_path": original_alignment_path,
                  "n_loci": n_loci, "n_seq": n_seq, "msa_folder": curr_msa_folder, "msa_type": msa_type}
     msa_stats.update(vars(args))
-    logging.info("Succesfully obtained MSA stats")
+    logging.info(f"Succesfully obtained MSA stats: {msa_stats}")
     return msa_stats
 
 

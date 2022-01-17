@@ -3,7 +3,6 @@ from help_functions import *
 
 def unify_csvs(csvs_path_list, unified_csv_path):
     tmp_dataframes = []
-    print(csvs_path_list)
     for csv_path in range(len(csvs_path_list)):
         tmp_df = pd.read_csv(csv_path,sep=CSV_SEP)
         print("size = "+ str(len(tmp_df.index)))
