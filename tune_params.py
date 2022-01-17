@@ -220,7 +220,7 @@ def main():
     logging.info(f'#Started running on job {args.job_ind}\nJob arguments are: {args}')
 
     for file_ind, original_alignment_path in enumerate(curr_job_file_path_list):
-        print(f"file ind = {file_ind} original_alignment_path= {original_alignment_path}")
+        logging.info(f"file ind = {file_ind} original_alignment_path= {original_alignment_path}")
         msa_stats = generate_msa_stats(original_alignment_path, args)
         curr_msa_data_analysis = MSA_search_params_tuning_analysis(msa_stats)[COLUMNS_TO_INCLUDE_CSV]
         curr_msa_data_analysis.to_csv(job_csv_path,mode='a',header = file_ind==0,sep=CSV_SEP)
