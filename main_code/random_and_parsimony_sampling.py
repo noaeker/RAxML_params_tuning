@@ -22,19 +22,18 @@ def get_average_best_results_among_a_tree_set_per_msa(data, n_parsimony_grid, n_
             for i in range(n_sample_points):
                 seed = seed + 1
                 sampled_data_parsimony = data[data["tree_type"] == "parsimony"].groupby(
-                    by=["msa_name", "run_name", "spr_radius", "spr_cutoff", "best_msa_ll"]).sample(
-                    n=n_parsimony, random_state=seed
-                )
+                    by=["msa_name", "run_name", "spr_radius", "spr_cutoff", "best_msa_ll"], group_keys= False).apply(lambda df:
+                    df.sample(n=n_parsimony, random_state=seed))
+
                 sampled_data_random = data[data["tree_type"] == "random"].groupby(
-                    by=["msa_name", "run_name", "spr_radius", "spr_cutoff", "best_msa_ll"]).sample(
-                    n=n_random, random_state=seed
-                )
+                    by=["msa_name", "run_name", "spr_radius", "spr_cutoff", "best_msa_ll"], group_keys= False).apply(lambda df:
+                    df.sample(n=n_random, random_state=seed))
                 sampled_data = pd.concat([sampled_data_parsimony, sampled_data_random])
                 run_metrics = sampled_data.groupby(
                     by=["msa_name", "run_name", "spr_radius", "spr_cutoff", "best_msa_ll"]).agg(
-                    curr_sample_overall_Err=("delta_ll_from_overall_msa_best_topology", 'mean'),
-                    curr_sample_Err=("delta_ll_from_overall_msa_best_topology", 'min'),
-                    curr_sample_total_time=("elapsed_running_time", 'sum')).reset_index()
+                    {"delta_ll_from_overall_msa_best_topology":['min','mean'], 'elapsed_running_time': ['sum']})
+                run_metrics.columns = ["curr_sample_Err","curr_sample_overall_Err","curr_sample_total_time"]
+                run_metrics.reset_index(inplace = True)
                 run_metrics["n_parsimony"] = n_parsimony
                 run_metrics["n_random"] = n_random
                 run_metrics["i"] = i
@@ -45,9 +44,10 @@ def get_average_best_results_among_a_tree_set_per_msa(data, n_parsimony_grid, n_
                     current_configuration_results = pd.concat([current_configuration_results, run_metrics])
             aggregated_current_results = current_configuration_results.groupby(
                 by=["msa_name", "run_name", "spr_radius", "spr_cutoff", "n_parsimony", "n_random"]).agg(
-                mean_Err_overall=('curr_sample_overall_Err', 'mean'),
-                mean_Err=('curr_sample_Err', 'mean'), std_Err=('curr_sample_Err', 'std'),
-                mean_time=('curr_sample_total_time', 'mean'), std_time=('curr_sample_total_time', 'std')).reset_index()
+                {'curr_sample_overall_Err':['mean'],'curr_sample_Err':['mean','std'],'curr_sample_total_time': ['mean','std']})
+            aggregated_current_results.columns = ['mean_Err_overall','mean_Err','std_Err','mean_time', 'std_time']
+            aggregated_current_results.reset_index(inplace = True)
+
             aggregated_current_results.to_csv(sampling_csv_path, mode='a', header=first_insert, sep=CSV_SEP)
             first_insert = False
 
@@ -109,7 +109,7 @@ def main():
     if not os.path.exists(sampling_csv_path):
         get_average_best_results_among_a_tree_set_per_msa(
             data, n_parsimony_grid=range(11),
-            n_random_grid=range(11), n_sample_points=2, sampling_csv_path = sampling_csv_path)
+            n_random_grid=range(11), n_sample_points=15, sampling_csv_path = sampling_csv_path)
     res = pd.read_csv(sampling_csv_path)
     # rank_configurations_vs_default(res)
 

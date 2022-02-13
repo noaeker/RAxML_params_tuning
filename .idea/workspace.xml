@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/main_code/combine_current_results.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/combine_current_results.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/unify_current_jobs_results.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -14,11 +12,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main_code/combine_current_results.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="212">
-              <caret line="17" column="110" selection-start-line="17" selection-start-column="110" selection-end-line="17" selection-end-column="110" />
+            <state relative-caret-position="102">
+              <caret line="6" selection-start-line="6" selection-end-line="6" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -27,15 +25,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/other_stuff/test.py">
-          <provider selected="true" editor-type-id="text-editor" />
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main_code/help_functions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5270">
-              <caret line="310" column="90" selection-start-line="309" selection-start-column="4" selection-end-line="310" selection-end-column="90" />
+            <state relative-caret-position="240">
+              <caret line="85" column="30" lean-forward="true" selection-start-line="85" selection-start-column="30" selection-end-line="85" selection-end-column="30" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -46,8 +39,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main_code/tune_params.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="133">
-              <caret line="219" column="83" selection-start-line="219" selection-start-column="79" selection-end-line="219" selection-end-column="83" />
+            <state relative-caret-position="239">
+              <caret line="219" column="3" selection-start-line="219" selection-start-column="3" selection-end-line="219" selection-end-column="86" />
               <folding>
                 <element signature="e#0#19#0" expanded="true" />
               </folding>
@@ -67,11 +60,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="12" column="16" lean-forward="true" selection-start-line="12" selection-start-column="16" selection-end-line="12" selection-end-column="16" />
+            <state relative-caret-position="87">
+              <caret line="19" column="38" selection-start-line="19" selection-start-column="38" selection-end-line="19" selection-end-column="38" />
               <folding>
                 <element signature="e#0#19#0" expanded="true" />
               </folding>
@@ -80,10 +73,37 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/opt/anaconda3/lib/python3.8/site-packages/pandas/core/groupby/groupby.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="131">
+              <caret line="702" selection-start-line="702" selection-end-line="702" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/opt/anaconda3/lib/python3.8/site-packages/pandas/core/generic.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="182">
+              <caret line="1517" selection-start-line="1517" selection-end-line="1517" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/opt/anaconda3/lib/python3.8/site-packages/pandas/core/groupby/grouper.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="145">
+              <caret line="774" selection-start-line="774" selection-end-line="774" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main_code/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="6" column="20" selection-start-line="6" selection-start-column="20" selection-end-line="6" selection-end-column="20" />
+            <state relative-caret-position="136">
+              <caret line="8" column="115" selection-start-line="8" selection-start-column="67" selection-end-line="8" selection-end-column="115" />
               <folding>
                 <element signature="e#0#24#0" expanded="true" />
               </folding>
@@ -92,12 +112,13 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main_code/features_extractor.py">
+        <entry file="file://$PROJECT_DIR$/main_code/tp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="119">
-              <caret line="7" column="53" selection-start-line="7" selection-start-column="53" selection-end-line="7" selection-end-column="53" />
+            <state relative-caret-position="226">
+              <caret line="43" column="21" lean-forward="true" selection-start-line="43" selection-start-column="21" selection-end-line="43" selection-end-column="21" />
               <folding>
-                <element signature="e#0#20#0" expanded="true" />
+                <element signature="e#0#28#0" expanded="true" />
+                <element signature="e#3421#3745#0" />
               </folding>
             </state>
           </provider>
@@ -114,7 +135,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>argpa</find>
       <find>min_n_</find>
       <find>Generating general MSA stats</find>
       <find>extract_param_from_raxmlNG_log</find>
@@ -144,6 +164,7 @@
       <find>'a'</find>
       <find>on=</find>
       <find>print</find>
+      <find>curr_sample_total_time=(&quot;elapse</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -179,6 +200,7 @@
         <option value="$PROJECT_DIR$/data_analysis/random_and_parsimony_sampling.py" />
         <option value="$PROJECT_DIR$/main_code/combine_current_results.py" />
         <option value="$PROJECT_DIR$/main_code/config.py" />
+        <option value="$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py" />
       </list>
     </option>
   </component>
@@ -243,7 +265,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.combine_current_results">
+  <component name="RunManager" selected="Python.random_and_parsimony_sampling">
     <configuration name="analayze_results" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="RAxML_params_tuning" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -351,9 +373,9 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.random_and_parsimony_sampling" />
         <item itemvalue="Python.combine_current_results" />
         <item itemvalue="Python.unify_current_jobs_results" />
-        <item itemvalue="Python.random_and_parsimony_sampling" />
         <item itemvalue="Python.analayze_results" />
         <item itemvalue="Python.features_extractor" />
       </list>
@@ -376,13 +398,13 @@
     <frame x="0" y="33" width="1440" height="759" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.23185341" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.23185341" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.17091455" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.3838081" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.3718141" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3838081" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.30884558" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -424,11 +446,6 @@
           <option name="timeStamp" value="42" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/main_code/combine_current_results.py</url>
-          <line>6</line>
-          <option name="timeStamp" value="43" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/local_data_analysis/analayze_results.py</url>
           <line>238</line>
           <option name="timeStamp" value="47" />
@@ -440,8 +457,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py</url>
-          <line>31</line>
-          <option name="timeStamp" value="51" />
+          <line>36</line>
+          <option name="timeStamp" value="54" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -496,17 +513,22 @@
     </expressions>
     <expressions id="evaluateExpression">
       <expression>
+        <expression-string>run_metrics</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>sampled_data_random</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
         <expression-string>sampled_data[&quot;starting_tree_ind&quot;]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
         <expression-string>sampled_data</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>sampled_data_random</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -535,15 +557,9 @@
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
-      <expression>
-        <expression-string>max(all_results_df_agg[(all_results_df_agg[&quot;run_name&quot;] == &quot;default&quot;) &amp; (all_results_df_agg[&quot;tree_type&quot;]==&quot;parsimony&quot;)][&quot;n_trees&quot;])</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/plots_dir/radius_cutoff_2.575_vs_default.png" />
     <entry file="file://$PROJECT_DIR$/plots_dir/radius_cutoff_5.05_vs_default.png" />
     <entry file="file://$PROJECT_DIR$/plots_dir/radius_cutoff_7.525_vs_default.png" />
     <entry file="file://$PROJECT_DIR$/plots_dir/radius_cutoff_10.0_vs_default.png" />
@@ -614,27 +630,17 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main_code/tune_params.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="133">
-          <caret line="219" column="83" selection-start-line="219" selection-start-column="79" selection-end-line="219" selection-end-column="83" />
+        <state relative-caret-position="239">
+          <caret line="219" column="3" selection-start-line="219" selection-start-column="3" selection-end-line="219" selection-end-column="86" />
           <folding>
             <element signature="e#0#19#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test.csv">
-      <provider selected="true" editor-type-id="LargeFileEditor">
-        <state relative-caret-position="315">
-          <caret line="118" column="68" selection-start-line="118" selection-start-column="68" selection-end-line="118" selection-end-column="68" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/generate_training_data.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/0.fasta">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
+    <entry file="file://$PROJECT_DIR$/test.csv" />
+    <entry file="file://$PROJECT_DIR$/generate_training_data.py" />
+    <entry file="file://$PROJECT_DIR$/0.fasta" />
     <entry file="file://$PROJECT_DIR$/other_stuff/test.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -650,50 +656,48 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main_code/help_functions.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5270">
-          <caret line="310" column="90" selection-start-line="309" selection-start-column="4" selection-end-line="310" selection-end-column="90" />
+        <state relative-caret-position="240">
+          <caret line="85" column="30" lean-forward="true" selection-start-line="85" selection-start-column="30" selection-end-line="85" selection-end-column="30" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="12" column="16" lean-forward="true" selection-start-line="12" selection-start-column="16" selection-end-line="12" selection-end-column="16" />
-          <folding>
-            <element signature="e#0#19#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/main_code/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="6" column="20" selection-start-line="6" selection-start-column="20" selection-end-line="6" selection-end-column="20" />
+        <state relative-caret-position="136">
+          <caret line="8" column="115" selection-start-line="8" selection-start-column="67" selection-end-line="8" selection-end-column="115" />
           <folding>
             <element signature="e#0#24#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main_code/unify_current_jobs_results.py">
+    <entry file="file://$PROJECT_DIR$/main_code/unify_current_jobs_results.py" />
+    <entry file="file://$PROJECT_DIR$/main_code/combine_current_results.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="79">
-          <caret line="14" lean-forward="true" selection-start-line="14" selection-end-line="14" />
+        <state relative-caret-position="102">
+          <caret line="6" selection-start-line="6" selection-end-line="6" />
           <folding>
-            <element signature="e#0#10#0" expanded="true" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main_code/combine_current_results.py">
+    <entry file="file://$USER_HOME$/opt/anaconda3/lib/python3.8/site-packages/pandas/core/generic.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="212">
-          <caret line="17" column="110" selection-start-line="17" selection-start-column="110" selection-end-line="17" selection-end-column="110" />
+        <state relative-caret-position="182">
+          <caret line="1517" selection-start-line="1517" selection-end-line="1517" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="87">
+          <caret line="19" column="38" selection-start-line="19" selection-start-column="38" selection-end-line="19" selection-end-column="38" />
           <folding>
-            <element signature="e#0#9#0" expanded="true" />
+            <element signature="e#0#19#0" expanded="true" />
           </folding>
         </state>
       </provider>
