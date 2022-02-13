@@ -1,4 +1,4 @@
-from help_functions import *
+from main_code.help_functions import *
 
 
 def unify_csvs(csvs_path_list, unified_csv_path):
@@ -14,7 +14,7 @@ def unify_csvs(csvs_path_list, unified_csv_path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--folder', action='store', type=str)
-    parser.add_argument('--n_jobs', action='store', type=int,)
+    parser.add_argument('--n_jobs', action='store', type=int)
     parser.add_argument('--output_folder', action='store', type=str)
     args = parser.parse_args()
     csvs_path_list = [f'{args.folder}/job_{n}/{n}{CSV_SUFFIX}' for n in range(args.n_jobs)]
