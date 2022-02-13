@@ -22,12 +22,13 @@ def get_average_best_results_among_a_tree_set_per_msa(data, n_parsimony_grid, n_
             for i in range(n_sample_points):
                 seed = seed + 1
                 sampled_data_parsimony = data[data["tree_type"] == "parsimony"].groupby(
-                    by=["msa_name", "run_name", "spr_radius", "spr_cutoff", "best_msa_ll"]).sample(
-                    n=n_parsimony, random_state=seed
+                    by=["msa_name", "run_name", "spr_radius", "spr_cutoff", "best_msa_ll"],group_keys=False).apply(lambda df:
+                    df.sample(n=n_parsimony, random_state=seed)
                 )
                 sampled_data_random = data[data["tree_type"] == "random"].groupby(
-                    by=["msa_name", "run_name", "spr_radius", "spr_cutoff", "best_msa_ll"]).sample(
-                    n=n_random, random_state=seed
+                    by=["msa_name", "run_name", "spr_radius", "spr_cutoff", "best_msa_ll"],group_keys=False).apply(lambda df:
+                    df.sample(n=n_random, random_state=seed)
+
                 )
                 sampled_data = pd.concat([sampled_data_parsimony, sampled_data_random])
                 run_metrics = sampled_data.groupby(
