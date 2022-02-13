@@ -8,13 +8,14 @@ import scipy.stats as stats
 
 
 def get_average_best_results_among_a_tree_set_per_msa(data, n_parsimony_grid, n_random_grid, n_sample_points,
+                                                      sampling_csv_path,
                                                       run_name=None):
     if run_name:
         data = data[data["run_name"] == run_name]
     data.loc[data['run_name'] == "default", 'spr_radius'] = "default"
     data.loc[data['run_name'] == "default", 'spr_cutoff'] = "default"
-    aggregated_results = pd.DataFrame()
     seed = SEED
+    first_insert = True
     for n_parsimony in n_parsimony_grid:
         for n_random in n_random_grid:
             current_configuration_results = pd.DataFrame()
@@ -47,12 +48,9 @@ def get_average_best_results_among_a_tree_set_per_msa(data, n_parsimony_grid, n_
                 mean_Err_overall=('curr_sample_overall_Err', 'mean'),
                 mean_Err=('curr_sample_Err', 'mean'), std_Err=('curr_sample_Err', 'std'),
                 mean_time=('curr_sample_total_time', 'mean'), std_time=('curr_sample_total_time', 'std')).reset_index()
-            if aggregated_results.empty:
-                aggregated_results = aggregated_current_results.copy()
-            else:
-                aggregated_results = pd.concat([aggregated_results, aggregated_current_results])
+            aggregated_current_results.to_csv(sampling_csv_path, mode='a', header=first_insert, sep=CSV_SEP)
+            first_insert = False
 
-    return aggregated_results
 
 
 def rank_configurations_vs_default(data):
@@ -103,18 +101,16 @@ def plot_results(data, plots_dir):
 def main():
     overall_data_path = f"{RESULTS_FOLDER}/full_raxml_data.tsv"
     # plots_dir = 'plots_dir_new'
-    sampling_csv_path = os.path.join(RESULTS_FOLDER, "test_new_sampling.csv")
+    sampling_csv_path = f"{RESULTS_FOLDER}/sampled_raxml_data.tsv"
     # if not os.path.exists(plots_dir):
     #    os.mkdir(plots_dir)
     data = pd.read_csv(overall_data_path, sep=CSV_SEP)
 
-    if os.path.exists(sampling_csv_path):
-        res = pd.read_csv(sampling_csv_path)
-    else:
-        res = get_average_best_results_among_a_tree_set_per_msa(
+    if not os.path.exists(sampling_csv_path):
+        get_average_best_results_among_a_tree_set_per_msa(
             data, n_parsimony_grid=range(11),
-            n_random_grid=range(11), n_sample_points=10)
-        res.to_csv(f"{RESULTS_FOLDER}/sampled_raxml_data.tsv")
+            n_random_grid=range(11), n_sample_points=2, sampling_csv_path = sampling_csv_path)
+    res = pd.read_csv(sampling_csv_path)
     # rank_configurations_vs_default(res)
 
 
