@@ -99,6 +99,10 @@ def plot_results(data, plots_dir):
 
 
 def main():
+    if LOCAL_RUN:
+        sys.path.append("/groups/pupko/noaeker/RAxML_params_tuning/main_code")
+    else:
+        sys.path.append("/Users/noa/Workspace/main_code")
     overall_data_path = f"{RESULTS_FOLDER}/full_raxml_data.tsv"
     # plots_dir = 'plots_dir_new'
     sampling_csv_path = f"{RESULTS_FOLDER}/sampled_raxml_data.tsv"

@@ -12,6 +12,10 @@ def unify_csvs(csvs_path_list, unified_csv_path):
     return combined_df
 
 def main():
+    if LOCAL_RUN:
+        sys.path.append("/groups/pupko/noaeker/RAxML_params_tuning/main_code")
+    else:
+        sys.path.append("/Users/noa/Workspace/main_code")
     parser = argparse.ArgumentParser()
     parser.add_argument('--folder', action='store', type=str)
     parser.add_argument('--n_jobs', action='store', type=int)
