@@ -17,9 +17,10 @@ def main():
     parser.add_argument('--n_jobs',action='store', type = int, default= 10)
     parser.add_argument('--out_csv_path', action='store', type=str, default=f'{RESULTS_FOLDER}/full_raxml_data{CSV_SUFFIX}')
     args = parser.parse_args()
-    destination_path = args.csv_path
+    print(f'Job arguments are: {args}')
     csv_paths= [f"{TMP_RESULTS_FOLDER}/job_{i}/{i}.tsv" for i in range(args.n_jobs)]
-    unify_csvs(csv_paths, destination_path)
+    print(csv_paths)
+    unify_csvs(csv_paths, args.out_csv_path)
 
 if __name__ == "__main__":
     main()

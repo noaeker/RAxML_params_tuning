@@ -1,6 +1,10 @@
+from sys import platform
 import logging
 
-LOCAL_RUN = False
+if platform == "linux" or platform == "linux2":
+    LOCAL_RUN = False
+else:
+    LOCAL_RUN = True
 
 MODULE_LOAD_STR = "module load gcc/gcc-8.2.0; module load R/3.6.1; module load python/python-anaconda3.6.5-orenavr2; module load intel/parallel_studio_xe_2020.4.omnipath;"
 PBS_FILE_GENERATOR_CODE = "/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py"
