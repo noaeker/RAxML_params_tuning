@@ -46,6 +46,7 @@ if not LOCAL_RUN:
     MAIN_CODE_PATH = "/groups/pupko/noaeker/RAxML_params_tuning/tune_params.py"
     RAXML_HPC_EXE = "/groups/pupko/noaeker/standard-RAxML/raxmlHPC"
     RATE4SITE_COMMAND_PREFIX = "/groups/pupko/noaeker/programs/other_programs/rate4site/rate4site"
+
 elif LOCAL_RUN:
     IQTREE_EXE = "/Users/noa/Programs/iqtree-2.1.3-MacOSX/bin/iqtree2"
     RAXML_NG_EXE = "/Users/noa/Programs/Raxml/raxml-ng  "
@@ -56,3 +57,4 @@ elif LOCAL_RUN:
     MSAs_CSV_PATH = "/Users/noa/Workspace/data/sampled_datasets.csv"
     GENERAL_MSA_DIR = "/Users/noa/Workspace/data/single-gene_alignments"
     MAIN_CODE_PATH = "/Users/noa/Workspace/RAxML_params_tuning/tune_params.py"
+

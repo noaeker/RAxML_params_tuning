@@ -14,40 +14,30 @@ def generate_raxml_ng_command_prefix(cpus=1):
 class GENERAL_RAXML_ERROR(Exception):
     pass
 
-# def extract_raxml_statistics_from_msa(full_file_path, output_name, msa_stats, curr_run_directory):
-#     parsimony_tree_generation_prefix = os.path.join(curr_run_directory, output_name + "pars")
-#     constant_branch_length_parsimony_tree_path = parsimony_tree_generation_prefix + ".raxml.startTree"
-#     parsimony_tree_generation_command = (
-#         "{raxml_exe_path} {threads_config} --force msa --force perf_threads --start --msa {msa_path} --model WAG+G --tree pars{{{n_parsimony_trees}}} --seed {seed} --prefix {prefix}").format(
-#         raxml_exe_path=RAXML_NG_EXE,
-#         threads_config=generate_raxml_ng_command_prefix(),
-#         msa_path=full_file_path, n_parsimony_trees=1, prefix=parsimony_tree_generation_prefix, seed=SEED)
-#     execute_commnand_and_write_to_log(parsimony_tree_generation_command, run_locally=True)
-#     msa_stats["raxml_parsimony_tree_path"] = constant_branch_length_parsimony_tree_path
-#     wait_for_file_existence(constant_branch_length_parsimony_tree_path, "Parsimony tree")
-#     parsimony_model_evaluation_prefix = os.path.join(curr_run_directory, output_name + "pars_eval")
-#     parsimony_model_and_bl_evaluation_command = (
-#         "{raxml_exe_path} {threads_config} --force msa --force perf_threads --evaluate --msa {msa_path} --model WAG+G  --tree {parsimony_tree_path} --seed {seed} --prefix {prefix}").format(
-#         raxml_exe_path=RAXML_NG_EXE,
-#         threads_config=generate_raxml_ng_command_prefix(),
-#         msa_path=full_file_path, parsimony_tree_path=constant_branch_length_parsimony_tree_path, seed=SEED,
-#         prefix=parsimony_model_evaluation_prefix)
-#     execute_commnand_and_write_to_log(parsimony_model_and_bl_evaluation_command, run_locally=True)
-#     parsimony_log_path = parsimony_model_evaluation_prefix + ".raxml.log"
-#     wait_for_file_existence(parsimony_log_path, "Parsimony log")
-#     parsimony_optimized_tree_path = parsimony_model_evaluation_prefix + ".raxml.bestTree"
-#     msa_stats["parsimony_optimized_tree_path"] = parsimony_optimized_tree_path
-#     parsimony_divergence = compute_tree_divergence(parsimony_optimized_tree_path)
-#     parsimony_tree_alpha = extract_param_from_raxmlNG_log(parsimony_log_path, "alpha")
-#     if not msa_stats["use_raxml_search"]:
-#         mad_command = "{mad_exe_path} -t -s {tree_path}".format(mad_exe_path=MAD_COMMAND_PREFIX,
-#                                                                 tree_path=parsimony_optimized_tree_path)
-#         execute_commnand_and_write_to_log(mad_command, run_locally=True)
-#         mad_log_path = parsimony_optimized_tree_path + ".rooted"
-#         mad = extract_mad_file_statistic(mad_log_path)
-#         msa_stats["mad"] = mad
-#     msa_stats["alpha"] = parsimony_tree_alpha
-#     msa_stats["divergence"] = parsimony_divergence
+def extract_raxml_statistics_from_msa(msa_path,msa_type, output_name, curr_run_directory):
+
+    parsimony_tree_generation_prefix = os.path.join(curr_run_directory, output_name + "pars")
+    constant_branch_length_parsimony_tree_path = parsimony_tree_generation_prefix + ".raxml.startTree"
+    model = "GTR+G" if msa_type == "DNA" else "WAG+G"
+    parsimony_tree_generation_command = (
+        "{raxml_exe_path} {threads_config} --force msa --force perf_threads --start --msa {msa_path} --model {model} --tree pars{{{n_parsimony_trees}}} --seed {seed} --prefix {prefix}").format(
+        raxml_exe_path=RAXML_NG_EXE,
+        threads_config=generate_raxml_ng_command_prefix(),
+        msa_path=msa_path, n_parsimony_trees=1, prefix=parsimony_tree_generation_prefix, seed=SEED, model =model)
+    execute_commnand_and_write_to_log(parsimony_tree_generation_command)
+    parsimony_model_evaluation_prefix = os.path.join(curr_run_directory, output_name + "pars_eval")
+    parsimony_model_and_bl_evaluation_command = (
+        "{raxml_exe_path} {threads_config} --force msa --force perf_threads --evaluate --msa {msa_path} --model {model}  --tree {parsimony_tree_path} --seed {seed} --prefix {prefix}").format(
+        raxml_exe_path=RAXML_NG_EXE,
+        threads_config=generate_raxml_ng_command_prefix(),
+        msa_path=msa_path, parsimony_tree_path=constant_branch_length_parsimony_tree_path, seed=SEED,
+        prefix=parsimony_model_evaluation_prefix, model =model)
+    execute_commnand_and_write_to_log(parsimony_model_and_bl_evaluation_command)
+    parsimony_log_path = parsimony_model_evaluation_prefix + ".raxml.log"
+    parsimony_optimized_tree_path = parsimony_model_evaluation_prefix + ".raxml.bestTree"
+    parsimony_tree_alpha = extract_param_from_raxmlNG_log(parsimony_log_path, "alpha")
+    return {"parsimony_tree_path" : parsimony_optimized_tree_path,"parsimony_tree_alpha" : parsimony_tree_alpha }
+
 
 def extract_mad_file_statistic(mad_log_path):
         pattern = "MAD=([\d.]+)"
