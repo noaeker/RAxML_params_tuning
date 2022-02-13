@@ -12,7 +12,7 @@ def unify_csvs(csvs_path_list, unified_csv_path):
     return combined_df
 
 def main():
-    if LOCAL_RUN:
+    if not LOCAL_RUN:
         sys.path.append("/groups/pupko/noaeker/RAxML_params_tuning/main_code")
     else:
         sys.path.append("/Users/noa/Workspace/main_code")
