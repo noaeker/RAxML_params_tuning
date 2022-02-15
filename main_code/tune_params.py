@@ -162,8 +162,7 @@ def RAxML_runs_on_given_msa(msa_stats, msa_path, curr_run_directory, param_obj):
 
 def generate_msa_stats(original_alignment_path, args):
     logging.info("Generating general MSA stats")
-    msa_name = original_alignment_path.replace(args.general_msa_dir, "").replace(os.path.sep,
-                                                                                 "_")
+    msa_name = get_msa_name(original_alignment_path,args.general_msa_dir)
     curr_msa_folder = os.path.join(args.curr_job_folder, msa_name)
     create_or_clean_dir(curr_msa_folder)
     original_alignment_data = get_alignment_data(

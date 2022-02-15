@@ -14,6 +14,7 @@ import random
 from raxml import *
 from sklearn.model_selection import ParameterGrid
 from subprocess import PIPE, STDOUT
+import re
 
 
 def str_to_linspace(str):
@@ -73,7 +74,9 @@ def generate_argument_str(args):
     return output.strip()
 
 
-
+def get_msa_name(msa_path, general_msa_dir):
+    return msa_path.replace(general_msa_dir, "").replace(os.path.sep,
+                                               "_")
 
 
 def submit_linux_job(job_name, job_folder, run_command, cpus, job_ind="job", queue='pupkolab'):
