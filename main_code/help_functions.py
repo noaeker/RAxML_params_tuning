@@ -11,10 +11,15 @@ import numpy as np
 import time
 from config import *
 import random
-from raxml import *
 from sklearn.model_selection import ParameterGrid
 from subprocess import PIPE, STDOUT
 import re
+
+
+def execute_command_and_write_to_log(command, print_to_log=False):
+    if print_to_log:
+        logging.info(f"About to run: {command}")
+    subprocess.run(command, shell=True, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 
 
 def str_to_linspace(str):
@@ -39,11 +44,6 @@ def get_param_obj(param_grid_dict_str):
 #              'off', '--model', model_line_params, '--nofiles', '--tree', tree_rampath],
 #             stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 #
-
-def execute_commnand_and_write_to_log(command, print_to_log = False):
-        if print_to_log:
-            logging.info(f"About to run: {command}")
-        subprocess.run(command, shell=True,stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 
 
 
@@ -196,29 +196,6 @@ def extract_alignment_files_from_dirs(general_dir_path):
     return files_list
 
 
-# def extract_dir_list_from_csv(dir_list_csv_path):
-#     df = pd.read_csv(dir_list_csv_path)
-#     df.sort_values(by='nchars', ascending=False, inplace=True)
-#     dir_list = [os.path.join(MSAs_FOLDER, path) for path in list(df["path"])]
-#     logging.debug("Number of paths in original csv = {n_paths}".format(n_paths=len(df.index)))
-#     return dir_list
-#
-#
-# def extract_alignment_files_from_general_csv(dir_list_csv_path):
-#     files_list = []
-#     logging.debug("Extracting alignments from {}".format(dir_list_csv_path))
-#     dir_list = extract_dir_list_from_csv(dir_list_csv_path)
-#     for dir in dir_list:
-#         if os.path.exists(dir):
-#             for file in os.listdir(dir):
-#                 if (file.endswith(".phy") or file.endswith(".fasta")):
-#                     files_list.append(os.path.join(dir, file))
-#                     break
-#         else:
-#             logging.error("Following MSA dir does not exist {dir}".format(dir=dir))
-#     logging.debug("Overalls number of MSAs found in the given directories is: {nMSAs}".format(nMSAs=len(files_list)))
-#     return files_list
-
 
 def alignment_list_to_df(alignment_data):
     alignment_list = [list(alignment_data[i].seq) for i in range(len(alignment_data))]
@@ -365,26 +342,8 @@ def remove_MSAs_with_not_enough_seq_and_locis(file_path_list, min_seq, min_n_loc
             proper_file_path_list.append(path)
     return proper_file_path_list
 
-def extract_mad_file_statistic(mad_log_path):
-    pattern = "MAD=([\d.]+)"
-    with open(mad_log_path) as mad_output:
-        data = mad_output.read()
-        match = re.search(pattern, data, re.IGNORECASE)
-    if match:
-        value = float(match.group(1))
-    else:
-        error_msg = "Param  not found in mad file in {}".format(mad_log_path)
-        logging.error(error_msg)
-        raise GENERAL_RAXML_ERROR(error_msg)
-    return value
 
-def compute_tree_divergence(tree_path):
-    total_dist = 0
-    tree = generate_tree_object_from_newick(tree_path)
-    for node in tree.iter_descendants():
-        # Do some analysis on node
-        total_dist = total_dist + node.dist
-    return total_dist
+
 
 
 

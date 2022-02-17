@@ -9,7 +9,7 @@ def calculate_rf_dist(rf_file_path, curr_run_directory, prefix="rf"):
     rf_command = (
         "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
         raxml_exe_path=RAXML_NG_EXE, rf_file_path=rf_file_path, prefix=rf_prefix)
-    execute_commnand_and_write_to_log(rf_command)
+    execute_command_and_write_to_log(rf_command)
     rf_log_file_path = rf_prefix + ".raxml.log"
     relative_rf_dist = extract_param_from_raxmlNG_log(rf_log_file_path, "rf_dist")
     return relative_rf_dist
@@ -111,7 +111,7 @@ def run_raxml_on_several_spcific_tree_type(curr_run_directory, msa_path, msa_sta
     :return: The function generates the required number of trees of a given type and runs RAxML on each of them
     '''
     all_given_tree_type_results = pd.DataFrame()
-    parsimony_topologies_path, elapsed_time_p = generate_n_tree_topologies(
+    parsimony_topologies_path, elapsed_time_p = generate_n_unique_tree_topologies_as_starting_trees(
         n=n,
         original_file_path=msa_path,
         curr_run_directory=curr_run_directory,

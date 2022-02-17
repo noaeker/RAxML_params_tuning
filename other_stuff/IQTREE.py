@@ -1,6 +1,6 @@
 from help_functions import *
 from datetime import datetime
-from trees_manipulation import *
+from basic_trees_manipulation import *
 
 class GENERAL_RAXML_ERROR(Exception):
     pass
@@ -93,7 +93,7 @@ def iqtree_search(curr_run_directory, msa_path, prefix,params_config, cpus):
         msa_path=msa_path, starting_trees_command=starting_trees_command, seed=SEED,
         prefix=search_prefix, spr_radius_command = spr_radius_command, spr_cutoff_command = spr_cutoff_command)
     raxml_log_file = search_prefix + ".raxml.log"
-    execute_commnand_and_write_to_log(search_command)
+    execute_command_and_write_to_log(search_command)
     elapsed_running_time = extract_param_from_IQTREE_log(raxml_log_file, 'time')
     best_ll = extract_param_from_IQTREE_log(raxml_log_file, 'search_ll')
     best_tree_topology_path = search_prefix + ".raxml.bestTree"

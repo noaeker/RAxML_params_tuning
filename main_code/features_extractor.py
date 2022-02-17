@@ -1,22 +1,53 @@
-from config import *
-import pandas as pd
-import numpy as np
+
+from basic_trees_manipulation import *
+from SPR_moves import *
 from raxml import *
-from feature_calculator import *
+from help_functions import *
+
+
 
 def extract_features(msa_path, msa_type,curr_run_directory,i):
+    print(msa_path)
     with open(msa_path) as original:
         msa_data = list(SeqIO.parse(original, 'fasta'))
     n_seq, n_loci = len(msa_data), len(msa_data[0].seq)
     all_features = {"n_seq": n_seq, "n_loci": n_loci, "msa_path": msa_path, "msa_name": get_msa_name(msa_path, GENERAL_MSA_DIR)}
-    RAxML_metrics_dict = extract_raxml_statistics_from_msa(msa_path, msa_type, f"raxml_{i}", curr_run_directory)
+    general_raxml_folder = os.path.join(curr_run_directory,"general_raxml_features")
+    os.mkdir(general_raxml_folder)
+    RAxML_metrics_dict = extract_raxml_statistics_from_msa(msa_path, msa_type, f"raxml_{i}", general_raxml_folder)
     all_features.update(RAxML_metrics_dict)
-    tree_path = RAxML_metrics_dict["parsimony_tree_path"]
-    tree_object = generate_tree_object_from_newick( tree_path )
-    tree_features_dict = {'tree_divergence': compute_tree_divergence(tree_object),
-                     'largest_branch_length': compute_largest_branch_length(tree_object),
-                     'largest_distance_between_taxa': max_distance_between_leaves(tree_object),
-                          'tree_MAD': mad_tree_parameter(tree_path)
+    single_parsimony_tree_path = RAxML_metrics_dict["parsimony_tree_path"]
+    single_parsimony_tree_obj = generate_tree_object_from_newick(single_parsimony_tree_path)
+    several_parsimony_and_random_folder = os.path.join(curr_run_directory, f"parsimony_and_random_statistics_{i}")
+    os.mkdir(several_parsimony_and_random_folder)
+    parsimony_trees_path = generate_n_tree_topologies_for_features(30, msa_path, several_parsimony_and_random_folder,
+                                                                   seed  =SEED, tree_type = "parsimony", msa_type = msa_type)
+
+    parsimony_trees_ll_on_data, parsimony_tree_paths = raxml_optimize_trees_for_given_msa(msa_path, f"{i}_parsimony_eval", parsimony_trees_path,
+                                       several_parsimony_and_random_folder,  msa_type, opt_brlen=False
+                                       )
+
+    random_trees_path = generate_n_tree_topologies_for_features(30, msa_path, several_parsimony_and_random_folder,
+                                                                seed  =SEED, tree_type = "random", msa_type = msa_type)
+    random_trees_ll_on_data, random_tree_paths = raxml_optimize_trees_for_given_msa(msa_path, f"{i}_random_eval", random_trees_path,
+                                       several_parsimony_and_random_folder,  msa_type, opt_brlen=False
+                                       )
+
+    distances, ll_improvements = get_random_spr_moves_vs_distances(single_parsimony_tree_path, 100, curr_run_directory, msa_path, msa_type)
+
+    tree_features_dict = {'tree_divergence': compute_tree_divergence( single_parsimony_tree_obj ),
+                     'largest_branch_length': compute_largest_branch_length( single_parsimony_tree_obj ),
+                     'largest_distance_between_taxa': max_distance_between_leaves( single_parsimony_tree_obj ),
+                          'tree_MAD': mad_tree_parameter( single_parsimony_tree_path),
+                          'avg_parsimony_rf_dist': RF_distances(curr_run_directory, parsimony_trees_path),
+                          'parsimony_vs_random_diff' : np.mean(parsimony_trees_ll_on_data)/ np.mean(random_trees_ll_on_data),
+                          'parsimony_var_vs_mean' : np.var(parsimony_trees_ll_on_data)/ np.mean(parsimony_trees_ll_on_data),
+                          'random_var_vs_mean': np.var(random_trees_ll_on_data)/ np.mean(random_trees_ll_on_data),
+                          'best_parsimony_vs_best_random': (max(parsimony_trees_ll_on_data)/max(random_trees_ll_on_data)),
+                          'distances_vs_ll_corr' : np.corrcoef(np.array(distances),np.array(ll_improvements))[0,1],
+
+
+
                      }
     all_features.update(tree_features_dict)
     return all_features
@@ -25,7 +56,7 @@ def extract_features(msa_path, msa_type,curr_run_directory,i):
 def main():
     overall_data_path = f"{RESULTS_FOLDER}/full_raxml_data{CSV_SUFFIX}"
     out_path = f"{RESULTS_FOLDER}/features{CSV_SUFFIX}"
-    curr_run_directory = os.path.join(RESULTS_FOLDER,"features_extraction")
+    curr_run_directory = os.path.join(RESULTS_FOLDER,"features_extraction_test")
     data = pd.read_csv(overall_data_path, sep=CSV_SEP)
     msa_paths = list(np.unique(data["original_alignment_path"]))
     if LOCAL_RUN:

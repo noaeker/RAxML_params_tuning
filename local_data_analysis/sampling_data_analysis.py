@@ -14,7 +14,6 @@ def rank_configurations_vs_default(sampling_data):
         ["msa_name", "default_time", "default_Err_normalized","default_Err"]]
     enriched_data = pd.merge(sampling_data, default_confg, on=["msa_name"])
     enriched_data = enriched_data[(enriched_data["mean_Err_normalized"]<=enriched_data["default_Err_normalized"])& (enriched_data["is_default_run"]== False)]
-    enriched_data.sort_values(by=["msa_name", "mean_time"], inplace=True)
     enriched_data["running_time_vs_default"] = enriched_data["default_time"] / enriched_data["mean_time"]
     enriched_data["trees_confg"] = enriched_data["n_parsimony"].astype(str)+"_"+enriched_data["n_random"].astype(str)
     res = enriched_data.groupby(["msa_name"]).first()

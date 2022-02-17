@@ -62,5 +62,5 @@ elif LOCAL_RUN:
     MSAs_CSV_PATH = "/Users/noa/Workspace/data/sampled_datasets.csv"
     GENERAL_MSA_DIR = "/Users/noa/Workspace/data/single-gene_alignments"
     MAIN_CODE_PATH = "/Users/noa/Workspace/RAxML_params_tuning/tune_params.py"
-    TMP_RESULTS_FOLDER =  f"{RESULTS_FOLDER}/single_gene_MSAs_new"
+    TMP_RESULTS_FOLDER =  f"{RESULTS_FOLDER}/single_gene_MSAs"
 
