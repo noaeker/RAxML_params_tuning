@@ -24,7 +24,7 @@ def distribute_grid_over_jobs(parameter_grid, all_jobs_results_folder, args):
         jobs_csv_path_list.append(job_related_files_paths["job_csv_path"])
         status_file_path_list.append(job_related_files_paths["job_status_file"])
         pickle.dump(job_grid, open(job_related_files_paths["job_grid_points_file"], "wb"))
-        run_command = f' python {MAIN_CODE_PATH} ' \
+        run_command = f' python {SAMPLING_MAIN_CODE_PATH} ' \
             ' --job_ind {job_ind} --curr_job_folder {curr_job_folder} {previous_args}' \
             .format(
             job_ind=job_ind, previous_args=generate_argument_str(args), curr_job_folder=curr_job_folder
