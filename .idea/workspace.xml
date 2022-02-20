@@ -2,20 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/main_code/basic_trees_manipulation.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main_code/tree_and_SPR_methods.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/main_code/random_and_parsimony_sampling_RUNNER.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/local_data_analysis/sampling_data_analysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/local_data_analysis/sampling_data_analysis.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main_code/ML_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/ML_pipeline.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main_code/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/feature_calculator.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/main_code/features_extractor.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/features_extractor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main_code/help_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/help_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/raxml.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/raxml.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/trees_manipulation.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/SPR_moves.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_code/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/tp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main_code/tune_params.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/tune_params.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/other_stuff/IQTREE.py" beforeDir="false" afterPath="$PROJECT_DIR$/other_stuff/IQTREE.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -26,46 +21,10 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main_code/basic_trees_manipulation.py">
+        <entry file="file://$PROJECT_DIR$/main_code/random_and_parsimony_sampling_RUNNER.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="115">
-              <caret line="111" selection-start-line="111" selection-end-line="111" />
-              <folding>
-                <element signature="e#1#29#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main_code/SPR_moves.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="139">
-              <caret line="70" column="4" selection-start-line="70" selection-start-column="4" selection-end-line="70" selection-end-column="4" />
-              <folding>
-                <element signature="e#0#18#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main_code/features_extractor.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="338">
-              <caret line="34" selection-start-line="34" selection-end-line="34" />
-              <folding>
-                <element signature="e#1#39#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main_code/ML_pipeline.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="219" column="53" lean-forward="true" selection-start-line="219" selection-start-column="53" selection-end-line="219" selection-end-column="53" />
+            <state relative-caret-position="208">
+              <caret line="66" column="57" selection-start-line="66" selection-start-column="57" selection-end-line="66" selection-end-column="57" />
               <folding>
                 <element signature="e#0#28#0" expanded="true" />
               </folding>
@@ -73,13 +32,13 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/main_code/tp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="272">
-              <caret line="16" column="8" selection-start-line="16" selection-start-column="8" selection-end-line="16" selection-end-column="8" />
+            <state relative-caret-position="105">
+              <caret line="56" selection-start-line="56" selection-end-line="58" selection-end-column="51" />
               <folding>
-                <element signature="e#1#29#0" expanded="true" />
+                <element signature="e#0#28#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -88,8 +47,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main_code/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="227">
-              <caret line="60" column="4" selection-start-line="60" selection-start-column="4" selection-end-line="60" selection-end-column="4" />
+            <state relative-caret-position="208">
+              <caret line="64" column="73" selection-start-line="64" selection-start-column="73" selection-end-line="64" selection-end-column="73" />
               <folding>
                 <element signature="e#0#24#0" expanded="true" />
               </folding>
@@ -98,31 +57,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/opt/anaconda3/lib/python3.8/site-packages/pandas/core/frame.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="139">
-              <caret line="2901" selection-start-line="2901" selection-end-line="2901" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main_code/raxml.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1316">
-              <caret line="264" selection-start-line="264" selection-end-line="264" />
-              <folding>
-                <element signature="e#0#28#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main_code/help_functions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3332">
-              <caret line="196" selection-start-line="196" selection-end-line="196" />
+            <state relative-caret-position="2535">
+              <caret line="337" column="34" selection-start-line="337" selection-start-column="34" selection-end-line="337" selection-end-column="34" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -130,13 +68,13 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main_code/tune_params.py">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="412">
-              <caret line="174" column="24" selection-start-line="174" selection-start-column="24" selection-end-line="174" selection-end-column="24" />
+            <state relative-caret-position="136">
+              <caret line="11" column="33" selection-start-line="11" selection-start-column="33" selection-end-line="11" selection-end-column="33" />
               <folding>
-                <element signature="e#0#19#0" expanded="true" />
+                <element signature="e#1#29#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -153,7 +91,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>save</find>
       <find>concat</find>
       <find>plot</find>
       <find>relplot</find>
@@ -183,6 +120,7 @@
       <find>generate_n_</find>
       <find>raxml</find>
       <find>raxml_optimize_trees_for_given_msa</find>
+      <find>related_f</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -223,23 +161,25 @@
         <option value="$PROJECT_DIR$/main_code/sampling_data_analysis.py" />
         <option value="$PROJECT_DIR$/main_code/grid_search_on_rf_results.py" />
         <option value="$PROJECT_DIR$/local_data_analysis/sampling_data_analysis.py" />
-        <option value="$PROJECT_DIR$/main_code/config.py" />
         <option value="$PROJECT_DIR$/main_code/tree_and_SPR_methods.py" />
-        <option value="$PROJECT_DIR$/main_code/ML_pipeline.py" />
         <option value="$PROJECT_DIR$/main_code/Tree_structure_and_statistics.py" />
         <option value="$PROJECT_DIR$/main_code/trees_manipulation.py" />
         <option value="$PROJECT_DIR$/main_code/SPR_moves.py" />
         <option value="$PROJECT_DIR$/main_code/feature_calculator.py" />
-        <option value="$PROJECT_DIR$/main_code/help_functions.py" />
         <option value="$PROJECT_DIR$/main_code/raxml.py" />
         <option value="$PROJECT_DIR$/main_code/basic_trees_manipulation.py" />
         <option value="$PROJECT_DIR$/main_code/features_extractor.py" />
+        <option value="$PROJECT_DIR$/main_code/random_and_parismony_sampling_parallel.py" />
+        <option value="$PROJECT_DIR$/main_code/ML_pipeline.py" />
+        <option value="$PROJECT_DIR$/main_code/config.py" />
+        <option value="$PROJECT_DIR$/main_code/help_functions.py" />
+        <option value="$PROJECT_DIR$/main_code/random_and_parsimony_sampling_RUNNER.py" />
         <option value="$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="y" value="80" />
+    <option name="y" value="29" />
     <option name="width" value="1440" />
     <option name="height" value="759" />
   </component>
@@ -280,7 +220,7 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -305,7 +245,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.random_and_parsimony_sampling">
+  <component name="RunManager" selected="Python.random_and_parsimony_sampling_RUNNER">
     <configuration name="ML_pipeline" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="RAxML_params_tuning" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -340,27 +280,6 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_code/combine_current_results.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="data_analysis" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="RAxML_params_tuning" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/main_code" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/local_data_analysis/sampling_data_analysis.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -411,13 +330,34 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="random_and_parsimony_sampling_RUNNER" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="RAxML_params_tuning" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/main_code" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_code/random_and_parsimony_sampling_RUNNER.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.random_and_parsimony_sampling_RUNNER" />
+        <item itemvalue="Python.ML_pipeline" />
         <item itemvalue="Python.random_and_parsimony_sampling" />
         <item itemvalue="Python.features_extractor" />
-        <item itemvalue="Python.ML_pipeline" />
         <item itemvalue="Python.combine_current_results" />
-        <item itemvalue="Python.data_analysis" />
       </list>
     </recent_temporary>
   </component>
@@ -435,23 +375,23 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="80" width="1440" height="759" extended-state="0" />
+    <frame x="0" y="29" width="1440" height="759" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.19238901" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.29457363" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.17091455" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.26236883" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.28035983" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.33733132" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.36731634" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="7" />
-      <window_info anchor="bottom" id="Terminal" order="8" weight="0.3289855" />
+      <window_info anchor="bottom" id="Terminal" order="8" weight="0.32833582" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
-      <window_info anchor="bottom" id="Python Console" order="10" weight="0.3298351" />
+      <window_info anchor="bottom" id="Python Console" order="10" weight="0.11844078" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -497,38 +437,38 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py</url>
-          <line>29</line>
+          <line>30</line>
           <option name="timeStamp" value="54" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py</url>
-          <line>14</line>
+          <line>15</line>
           <option name="timeStamp" value="56" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main_code/ML_pipeline.py</url>
-          <line>97</line>
+          <line>96</line>
           <option name="timeStamp" value="63" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main_code/ML_pipeline.py</url>
-          <line>231</line>
+          <line>223</line>
           <option name="timeStamp" value="69" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/main_code/ML_pipeline.py</url>
-          <line>167</line>
-          <option name="timeStamp" value="70" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main_code/features_extractor.py</url>
-          <line>46</line>
+          <line>45</line>
           <option name="timeStamp" value="75" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main_code/raxml.py</url>
           <line>264</line>
           <option name="timeStamp" value="80" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/main_code/random_and_parsimony_sampling_RUNNER.py</url>
+          <line>17</line>
+          <option name="timeStamp" value="82" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -583,6 +523,11 @@
     </expressions>
     <expressions id="evaluateExpression">
       <expression>
+        <expression-string>points_per_job</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
         <expression-string>single_parsimony_trees_path</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
@@ -622,17 +567,9 @@
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
-      <expression>
-        <expression-string>max(radius_5_best)</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/analayze_raw_results.py" />
-    <entry file="file://$PROJECT_DIR$/plots_dir/radius_1.0_cutoff_2.575_vs_default.png" />
-    <entry file="file://$PROJECT_DIR$/plots_dir/radius_1.0_cutoff_5.05_vs_default.png" />
     <entry file="file://$PROJECT_DIR$/plots_dir/radius_1.0_cutoff_7.525_vs_default.png" />
     <entry file="file://$PROJECT_DIR$/plots_dir/radius_1.0_cutoff_10.0_vs_default.png" />
     <entry file="file://$PROJECT_DIR$/plots_dir/radius_8.0_cutoff_2.575_vs_default.png" />
@@ -676,24 +613,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="182">
           <caret line="1517" selection-start-line="1517" selection-end-line="1517" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/opt/anaconda3/lib/python3.8/site-packages/pandas/core/groupby/groupby.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="131">
-          <caret line="702" selection-start-line="702" selection-end-line="702" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main_code/tp.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="226">
-          <caret line="43" column="21" selection-start-line="43" selection-start-column="21" selection-end-line="43" selection-end-column="21" />
-          <folding>
-            <element signature="e#0#28#0" expanded="true" />
-            <element signature="e#3421#3745#0" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -748,16 +667,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main_code/combine_current_results.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="7" column="48" lean-forward="true" selection-start-line="7" selection-start-column="48" selection-end-line="7" selection-end-column="48" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/main_code/tree_and_SPR_methods.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="147">
@@ -775,72 +684,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main_code/tune_params.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="412">
-          <caret line="174" column="24" selection-start-line="174" selection-start-column="24" selection-end-line="174" selection-end-column="24" />
-          <folding>
-            <element signature="e#0#19#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/main_code/feature_calculator.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="221">
           <caret line="13" selection-start-line="13" selection-end-line="13" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main_code/ML_pipeline.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="219" column="53" lean-forward="true" selection-start-line="219" selection-start-column="53" selection-end-line="219" selection-end-column="53" />
-          <folding>
-            <element signature="e#0#28#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main_code/help_functions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3332">
-          <caret line="196" selection-start-line="196" selection-end-line="196" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main_code/SPR_moves.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="139">
-          <caret line="70" column="4" selection-start-line="70" selection-start-column="4" selection-end-line="70" selection-end-column="4" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main_code/basic_trees_manipulation.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="115">
-          <caret line="111" selection-start-line="111" selection-end-line="111" />
-          <folding>
-            <element signature="e#1#29#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main_code/features_extractor.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="338">
-          <caret line="34" selection-start-line="34" selection-end-line="34" />
-          <folding>
-            <element signature="e#1#39#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -862,20 +711,133 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$USER_HOME$/opt/anaconda3/lib/python3.8/site-packages/pandas/core/internals/concat.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="126">
+          <caret line="413" selection-start-line="413" selection-end-line="413" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main_code/combine_current_results.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="52">
+          <caret line="13" column="11" selection-start-line="13" selection-start-column="11" selection-end-line="13" selection-end-column="11" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main_code/basic_trees_manipulation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1651">
+          <caret line="111" selection-start-line="111" selection-end-line="111" />
+          <folding>
+            <element signature="e#1#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main_code/SPR_moves.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="778">
+          <caret line="70" column="4" selection-start-line="70" selection-start-column="4" selection-end-line="70" selection-end-column="4" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main_code/features_extractor.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-58">
+          <folding>
+            <element signature="e#1#24#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main_code/random_and_parismony_sampling_RUNNER.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="291">
+          <caret line="20" column="28" lean-forward="true" selection-start-line="20" selection-start-column="28" selection-end-line="20" selection-end-column="28" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/opt/anaconda3/lib/python3.8/site-packages/pandas/core/groupby/groupby.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="114">
+          <caret line="702" selection-start-line="702" selection-end-line="702" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main_code/ML_pipeline.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1963">
+          <caret line="50" column="12" lean-forward="true" selection-start-line="90" selection-start-column="2" selection-end-line="106" selection-end-column="53" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main_code/tune_params.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="100">
+          <caret line="205" column="4" selection-start-line="205" selection-start-column="4" selection-end-line="205" selection-end-column="101" />
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/main_code/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="227">
-          <caret line="60" column="4" selection-start-line="60" selection-start-column="4" selection-end-line="60" selection-end-column="4" />
+        <state relative-caret-position="208">
+          <caret line="64" column="73" selection-start-line="64" selection-start-column="73" selection-end-line="64" selection-end-column="73" />
           <folding>
             <element signature="e#0#24#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/main_code/help_functions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2535">
+          <caret line="337" column="34" selection-start-line="337" selection-start-column="34" selection-end-line="337" selection-end-column="34" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main_code/tp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="56" selection-start-line="56" selection-end-line="58" selection-end-column="51" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main_code/random_and_parsimony_sampling_RUNNER.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="208">
+          <caret line="66" column="57" selection-start-line="66" selection-start-column="57" selection-end-line="66" selection-end-column="57" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="16" column="8" selection-start-line="16" selection-start-column="8" selection-end-line="16" selection-end-column="8" />
+        <state relative-caret-position="136">
+          <caret line="11" column="33" selection-start-line="11" selection-start-column="33" selection-end-line="11" selection-end-column="33" />
           <folding>
             <element signature="e#1#29#0" expanded="true" />
           </folding>

@@ -1,6 +1,7 @@
 
 from help_functions import *
 import pandas as pd
+import pickle
 
 
 def get_average_best_results_among_a_tree_set_per_msa(data, parameter_grid, n_sample_points,
@@ -50,38 +51,29 @@ def get_average_best_results_among_a_tree_set_per_msa(data, parameter_grid, n_sa
         first_insert = False
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--raw_data_path', action='store', type=str, default=f"{RESULTS_FOLDER}/full_raxml_data.tsv")
-    parser.add_argument('--out_csv_path', action='store', type=str,
-                        default=f"{RESULTS_FOLDER}/sampled_raxml_data_test2.tsv")
-    parser.add_argument('--n_parsimony', action='store', type=int,
-                        default=2)
-    parser.add_argument('--n_random', action='store', type=int,
-                        default=2)
-    parser.add_argument('--n_sample_points', action='store', type=int,
-                        default=1)
-    parser.add_argument('--seed', action='store', type=int,
-                        default=SEED)
-    args = parser.parse_args()
-    # if not os.path.exists(plots_dir):
-    #    os.mkdir(plots_dir)
-    data = pd.read_csv(args.raw_data_path, sep=CSV_SEP)
-    grid_data = data[data["run_name"] != "default"]
-    random_spr_cutoff_options = np.unique(grid_data["spr_cutoff"])
-    random_spr_radius_options = np.unique(grid_data["spr_radius"])
-    parsimony_spr_cutoff_options = random_spr_cutoff_options.copy()
-    parsimony_spr_radius_options = random_spr_radius_options.copy()
-    n_random_grid = range(args.n_random + 1)
-    n_parsimony_grid = range(args.n_parsimony + 1)
-    parameter_grid = ParameterGrid(
-        {"random_spr_cutoff": random_spr_cutoff_options, "random_spr_radius": random_spr_radius_options,
-         "parsimony_spr_cutoff": parsimony_spr_cutoff_options, "parsimony_spr_radius": parsimony_spr_radius_options,
-         "n_random": n_random_grid, "n_parsimony": n_parsimony_grid})
 
-    if not os.path.exists(args.out_csv_path):
-        get_average_best_results_among_a_tree_set_per_msa(
-            data, parameter_grid, n_sample_points=args.n_sample_points, sampling_csv_path=args.out_csv_path)
+def main():
+    parser = random_and_parsimony_job_parser()
+    args = parser.parse_args()
+    data = pd.read_csv(args.raw_data_path, sep=CSV_SEP)
+    job_related_file_paths = get_sampling_job_related_files_paths(args.curr_job_folder, args.job_ind)
+    job_grid_points_file, general_log_path, job_csv_path, curr_job_status_file = \
+        job_related_file_paths[
+            "job_grid_points_file"], \
+        job_related_file_paths[
+            "general_log_path"], \
+        job_related_file_paths[
+            "job_csv_path"], \
+        job_related_file_paths[
+            "job_status_file"]
+    parameter_grid = pickle.load( open(job_grid_points_file, "rb" ) )
+    print(parameter_grid)
+
+    get_average_best_results_among_a_tree_set_per_msa(
+            data, parameter_grid, n_sample_points=args.n_sample_points, sampling_csv_path=job_csv_path)
+
+
+
 
 
 if __name__ == "__main__":

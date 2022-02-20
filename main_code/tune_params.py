@@ -203,7 +203,7 @@ def MSA_search_params_tuning_analysis(msa_stats):
 def main():
     parser = job_parser()
     args = parser.parse_args()
-    job_related_file_paths = get_job_related_files_paths(args.curr_job_folder, args.job_ind)
+    job_related_file_paths = get_sampling_job_related_files_paths(args.curr_job_folder, args.job_ind)
     job_msa_paths_file, general_log_path, job_csv_path, curr_job_status_file = \
         job_related_file_paths[
             "job_msa_paths_file"], \

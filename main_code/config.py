@@ -47,7 +47,8 @@ if not LOCAL_RUN:
     MAD_COMMAND_PREFIX = "/groups/pupko/noaeker/mad"
     RESULTS_FOLDER = "/groups/pupko/noaeker/RAxML_params_tuning_results"
     GENERAL_MSA_DIR = "/groups/pupko/noaeker/data/single-gene_alignments"
-    MAIN_CODE_PATH = "/groups/pupko/noaeker/RAxML_params_tuning/tune_params.py"
+    MAIN_CODE_PATH = "/groups/pupko/noaeker/RAxML_params_tuning/main_code/tune_params.py"
+    SAMPLING_MAIN_CODE_PATH = "/groups/pupko/noaeker/RAxML_params_tuning//main_code/random_and_parsimony_sampling.py"
     RAXML_HPC_EXE = "/groups/pupko/noaeker/standard-RAxML/raxmlHPC"
     RATE4SITE_COMMAND_PREFIX = "/groups/pupko/noaeker/programs/other_programs/rate4site/rate4site"
     TMP_RESULTS_FOLDER = f"{RESULTS_FOLDER}/single_gene_MSAs"
@@ -61,6 +62,7 @@ elif LOCAL_RUN:
     RESULTS_FOLDER = "/Users/noa/Workspace/raxml_deep_learning_results"
     MSAs_CSV_PATH = "/Users/noa/Workspace/data/sampled_datasets.csv"
     GENERAL_MSA_DIR = "/Users/noa/Workspace/data/single-gene_alignments"
-    MAIN_CODE_PATH = "/Users/noa/Workspace/RAxML_params_tuning/tune_params.py"
+    MAIN_CODE_PATH = "/Users/noa/Workspace/RAxML_params_tuning/main_code/tune_params.py"
+    SAMPLING_MAIN_CODE_PATH = "/Users/noa/Workspace/RAxML_params_tuning/main_code/random_and_parsimony_sampling.py"
     TMP_RESULTS_FOLDER =  f"{RESULTS_FOLDER}/single_gene_MSAs"
 

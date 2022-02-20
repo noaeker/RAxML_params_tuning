@@ -48,7 +48,7 @@ def train_test_validation_splits(full_data, test_pct, val_pct):
     return train_data, test_data, validation_data
 
 
-def plot_results(y_test, y_test_hat):
+def plot_predicted_vs_actual(y_test, y_test_hat):
     plt.scatter(y_test_hat, y_test, c='b', alpha=0.5, marker='.', label='Real')
     plt.grid(color='#D3D3D3', linestyle='solid')
     plt.legend(loc='lower right')
@@ -62,7 +62,7 @@ def summarize_results_per_msa(raw_data):
     return data
 
 
-def rank_configurations_vs_default(sampling_data, raw_data):
+def enrich_sampling_data(sampling_data, raw_data):
     per_msa_data = summarize_results_per_msa(raw_data)
     sampling_data = pd.merge(sampling_data, per_msa_data, on=["msa_name"])
     sampling_data["is_default_run"] = (sampling_data["run_name"] == "default") & (
@@ -83,29 +83,28 @@ def rank_configurations_vs_default(sampling_data, raw_data):
         ["msa_name"]).agg({'running_time_vs_default': 'max'}).rename(
         columns={"running_time_vs_default": "best_running_time_vs_default"})
     enriched_sampling_data = pd.merge(enriched_sampling_data, best_running_time, on=["msa_name"])
-    enriched_sampling_data["is_good_config"] = (enriched_sampling_data["normalized_error_vs_default"] <= 0) & (
-                enriched_sampling_data["running_time_vs_default"] > 1) & (
-                                                           enriched_sampling_data["running_time_vs_default"] >= 2)
+
+    enriched_sampling_data["is_optimal_run"] = (enriched_sampling_data["running_time_vs_default"]==enriched_sampling_data["best_running_time_vs_default"]) & (enriched_sampling_data["normalized_error_vs_default"] <= 0 )
     return enriched_sampling_data
 
 
-def perf_measure(y_actual, y_hat):
-    TP = 0
-    FP = 0
-    TN = 0
-    FN = 0
-
-    for i in range(len(y_hat)):
-        if y_actual[i] == y_hat[i] == True:
-            TP += 1
-        if y_hat[i] == True and y_actual[i] != y_hat[i]:
-            FP += 1
-        if y_actual[i] == y_hat[i] == False:
-            TN += 1
-        if y_hat[i] == False and y_actual[i] != y_hat[i]:
-            FN += 1
-
-    return {"TP": TP, "FP": FP, "TN": TN, "FN": FN}
+# def perf_measure(y_actual, y_hat):
+#     TP = 0
+#     FP = 0
+#     TN = 0
+#     FN = 0
+#
+#     for i in range(len(y_hat)):
+#         if y_actual[i] == y_hat[i] == True:
+#             TP += 1
+#         if y_hat[i] == True and y_actual[i] != y_hat[i]:
+#             FP += 1
+#         if y_actual[i] == y_hat[i] == False:
+#             TN += 1
+#         if y_hat[i] == False and y_actual[i] != y_hat[i]:
+#             FN += 1
+#
+#     return {"TP": TP, "FP": FP, "TN": TN, "FN": FN}
 
 
 def variable_importance(X_train, rf_model):
@@ -117,18 +116,18 @@ def variable_importance(X_train, rf_model):
     importances.sort_values(by='Gini-importance', inplace=True)
     return importances
 
-
-def rf_classifier(X_train, y_train):
-    rf_err_file = "rf_classifier"
-    if os.path.exists(rf_err_file):
-        rf = pickle.load(open(rf_err_file, 'rb'))
-        # Train the model on training data
-    else:
-        rf = RandomForestClassifier()
-        rf.fit(X_train, y_train)
-        pickle.dump(rf, open(rf_err_file, 'wb'))
-        # Calculate the absolute errors
-    return rf
+#
+# def rf_classifier(X_train, y_train):
+#     rf_err_file = "rf_classifier"
+#     if os.path.exists(rf_err_file):
+#         rf = pickle.load(open(rf_err_file, 'rb'))
+#         # Train the model on training data
+#     else:
+#         rf = RandomForestClassifier()
+#         rf.fit(X_train, y_train)
+#         pickle.dump(rf, open(rf_err_file, 'wb'))
+#         # Calculate the absolute errors
+#     return rf
 
 
 def rf_regressor(X_train, y_train, name):
@@ -143,43 +142,36 @@ def rf_regressor(X_train, y_train, name):
     return rf
 
 
-def test_rf_classifier(rf, X_test, test_data, y_test):
-    test_predictions = rf.predict(X_test)
-    test_data["predicted"] = test_predictions
-    results = test_data[test_data["predicted"] == True][["running_time_vs_default", "normalized_error_vs_default"]]
-    print(results)
-    # train_predictions = rf.predict(X_train_err)
-    # print(perf_measure(list(y_test_err), list(test_predictions)))
-    print("ROC auc:", roc_auc_score(test_predictions, y_test))
-    print("Accuracy:", accuracy_score(test_predictions, y_test))
 
+def get_predicted_outcome_per_test_msa(test_data, msa):
+    msa_data = test_data[test_data["msa_name"] == msa]
+    best_predicted_accuracy_msa_data = msa_data[msa_data['predicted_Err'] == msa_data['best_predicted_error']]
+    best_predicted_accuracy = (min(best_predicted_accuracy_msa_data["predicted_Err"]))
+    best_predicted_running_time = (max(best_predicted_accuracy_msa_data["predicted_time"]))
+    corresponding_row = msa_data[(msa_data["predicted_Err"] == best_predicted_accuracy) & (
+                msa_data["predicted_time"] == best_predicted_running_time)]
+    running_time = min(corresponding_row["running_time_vs_default"])
+    accurcy = (max(corresponding_row["mean_Err_normalized"]))
+    return {"predicted_running_time":running_time, "predicted_accuracy":accurcy}
 
 def grid_search_time_and_rf(test_data):
+    potential_results_vs_default = test_data[test_data["is_optimal_run"]]["running_time_vs_default","msa_name","normalized_error_vs_default"]
 
-    best_predicted_accuracy = test_data.groupby(["msa_name"]).agg(best_predicted_error = ('predicted_Err','min')).reset_index()
-    test_data = pd.merge(test_data, best_predicted_accuracy, on = ["msa_name"])
-    msas = np.unique(test_data["msa_name"])
-    running_times = []
-    accurcies = []
-    for msa in msas:
-        #print(msa)
-        msa_data = test_data[test_data["msa_name"]==msa]
-        best_predicted_accuracy_msa_data =  msa_data[msa_data['predicted_Err']==msa_data['best_predicted_error']]
-        best_predicted_accuracy = (min(best_predicted_accuracy_msa_data["predicted_Err"]))
-        #print(best_predicted_accuracy)
-        best_predicted_running_time  =(max(best_predicted_accuracy_msa_data["predicted_time"]))
-        #print(best_predicted_running_time)
-        corresponding_row = msa_data[(msa_data["predicted_Err"]==best_predicted_accuracy) & (msa_data["predicted_time"]==best_predicted_running_time) ]
-        #print(corresponding_row[["mean_Err_normalized","running_time_vs_default"]])
-        running_times.append(min(corresponding_row["running_time_vs_default"]))
-        accurcies.append(min(corresponding_row["mean_Err_normalized"]))
-    sns.histplot(y=running_times, color="red", bins=50)
+    predicted_config_vs_default = [get_predicted_outcome_per_test_msa(test_data, msa) for msa in msas]
+    predicted_accuracies = [predicted_accuracy_and_running_time[i]["predicted_accuracy"] for i in range(len(predicted_accuracy_and_running_time))]
+    predicted_running_times = [predicted_accuracy_and_running_time[i]["predicted_running_time"] for i in
+                          range(len(predicted_accuracy_and_running_time))]
+
+    #sns.histplot(y= predicted_accuracies , color="red", bins=50)
+    #sns.histplot(y= predicted_running_times, color="blue", bins=50)
     plt.show()
-    #sns.histplot(y=accurcies, color="red", bins=50)
-    print(max(accurcies))
-    print(np.mean(running_times))
-    print(np.median(running_times))
+    print(np.mean(predicted_running_times))
+    print(np.median(predicted_running_times))
+
+    print(np.mean(potential_results_vs_default))
+    print(np.median(potential_results_vs_default))
     #plt.show()
+
 
 
 
@@ -218,9 +210,9 @@ def main():
     args = parser.parse_args()
     raw_data = pd.read_csv(args.raw_data_path, sep=CSV_SEP)
     sampling_data_label = pd.read_csv(args.label_path, sep=CSV_SEP)
-    sampling_data_label = rank_configurations_vs_default(sampling_data_label, raw_data)
+    sampling_data_label = enrich_sampling_data(sampling_data_label, raw_data)
     msa_and_tree_features = pd.read_csv(args.features_path, sep=CSV_SEP)
-    full_data = pd.merge(msa_and_tree_features, sampling_data_label, on=["msa_name"])
+    full_data = pd.merge(sampling_data_label,msa_and_tree_features, on=["msa_name"])
     data_features = ['n_seq', 'n_loci', 'parsimony_tree_alpha', 'tree_divergence',
                      'largest_branch_length', 'largest_distance_between_taxa', 'tree_MAD', 'msa_type_numeric',
                      'avg_parsimony_rf_dist', 'parsimony_vs_random_diff', 'parsimony_var_vs_mean', 'random_var_vs_mean','best_parsimony_vs_best_random','distances_vs_ll_corr']

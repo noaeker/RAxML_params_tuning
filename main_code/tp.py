@@ -22,7 +22,7 @@ def distribute_MSAs_over_jobs(file_path_list, all_jobs_results_folder, args):
         create_or_clean_dir(curr_job_folder)
         first_msa_ind = files_per_job * job_ind
         last_msa_ind = files_per_job * (job_ind + 1)
-        job_related_files_paths = get_job_related_files_paths(curr_job_folder, job_ind)
+        job_related_files_paths = get_sampling_job_related_files_paths(curr_job_folder, job_ind)
         job_msa_paths = file_path_list[first_msa_ind:last_msa_ind]
         jobs_csv_path_list.append(job_related_files_paths["job_csv_path"])
         status_file_path_list.append(job_related_files_paths["job_status_file"])
