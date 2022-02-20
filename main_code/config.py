@@ -6,7 +6,7 @@ if platform == "linux" or platform == "linux2":
 else:
     LOCAL_RUN = True
 
-MODULE_LOAD_STR = "module load gcc/gcc-8.2.0; module load R/3.6.1; module load python/python-anaconda3.6.5-orenavr2; module load intel/parallel_studio_xe_2020.4.omnipath;"
+MODULE_LOAD_STR = "source /groups/itay_mayrose/lab_python/anaconda3/etc/profile.d/conda.sh; source activate noa_env;  module load gcc/gcc-7.2.0; module load R/3.6.1;"
 PBS_FILE_GENERATOR_CODE = "/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py"
 SEED = 1
 BASELINE = "X"
@@ -19,8 +19,8 @@ N_MSAS = 2
 N_JOBS = 1
 N_SEQ = 15
 MIN_N_SEQ = 10
-N_PARSIMONY_RAXML_SEARCH = 2
-N_RANDOM_RAXML_SEARCH = 2
+N_PARSIMONY_RAXML_SEARCH = 15
+N_RANDOM_RAXML_SEARCH = 15
 N_LOCI = 1000
 MIN_N_LOCI = 1
 LOGGING_LEVEL = logging.DEBUG
@@ -28,8 +28,8 @@ OUTPUT_CSV_NAME = "tune_raxml"
 WAITING_TIME_UPDATE = 60
 TRAINING_SIZE = 1000
 EPSILON = 0.1
-SPR_RADIUS_GRID = "1_30_2"
-SPR_CUTOFF_GRID = "0.1_10_2"
+SPR_RADIUS_GRID = "1_30_10"
+SPR_CUTOFF_GRID = "0.1_10_10"
 CSV_SEP = "\t"
 CSV_SUFFIX = ".tsv"
 
