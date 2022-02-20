@@ -9,7 +9,9 @@ def get_average_best_results_among_a_tree_set_per_msa(data, parameter_grid, n_sa
                                                       ):
     seed = SEED
     first_insert = True
-    for config in parameter_grid:
+    for config_ind,config in enumerate(parameter_grid):
+        if config_ind%1000 ==0:
+            logging.info(f"Performed {config_ind}/{len(parameter_grid)} configurations")
         current_config_results = pd.DataFrame()
         for i in range(n_sample_points):
             seed = seed + 1
@@ -66,9 +68,11 @@ def main():
             "job_csv_path"], \
         job_related_file_paths[
             "job_status_file"]
+    logging.basicConfig(filename=general_log_path, level=LOGGING_LEVEL)
+    logging.info(f'#Started running on job {args.job_ind}\nJob arguments are: {args}\n')
     parameter_grid = pickle.load( open(job_grid_points_file, "rb" ) )
     print(parameter_grid)
-
+    logging.info(f'#Grid size is {len(parameter_grid)}')
     get_average_best_results_among_a_tree_set_per_msa(
             data, parameter_grid, n_sample_points=args.n_sample_points, sampling_csv_path=job_csv_path)
 
