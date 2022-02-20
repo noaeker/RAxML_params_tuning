@@ -31,7 +31,7 @@ def distribute_grid_over_jobs(parameter_grid, all_jobs_results_folder, args):
         )
         job_name = args.jobs_prefix + str(job_ind)
         if not LOCAL_RUN:
-            submit_linux_job(job_name, curr_job_folder, run_command, args.n_cpus_per_job, job_ind, queue=args.queue)
+            submit_linux_job(job_name, curr_job_folder, run_command, 1, job_ind, queue=args.queue)
         else:
             submit_local_job(SAMPLING_MAIN_CODE_PATH, ["--job_ind", str(job_ind), "--curr_job_folder", curr_job_folder
                                               ] + generate_argument_list(args))
