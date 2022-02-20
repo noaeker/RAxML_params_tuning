@@ -343,6 +343,7 @@ def data_sampling_parser():
     parser.add_argument('--run_prefix', action='store', type=str,
                         default="random_parismony_sampling")
     parser.add_argument('--jobs_prefix', action='store', type=str, default="random_parismony_sampling_jobs")
+    parser.add_argument('--queue', type=str, default="pupkolab")
     return parser
 
 def random_and_parsimony_job_parser():
