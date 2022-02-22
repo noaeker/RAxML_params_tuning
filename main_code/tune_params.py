@@ -1,7 +1,8 @@
-from raxml import *
-from help_functions import *
-import numpy as np
-import pandas as pd
+from side_code.raxml import *
+from side_code.help_functions import *
+from side_code.config import *
+from side_code.basic_trees_manipulation import *
+import pickle
 
 
 def calculate_rf_dist(rf_file_path, curr_run_directory, prefix="rf"):
@@ -61,7 +62,7 @@ def process_all_msa_RAxML_runs(curr_run_directory, given_msa_data):
     return given_msa_data
 
 
-def single_tree_RAxML_run(curr_run_directory, msa_path, starting_tree_path, path_prefix, param_obj, msa_stats, cpus):
+def single_tree_RAxML_run(curr_run_directory, msa_path, starting_tree_path, param_config, default = False):
     '''
 
     :param curr_run_directory:
@@ -72,164 +73,58 @@ def single_tree_RAxML_run(curr_run_directory, msa_path, starting_tree_path, path
     :param cpus:
     :return: Runs RAxML starting from starting_tree_path based on a grid of parameters
     '''
-    tree_results = pd.DataFrame()
-    path_run_directory = os.path.join(curr_run_directory, path_prefix)
-    create_or_clean_dir(path_run_directory)
-    default_prefix = f"params_default"
-    default_param_run_directory = os.path.join(path_run_directory, default_prefix)
-    create_or_clean_dir(default_param_run_directory)
-    default_raxml_search_results = raxml_search(msa_stats,default_param_run_directory, msa_path, default_prefix, {},
-                                                cpus=cpus, starting_tree_path=starting_tree_path)
-    default_raxml_search_results["run_name"] = "default"
-    default_raxml_search_results.update(msa_stats)
-    tree_results = tree_results.append(default_raxml_search_results, ignore_index=True)
-    for j, params_config in enumerate(param_obj):
-        prefix = f"params_{j}"
-        curr_param_run_directory = os.path.join(path_run_directory, prefix)
-        create_or_clean_dir(curr_param_run_directory)
-        curr_raxml_search_results = raxml_search(msa_stats,curr_param_run_directory, msa_path, prefix, params_config,
-                                                 cpus=cpus, starting_tree_path=starting_tree_path)
-        curr_raxml_search_results["run_name"] = prefix
-        curr_raxml_search_results.update(msa_stats)
-        if msa_stats["remove_output_files"]:
-            shutil.rmtree(curr_param_run_directory)
-        tree_results = tree_results.append(curr_raxml_search_results, ignore_index=True)
-    if msa_stats["remove_output_files"]:
-        shutil.rmtree(path_run_directory)
+    run_directory = os.path.join(curr_run_directory, "current_single_tree")
+    create_or_clean_dir(run_directory)
+    msa_type = get_msa_type(msa_path)
+    if default:
+        default_prefix = "default_params"
+        default_param_run_directory = os.path.join(run_directory, default_prefix)
+        create_or_clean_dir(default_param_run_directory)
+        #curr_run_directory, msa_path, msa_type, prefix,params_config, starting_tree_path
+        raxml_search_results = raxml_search(default_param_run_directory, msa_path, msa_type, default_prefix, {},
+                                                    starting_tree_path)
 
-    return tree_results
-
-
-def run_raxml_on_several_spcific_tree_type(curr_run_directory, msa_path, msa_stats, param_obj, tree_type, n):
-    '''
-
-    :param curr_run_directory:
-    :param msa_path:
-    :param msa_stats:
-    :param param_obj:
-    :param tree_type:
-    :return: The function generates the required number of trees of a given type and runs RAxML on each of them
-    '''
-    all_given_tree_type_results = pd.DataFrame()
-    parsimony_topologies_path, elapsed_time_p = generate_n_unique_tree_topologies_as_starting_trees(
-        n=n,
-        original_file_path=msa_path,
-        curr_run_directory=curr_run_directory,
-        curr_msa_stats=msa_stats, seed=SEED,
-        tree_type=tree_type)
-    parsimony_objects = generate_multiple_tree_object_from_newick(parsimony_topologies_path)
-    logging.info("Running RAxML on parsimony trees")
-    starting_tree_path = os.path.join(curr_run_directory, f"curr_{tree_type}_starting_tree_path.tree")
-    for i, starting_tree_obj in enumerate(parsimony_objects):
-        with open(starting_tree_path, 'w') as STARTING_PATH:
-            STARTING_PATH.write(starting_tree_obj.write(format=1))
-        single_tree_results = single_tree_RAxML_run(curr_run_directory, msa_path, starting_tree_path,
-                                                    path_prefix=f"{tree_type}_{i}", param_obj=param_obj,
-                                                    msa_stats=msa_stats,
-                                                    cpus=msa_stats["n_cpus_raxml"])
-        processed_single_tree_results = process_spefic_starting_tree_search_RAxML_runs(curr_run_directory, single_tree_results)
-        processed_single_tree_results["starting_tree_ind"] = i
-        all_given_tree_type_results = pd.concat([all_given_tree_type_results, processed_single_tree_results],
-                                                sort=False)
-        logging.debug(f"single_tree_results {i}")
-    return all_given_tree_type_results
-
-
-def RAxML_runs_on_given_msa(msa_stats, msa_path, curr_run_directory, param_obj):
-    '''
-
-    :param msa_stats:
-    :param msa_path:
-    :param curr_run_directory:
-    :param param_obj:
-    :return:  The function runs RAxML on random and parsimony trees for each configuration in param_obj (including the default configuraiton)
-    '''
-    logging.info("About to run RAxML on parsimony trees")
-    parsimony_trees_results = run_raxml_on_several_spcific_tree_type(curr_run_directory, msa_path, msa_stats, param_obj,
-                                                                     "pars", n= msa_stats["n_raxml_parsimony_trees"])
-    parsimony_df = pd.DataFrame(parsimony_trees_results)
-    parsimony_df["tree_type"] = "parsimony"
-    logging.info("About to run RAxML on random trees")
-    random_trees_results = run_raxml_on_several_spcific_tree_type(curr_run_directory, msa_path, msa_stats, param_obj,
-                                                                  "rand", n = msa_stats["n_raxml_random_trees"])
-    random_df = pd.DataFrame(random_trees_results)
-    random_df["tree_type"] = "random"
-    all_tree_runs = pd.concat([parsimony_df, random_df], sort=False)
-    processed_msa_runs = process_all_msa_RAxML_runs(curr_run_directory, all_tree_runs)
-
-    return processed_msa_runs
-
-
-def generate_msa_stats(original_alignment_path, args):
-    logging.info("Generating general MSA stats")
-    msa_name = get_msa_name(original_alignment_path,args.general_msa_dir)
-    curr_msa_folder = os.path.join(args.curr_job_folder, msa_name)
-    create_or_clean_dir(curr_msa_folder)
-    original_alignment_data = get_alignment_data(
-        original_alignment_path)  # list(SeqIO.parse(original, file_type_biopython))
-    alignment_df = alignment_list_to_df(original_alignment_data)
-    n_seq, n_loci = alignment_df.shape
-    msa_path = original_alignment_path
-    msa_path_no_extension = os.path.splitext(msa_path)[0]
-    if re.search('\w+D[\da-z]+',msa_path_no_extension.split(os.sep)[-2]) is not None:
-        msa_type = "DNA"
     else:
-        msa_type = "AA"
-    msa_stats = {"msa_name": msa_name, "msa_path": msa_path,
-                 "original_alignment_path": original_alignment_path,
-                 "n_loci": n_loci, "n_seq": n_seq, "msa_folder": curr_msa_folder, "msa_type": msa_type}
-    msa_stats.update(vars(args))
-    logging.info(f"Succesfully obtained MSA stats: {msa_stats}")
-    return msa_stats
+        prefix = "non_default_params"
+        curr_param_run_directory = os.path.join(run_directory, prefix)
+        create_or_clean_dir(curr_param_run_directory)
+        raxml_search_results = raxml_search(curr_param_run_directory, msa_path, msa_type, prefix, param_config,
+                                                 starting_tree_path)
+    return  raxml_search_results
 
 
-def MSA_search_params_tuning_analysis(msa_stats):
-    '''
-
-    :param msa_stats:
-    :return: The function generates a grid of parameters based on the user's input, runs RAxML on different starting trees based on
-    different values of the grid
-    '''
-
-    param_grid_str = {"spr_radius": msa_stats["spr_radius_grid"], "spr_cutoff": msa_stats["spr_cutoff_grid"]}
-    param_obj = get_param_obj(param_grid_str)
-    curr_msa_RAxML_directory = os.path.join(msa_stats["msa_folder"], "RAxML_runs")
-    create_or_clean_dir(curr_msa_RAxML_directory)
-    raw_msa_RAxML_results = RAxML_runs_on_given_msa(msa_stats, msa_stats["msa_path"], curr_msa_RAxML_directory,
-                                                    param_obj)
-    return raw_msa_RAxML_results
 
 
 def main():
     parser = job_parser()
     args = parser.parse_args()
     job_related_file_paths = get_sampling_job_related_files_paths(args.curr_job_folder, args.job_ind)
-    job_msa_paths_file, general_log_path, job_csv_path, curr_job_status_file = \
+    job_local_raxml_runs_path, general_log_path,  = \
         job_related_file_paths[
-            "job_msa_paths_file"], \
+            "job_local_raxml_runs_path"], \
         job_related_file_paths[
             "general_log_path"], \
         job_related_file_paths[
             "job_csv_path"], \
         job_related_file_paths[
             "job_status_file"]
-    with open(job_msa_paths_file, "r") as paths_file:
-        curr_job_file_path_list = paths_file.read().splitlines()
+
     logging.basicConfig(filename=general_log_path, level=LOGGING_LEVEL)
     logging.info(f'#Started running on job {args.job_ind}\nJob arguments are: {args}')
-
-    for file_ind, original_alignment_path in enumerate(curr_job_file_path_list):
-        logging.info(f"file ind = {file_ind} original_alignment_path= {original_alignment_path}")
-        msa_stats = generate_msa_stats(original_alignment_path, args)
-        curr_msa_data_analysis = MSA_search_params_tuning_analysis(msa_stats)[COLUMNS_TO_INCLUDE_CSV]
-        curr_msa_data_analysis.to_csv(job_csv_path,mode='a',header = file_ind==0,sep=CSV_SEP)
-        if args.remove_output_files:
-            shutil.rmtree(msa_stats["msa_folder"])
-        open(general_log_path, 'w').close()
+    raxml_runs_dict = pickle.load(args.job_raxml_runs_path)
+    tmp_starting_tree_path=  os.path.join(args.curr_job_folder, "tmp_tree_path")
+    for raxml_ind in raxml_runs_dict:
+         with open(tmp_starting_tree_path,'w'):
+             tmp_starting_tree_path.write(get_tree_string(raxml_run.starting_tree_object))
+         results = single_tree_RAxML_run(args.curr_job_folder, raxml_run.msa_path, tmp_starting_tree_path,raxml_run.params_config)
+         raxml_run.set_run_results(results)
+         pickle.dump(raxml_runs_dict, open(job_local_raxml_runs_path, "wb"))
 
     with open(curr_job_status_file, 'w') as job_status_f:
         job_status_f.write("Done")
     logging.info("Current job is Done!")
+
+
 
 
 
