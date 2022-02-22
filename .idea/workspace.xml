@@ -1,40 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/ML pipeline/data_enrichment_for_ML.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main_code/msa_runs.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/old_code/plots.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sampling_analysis/default_sampling.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/RAxML_params_tuning.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/RAxML_params_tuning.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/local_data_analysis/analayze_results.py" beforeDir="false" afterPath="$PROJECT_DIR$/old_code/analayze_results.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/local_data_analysis/sampling_data_analysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/old_code/sampling_data_analysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/ML_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML pipeline/ML_pipeline.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/SPR_moves.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/SPR_moves.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/basic_trees_manipulation.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/basic_trees_manipulation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/combine_current_results.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/combine_current_results.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/features_extractor.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML pipeline/features_extractor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/help_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/help_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py" beforeDir="false" afterPath="$PROJECT_DIR$/sampling_analysis/random_and_parsimony_sampling.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/random_and_parsimony_sampling_RUNNER.py" beforeDir="false" afterPath="$PROJECT_DIR$/sampling_analysis/random_and_parsimony_sampling_RUNNER.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/raxml.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/raxml.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/test_data_for_greed_search.tsv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/test_data_for_greed_search_new.tsv" beforeDir="false" afterPath="$PROJECT_DIR$/ML pipeline/test_data_for_greed_search_new.tsv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/tp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/tree_and_SPR_methods.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/tree_and_SPR_methods.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/tune_params.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/tune_params.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/other_stuff/IQTREE.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other_stuff/Jupyer Data analysis.ipynb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/other_stuff/test.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/plots_dir_new/best_runs_vs_default.png" beforeDir="false" afterPath="$PROJECT_DIR$/old_code/plots_dir_new/best_runs_vs_default.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plots_dir_new/best_runs_vs_default_overall.png" beforeDir="false" afterPath="$PROJECT_DIR$/old_code/plots_dir_new/best_runs_vs_default_overall.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plots_dir_new/cutoff_change_plot_grid.png" beforeDir="false" afterPath="$PROJECT_DIR$/old_code/plots_dir_new/cutoff_change_plot_grid.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plots_dir_new/default_line_plot.png" beforeDir="false" afterPath="$PROJECT_DIR$/old_code/plots_dir_new/default_line_plot.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plots_dir_new/radius_change_plot_grid.png" beforeDir="false" afterPath="$PROJECT_DIR$/old_code/plots_dir_new/radius_change_plot_grid.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plots_dir_new/sampling_results.png" beforeDir="false" afterPath="$PROJECT_DIR$/old_code/plots_dir_new/sampling_results.png" afterDir="false" />
-    </list>
+    <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,7 +34,7 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/side_code/combine_current_results.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="340">
@@ -77,6 +44,11 @@
               </folding>
             </state>
           </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/ML pipeline/__init__.py">
+          <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
@@ -176,7 +148,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/raxml.py" />
         <option value="$PROJECT_DIR$/features_extractor.py" />
         <option value="$PROJECT_DIR$/help_functions.py" />
         <option value="$PROJECT_DIR$/analayze_results.py" />
@@ -227,6 +198,7 @@
         <option value="$PROJECT_DIR$/ML pipeline/features_extractor.py" />
         <option value="$PROJECT_DIR$/ML pipeline/data_enrichment_for_ML.py" />
         <option value="$PROJECT_DIR$/side_code/combine_current_results.py" />
+        <option value="$PROJECT_DIR$/ML pipeline/__init__.py" />
       </list>
     </option>
   </component>
@@ -603,7 +575,6 @@
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/plots_dir/cutoff_change_plot_grid.png" />
     <entry file="file://$PROJECT_DIR$/plots_dir/default_line_plot.png" />
     <entry file="file://$PROJECT_DIR$/plots_dir/best_runs_vs_default.png" />
     <entry file="file://$PROJECT_DIR$/plots_dir/radius_8.0_cutoff_0.1_vs_default.png" />
@@ -887,6 +858,9 @@
           </folding>
         </state>
       </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ML pipeline/__init__.py">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
   </component>
 </project>
