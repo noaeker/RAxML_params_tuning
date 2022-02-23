@@ -8,7 +8,7 @@ import argparse
 import subprocess
 import sys
 import numpy as np
-from .config import *
+import config
 import random
 from sklearn.model_selection import ParameterGrid
 from subprocess import PIPE, STDOUT
