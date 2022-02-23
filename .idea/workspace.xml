@@ -2,23 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ML pipeline/ML_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML pipeline/ML_pipeline.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ML pipeline/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ML pipeline/data_enrichment_for_ML.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML pipeline/data_enrichment_for_ML.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ML pipeline/features_extractor.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML pipeline/features_extractor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/msa_runs.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/msa_runs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/tp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/tune_params.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_code/tune_params.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/old_code/sampling_data_analysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/old_code/sampling_data_analysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sampling_analysis/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sampling_analysis/default_sampling.py" beforeDir="false" afterPath="$PROJECT_DIR$/sampling_analysis/default_sampling.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sampling_analysis/random_and_parsimony_sampling.py" beforeDir="false" afterPath="$PROJECT_DIR$/sampling_analysis/random_and_parsimony_sampling.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sampling_analysis/random_and_parsimony_sampling_RUNNER.py" beforeDir="false" afterPath="$PROJECT_DIR$/sampling_analysis/random_and_parsimony_sampling_RUNNER.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/side_code/basic_trees_manipulation.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/basic_trees_manipulation.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/side_code/combine_current_results.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/combine_current_results.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/side_code/help_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/help_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/side_code/raxml.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/raxml.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -29,28 +14,10 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main_code/tp.py">
+        <entry file="file://$PROJECT_DIR$/side_code/help_functions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret selection-end-line="2" selection-end-column="17" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main_code/tune_params.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="34">
-              <caret line="2" column="17" selection-start-line="2" selection-start-column="17" selection-end-line="2" selection-end-column="17" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ML pipeline/data_enrichment_for_ML.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret selection-end-line="1" selection-end-column="17" />
+            <state relative-caret-position="170">
+              <caret line="10" column="5" selection-start-line="10" selection-start-column="5" selection-end-line="10" selection-end-column="5" />
             </state>
           </provider>
         </entry>
@@ -60,24 +27,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="17">
               <caret line="1" column="17" selection-start-line="1" selection-start-column="17" selection-end-line="1" selection-end-column="17" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/side_code/combine_current_results.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="17">
-              <caret line="1" lean-forward="true" selection-start-line="1" selection-end-line="1" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main_code/msa_runs.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret selection-end-line="1" selection-end-column="17" />
             </state>
           </provider>
         </entry>
@@ -109,11 +58,53 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/sampling_analysis/random_and_parsimony_sampling_RUNNER.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="17">
               <caret line="1" column="17" selection-start-line="1" selection-start-column="17" selection-end-line="1" selection-end-column="17" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/side_code/basic_trees_manipulation.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1309">
+              <caret line="77" selection-start-line="77" selection-end-line="77" />
+              <folding>
+                <element signature="e#2#31#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/side_code/combine_current_results.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="34">
+              <caret line="2" column="14" selection-start-line="2" selection-start-column="14" selection-end-line="2" selection-end-column="14" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/main_code/msa_runs.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state>
+              <caret selection-end-line="1" selection-end-column="17" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/side_code/config.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="476">
+              <caret line="28" column="20" lean-forward="true" selection-start-line="28" selection-start-column="20" selection-end-line="28" selection-end-column="20" />
+              <folding>
+                <element signature="e#0#24#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -205,10 +196,8 @@
         <option value="$PROJECT_DIR$/sampling_analysis/__init__.py" />
         <option value="$PROJECT_DIR$/side_code/__init__.py" />
         <option value="$PROJECT_DIR$/old_code/sampling_data_analysis.py" />
-        <option value="$PROJECT_DIR$/side_code/combine_current_results.py" />
         <option value="$PROJECT_DIR$/side_code/basic_trees_manipulation.py" />
         <option value="$PROJECT_DIR$/side_code/raxml.py" />
-        <option value="$PROJECT_DIR$/side_code/help_functions.py" />
         <option value="$PROJECT_DIR$/main_code/msa_runs.py" />
         <option value="$PROJECT_DIR$/main_code/tp.py" />
         <option value="$PROJECT_DIR$/main_code/tune_params.py" />
@@ -218,6 +207,8 @@
         <option value="$PROJECT_DIR$/sampling_analysis/default_sampling.py" />
         <option value="$PROJECT_DIR$/sampling_analysis/random_and_parsimony_sampling.py" />
         <option value="$PROJECT_DIR$/sampling_analysis/random_and_parsimony_sampling_RUNNER.py" />
+        <option value="$PROJECT_DIR$/side_code/help_functions.py" />
+        <option value="$PROJECT_DIR$/side_code/combine_current_results.py" />
       </list>
     </option>
   </component>
@@ -778,51 +769,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/side_code/help_functions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-6078">
-          <caret line="9" column="18" selection-start-line="9" selection-start-column="18" selection-end-line="9" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/side_code/basic_trees_manipulation.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1309">
-          <caret line="77" selection-start-line="77" selection-end-line="77" />
-          <folding>
-            <element signature="e#2#31#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/side_code/config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="8" column="115" selection-start-line="8" selection-start-column="92" selection-end-line="8" selection-end-column="115" />
-          <folding>
-            <element signature="e#0#24#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/side_code/combine_current_results.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17">
-          <caret line="1" lean-forward="true" selection-start-line="1" selection-end-line="1" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/main_code/tp.py">
       <provider selected="true" editor-type-id="text-editor">
         <state>
           <caret selection-end-line="2" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main_code/msa_runs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret selection-end-line="1" selection-end-column="17" />
         </state>
       </provider>
     </entry>
@@ -872,6 +822,47 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="17">
           <caret line="1" column="17" selection-start-line="1" selection-start-column="17" selection-end-line="1" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/side_code/basic_trees_manipulation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1309">
+          <caret line="77" selection-start-line="77" selection-end-line="77" />
+          <folding>
+            <element signature="e#2#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/side_code/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="476">
+          <caret line="28" column="20" lean-forward="true" selection-start-line="28" selection-start-column="20" selection-end-line="28" selection-end-column="20" />
+          <folding>
+            <element signature="e#0#24#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/side_code/help_functions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="5" selection-start-line="10" selection-start-column="5" selection-end-line="10" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main_code/msa_runs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret selection-end-line="1" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/side_code/combine_current_results.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="34">
+          <caret line="2" column="14" selection-start-line="2" selection-start-column="14" selection-end-line="2" selection-end-column="14" />
         </state>
       </provider>
     </entry>
