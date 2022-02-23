@@ -8,7 +8,6 @@ import argparse
 import subprocess
 import sys
 import numpy as np
-import time
 from side_code.config import *
 import random
 from sklearn.model_selection import ParameterGrid

@@ -1,16 +1,13 @@
+import sys
+sys.append('../')
 from side_code.help_functions import *
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-# Import the model we are using
 from sklearn.ensemble import RandomForestRegressor
 import pickle
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, accuracy_score, roc_auc_score
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import ParameterGrid
 
-from sklearn.model_selection import RandomizedSearchCV
 
 
 # Instantiate model with 1000 decision trees
@@ -158,17 +155,8 @@ def test_RF_model_predictions():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--raw_data_path', action='store', type=str, default=f"{RESULTS_FOLDER}/full_raxml_data.tsv")
-    parser.add_argument('--label_path', action='store', type=str,
-                        default=f"{RESULTS_FOLDER}/sampled_raxml_data_large.tsv")
-    parser.add_argument('--features_path', action='store', type=str,
-                        default=f"{RESULTS_FOLDER}/features{CSV_SUFFIX}")
+    parser.add_argument('--ML_data_path', action='store', type=str, default=f"{RESULTS_FOLDER}/full_raxml_data.tsv")
     args = parser.parse_args()
-    raw_data = pd.read_csv(args.raw_data_path, sep=CSV_SEP)
-    sampling_data_label = pd.read_csv(args.label_path, sep=CSV_SEP)
-    sampling_data_label = enrich_sampling_data(sampling_data_label, raw_data)
-    msa_and_tree_features = pd.read_csv(args.features_path, sep=CSV_SEP)
-    full_data = pd.merge(sampling_data_label,msa_and_tree_features, on=["msa_name"])
     data_features = ['n_seq', 'n_loci', 'parsimony_tree_alpha', 'tree_divergence',
                      'largest_branch_length', 'largest_distance_between_taxa', 'tree_MAD', 'msa_type_numeric',
                      'avg_parsimony_rf_dist', 'parsimony_vs_random_diff', 'parsimony_var_vs_mean', 'random_var_vs_mean','best_parsimony_vs_best_random','distances_vs_ll_corr']
@@ -179,7 +167,7 @@ def main():
     if os.path.exists(output_test_path):
         test = pd.read_csv(output_test_path, sep = CSV_SEP)
     else:
-        test = train_rf_models(full_data, data_features, search_features, output_test_path= output_test_path)
+        test = train_rf_models(args.ML_data_path, data_features, search_features, output_test_path= output_test_path)
 
 
     grid_search_time_and_rf(test)

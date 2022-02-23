@@ -1,4 +1,5 @@
-
+import sys
+sys.append('../')
 from side_code.help_functions import *
 from side_code.config import *
 import pandas as pd

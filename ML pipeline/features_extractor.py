@@ -1,4 +1,5 @@
-
+import sys
+sys.append('../')
 from side_code.SPR_moves import *
 from side_code.raxml import *
 from side_code.help_functions import *

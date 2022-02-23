@@ -1,6 +1,6 @@
 
 from side_code.config import *
-from side_code.basic_trees_manipulation import *
+from .basic_trees_manipulation import *
 
 
 
@@ -255,6 +255,21 @@ def RF_distances(curr_run_directory, trees_path):
     rf_log_file_path = rf_prefix + ".raxml.log"
     relative_rf_dist = extract_param_from_raxmlNG_log(rf_log_file_path, "rf_dist")
     return relative_rf_dist
+
+
+
+def EVAL_tree_objects_ll(tree_objects, curr_run_directory, msa_path, msa_type, opt_brlen = False):
+    tmp_folder = os.path.join(curr_run_directory,"ll_evaluation_on_trees")
+    create_or_clean_dir(tmp_folder)
+    trees_path = os.path.join(tmp_folder,"SPR_trees_evaluation")
+    with open(trees_path, 'w') as BEST_TREE:
+        for obj in tree_objects:
+            newick = (obj.write(format=1))
+            BEST_TREE.write(newick)
+    trees_ll,tree_objects = raxml_optimize_trees_for_given_msa(msa_path, "trees_eval", trees_path,
+                                       tmp_folder,  msa_type, opt_brlen=opt_brlen
+                                       )
+    return trees_ll
 
 
 

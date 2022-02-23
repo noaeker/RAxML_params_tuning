@@ -1,3 +1,5 @@
+import sys
+sys.append('../')
 from side_code.help_functions import *
 import pandas as pd
 
@@ -9,17 +11,17 @@ def summarize_results_per_msa(raw_data):
     return data
 
 
-def enrich_sampling_data(sampling_data, default_data, raw_data):
+def enrich_sampling_data_with_defaults_and_msa_statistics(sampling_data, default_data, raw_data):
     per_msa_data = summarize_results_per_msa(raw_data)
     sampling_data_with_msa_statistics = pd.merge(sampling_data, per_msa_data, on=["msa_name"])
     sampling_data_vs_default = pd.merge(sampling_data_with_msa_statistics, default_data, on=["msa_name"])
-    sampling_data_vs_default["mean_Err_normalized"] = sampling_data["mean_Err"] / sampling_data["best_msa_ll"]
-    sampling_data_vs_default["default_mean_Err_normalized"] = sampling_data["default_mean_Err"] / sampling_data[
+    sampling_data_vs_default["mean_Err_normalized"] = sampling_data_vs_default["mean_Err"] / sampling_data_vs_default["best_msa_ll"]
+    sampling_data_vs_default["default_mean_Err_normalized"] = sampling_data_vs_default["default_mean_Err"] / sampling_data_vs_default[
         "best_msa_ll"]
 
     sampling_data_vs_default["normalized_error_vs_default"] = sampling_data_vs_default["mean_Err_normalized"] - \
                                                               sampling_data_vs_default["default_mean_Err_normalized"]
-    sampling_data_vs_default["running_time_vs_default"] = sampling_data_vs_default["default_time"] / \
+    sampling_data_vs_default["running_time_vs_default"] = sampling_data_vs_default["default_mean_time"] / \
                                                           sampling_data_vs_default[
                                                               "mean_time"]
     sampling_data_vs_default = sampling_data_vs_default[sampling_data_vs_default["spr_radius"] != "default"]
@@ -50,7 +52,7 @@ def main():
     sampling_data =  pd.read_csv(args.sampling_data, sep=CSV_SEP)
     default_data = pd.read_csv(args.default_sampling_data, sep=CSV_SEP)
     features_data = pd.read_csv(args.features_path, sep=CSV_SEP)
-    enriched_sampling_data_label = enrich_sampling_data(sampling_data, default_data, raw_data)
+    enriched_sampling_data_label = enrich_sampling_data_with_defaults_and_msa_statistics(sampling_data, default_data, raw_data)
     ML_dataset = pd.merge(enriched_sampling_data_label, features_data, on=["msa_name"])
     ML_dataset.to_csv(args.ML_dataset_output_path, sep = CSV_SEP)
 

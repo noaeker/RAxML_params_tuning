@@ -1,5 +1,5 @@
 import os
-from side_code.help_functions import *
+from .help_functions import *
 
 def unify_csvs(csvs_path_list, unified_csv_path):
     tmp_dataframes = []

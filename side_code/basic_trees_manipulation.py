@@ -1,10 +1,11 @@
 
-from side_code.help_functions import *
+
+from .help_functions import *
 from ete3 import *
 import logging
 import re
 import numpy as np
-from side_code.raxml import *
+from .raxml import *
 
 class Edge:
     def __init__(self, node_a, node_b):
@@ -75,19 +76,6 @@ def assign_brlen_to_tree_object(tree_object, brlen_list):
         node.dist = brlen_list[i]
     return tree_object
 
-
-def EVAL_tree_objects_ll(tree_objects, curr_run_directory, msa_path, msa_type, opt_brlen = False):
-    tmp_folder = os.path.join(curr_run_directory,"ll_evaluation_on_trees")
-    create_or_clean_dir(tmp_folder)
-    trees_path = os.path.join(tmp_folder,"SPR_trees_evaluation")
-    with open(trees_path, 'w') as BEST_TREE:
-        for obj in tree_objects:
-            newick = (obj.write(format=1))
-            BEST_TREE.write(newick)
-    trees_ll,tree_objects = raxml_optimize_trees_for_given_msa(msa_path, "trees_eval", trees_path,
-                                       tmp_folder,  msa_type, opt_brlen=opt_brlen
-                                       )
-    return trees_ll
 
 
 
