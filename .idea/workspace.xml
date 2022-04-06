@@ -2,30 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/raw_data_sampling_analysis/job_runner_side_funcs.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/side_code/MSA_manipulation.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/side_code/code_submission.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/side_code/file_handling.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ML pipeline/ML_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML pipeline/ML_pipeline.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ML pipeline/data_enrichment_for_ML.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML pipeline/data_enrichment_for_ML.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ML pipeline/features_extractor.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML pipeline/features_extractor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/R_code/analayze_raxml_tuning.Rmd" beforeDir="false" afterPath="$PROJECT_DIR$/R_code/analayze_raxml_tuning.Rmd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/msa_runs.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/msa_runs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/summarized_results.csv" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/summarized_results.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_code/tune_params.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tune_params.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sampling_analysis/default_sampling.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_sampling_analysis/default_sampling.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sampling_analysis/random_and_parsimony_sampling.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_sampling_analysis/random_and_parsimony_sampling.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sampling_analysis/random_and_parsimony_sampling_RUNNER.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_sampling_analysis/random_and_parsimony_sampling_RUNNER.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/side_code/SPR_moves.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/SPR_moves.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/side_code/basic_trees_manipulation.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/basic_trees_manipulation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/side_code/combine_current_results.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/combine_current_results.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/side_code/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/side_code/help_functions.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/side_code/raxml.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/raxml.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/side_code/tree_and_SPR_methods.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/tree_and_SPR_methods.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -66,6 +43,18 @@
               <caret line="51" selection-start-line="51" selection-end-line="51" />
               <folding>
                 <element signature="e#0#30#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="272">
+              <caret line="19" column="60" selection-start-line="19" selection-start-column="60" selection-end-line="19" selection-end-column="60" />
+              <folding>
+                <element signature="e#0#15#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -113,18 +102,9 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ML pipeline/data_enrichment_for_ML.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="22">
-              <caret line="2" column="15" selection-start-line="2" selection-start-column="15" selection-end-line="2" selection-end-column="15" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/side_code/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="41">
+            <state relative-caret-position="440">
               <caret line="20" column="14" lean-forward="true" selection-start-line="20" selection-start-column="14" selection-end-line="20" selection-end-column="14" />
               <folding>
                 <element signature="e#0#24#0" expanded="true" />
@@ -241,10 +221,10 @@
         <option value="$PROJECT_DIR$/R_code/analayze_raxml_tuning.Rmd" />
         <option value="$PROJECT_DIR$/side_code/MSA_manipulation.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/tune_params.py" />
-        <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
         <option value="$PROJECT_DIR$/side_code/config.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/msa_runs.py" />
+        <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
       </list>
     </option>
   </component>
@@ -887,16 +867,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="218">
-          <caret line="26" column="51" selection-start-line="26" selection-start-column="27" selection-end-line="26" selection-end-column="51" />
-          <folding>
-            <element signature="e#0#15#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/opt/anaconda3/lib/python3.8/site-packages/numpy/lib/shape_base.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="104">
@@ -993,10 +963,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/side_code/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="41">
+        <state relative-caret-position="440">
           <caret line="20" column="14" lean-forward="true" selection-start-line="20" selection-start-column="14" selection-end-line="20" selection-end-column="14" />
           <folding>
             <element signature="e#0#24#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="19" column="60" selection-start-line="19" selection-start-column="60" selection-end-line="19" selection-end-column="60" />
+          <folding>
+            <element signature="e#0#15#0" expanded="true" />
           </folding>
         </state>
       </provider>
