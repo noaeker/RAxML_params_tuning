@@ -1,8 +1,7 @@
-import sys
-sys.append('../')
-from side_code.help_functions import *
+
 from side_code.config import *
 import pandas as pd
+import os
 
 def get_average_results_on_default_configurations_per_msa(default_data, n_sample_points,
                                                           sampling_csv_path, seed

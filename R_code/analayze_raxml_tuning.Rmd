@@ -34,6 +34,9 @@ library(lubridate)
 ```
 
 
+```{r}
+sampled_tuning_data<- read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/sampled_raxml_data_large.tsv")
+```
 
 
 ```{r}
@@ -49,6 +52,9 @@ tuning_data<- tuning_data %>% mutate (n_seq_binned =ntile(tuning_data$n_seq,3),n
 
 ```
 
+```{r}
+sampled_tuning_data 
+```
 
 
 
@@ -61,7 +67,7 @@ summary(res.cox)
 ```{r}
 
 fit <- survfit(res.cox, data = tuning_data)
-ggsurvplot(fit,legend.labs=c("tree_type"), conf.int = TRUE,risk.table = TRUE,
+ggsurvplot(fit, conf.int = TRUE,
            ggtheme = theme_minimal())
 ```
 

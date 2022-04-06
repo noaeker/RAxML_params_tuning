@@ -1,7 +1,7 @@
+from side_code.config import *
 import argparse
 import pandas as pd
-from config import *
-import help_functions
+
 
 
 def unify_csvs(csvs_path_list, unified_csv_path):

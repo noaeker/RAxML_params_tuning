@@ -1,16 +1,16 @@
-import sys
-sys.append('../')
+
 from side_code.SPR_moves import *
 from side_code.raxml import *
-from side_code.help_functions import *
 from side_code.basic_trees_manipulation import *
+from side_code.MSA_manipulation import get_msa_data, get_msa_name
+from side_code.file_handling import create_or_clean_dir
 from side_code.config import *
+import pandas as pd
+
 
 
 def extract_features(msa_path, msa_type,curr_run_directory,i):
-    print(msa_path)
-    with open(msa_path) as original:
-        msa_data = list(SeqIO.parse(original, 'fasta'))
+    msa_data = get_msa_data(msa_path, 'fasta')
     n_seq, n_loci = len(msa_data), len(msa_data[0].seq)
     all_features = {"n_seq": n_seq, "n_loci": n_loci, "msa_path": msa_path, "msa_name": get_msa_name(msa_path, GENERAL_MSA_DIR)}
     general_raxml_folder = os.path.join(curr_run_directory,"general_raxml_features")
@@ -21,15 +21,15 @@ def extract_features(msa_path, msa_type,curr_run_directory,i):
     single_parsimony_tree_obj = generate_tree_object_from_newick(single_parsimony_tree_path)
     several_parsimony_and_random_folder = os.path.join(curr_run_directory, f"parsimony_and_random_statistics_{i}")
     os.mkdir(several_parsimony_and_random_folder)
-    parsimony_trees_path = generate_n_tree_topologies_for_features(30, msa_path, several_parsimony_and_random_folder,
-                                                                   seed  =SEED, tree_type = "parsimony", msa_type = msa_type)
+    parsimony_trees_path = generate_n_tree_topologies(30, msa_path, several_parsimony_and_random_folder,
+                                                      seed  =SEED, tree_type = "parsimony", msa_type = msa_type)
 
     parsimony_trees_ll_on_data, parsimony_tree_paths = raxml_optimize_trees_for_given_msa(msa_path, f"{i}_parsimony_eval", parsimony_trees_path,
                                        several_parsimony_and_random_folder,  msa_type, opt_brlen=False
                                        )
 
-    random_trees_path = generate_n_tree_topologies_for_features(30, msa_path, several_parsimony_and_random_folder,
-                                                                seed  =SEED, tree_type = "random", msa_type = msa_type)
+    random_trees_path = generate_n_tree_topologies(30, msa_path, several_parsimony_and_random_folder,
+                                                   seed  =SEED, tree_type = "random", msa_type = msa_type)
     random_trees_ll_on_data, random_tree_paths = raxml_optimize_trees_for_given_msa(msa_path, f"{i}_random_eval", random_trees_path,
                                        several_parsimony_and_random_folder,  msa_type, opt_brlen=False
                                        )

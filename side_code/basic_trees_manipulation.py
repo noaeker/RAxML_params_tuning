@@ -1,11 +1,11 @@
 
 
-from .help_functions import *
+from side_code.code_submission import execute_command_and_write_to_log
+from side_code.config import *
 from ete3 import *
 import logging
 import re
-import numpy as np
-from .raxml import *
+
 
 class Edge:
     def __init__(self, node_a, node_b):
@@ -111,7 +111,6 @@ def extract_mad_file_statistic(mad_log_path):
     else:
         error_msg = "Param  not found in mad file in {}".format(mad_log_path)
         logging.error(error_msg)
-        raise GENERAL_RAXML_ERROR(error_msg)
     return value
 
 

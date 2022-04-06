@@ -1,0 +1,62 @@
+import argparse
+from side_code.config import *
+import os
+import time
+from side_code.code_submission import submit_linux_job, submit_local_job, generate_argument_list
+
+def main_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--run_prefix', action='store', type=str, default=CURR_RUN_PREFIX)
+    parser.add_argument('--general_msa_dir',type=str, default = GENERAL_MSA_DIR)
+    parser.add_argument('--jobs_prefix', action='store', type=str, default=CURR_JOBS_PREFIX)
+    parser.add_argument('--n_MSAs', action='store', type=int, default=N_MSAS)
+    parser.add_argument('--run_raxml_commands_locally',action='store_true', default= True)
+    parser.add_argument('--first_msa_ind', action='store', type=int, default=0)
+    parser.add_argument('--min_n_seq', action='store', type=int, default=MIN_N_SEQ)
+    parser.add_argument('--min_n_loci', type=int, default=MIN_N_LOCI)
+    parser.add_argument('--n_raxml_parsimony_trees', action='store', type=int, default=N_PARSIMONY_RAXML_SEARCH)
+    parser.add_argument('--n_raxml_random_trees', action='store', type=int, default=N_RANDOM_RAXML_SEARCH)
+    parser.add_argument('--use_raxml_search', action='store_true', default= True)  # change
+    parser.add_argument('--queue', type=str, default="pupkolab")
+    parser.add_argument('--n_cpus_per_job', action='store', type=int, default=N_CPUS_PER_JOB)
+    parser.add_argument('--n_cpus_raxml', action='store', type=int, default=N_CPUS_RAXML)
+    parser.add_argument('--spr_radius_grid', action='store', type=str, default=SPR_RADIUS_GRID)
+    parser.add_argument('--spr_cutoff_grid', action='store', type=str, default=SPR_CUTOFF_GRID)
+    parser.add_argument('--trim_msa',action='store_true')
+    parser.add_argument('--remove_output_files',action='store_true', default= True)
+    parser.add_argument('--use_existing_global_data',action='store_true', default= False)
+    parser.add_argument('--max_n_parallel_jobs', action='store', type=int, default=N_JOBS)
+    parser.add_argument('--max_n_tasks_per_job', action='store', type=int, default=N_TASKS_PER_JOB)
+    parser.add_argument('--print_commands_to_log', action='store_true')
+    parser.add_argument('--n_iters_test', action='store', type=int, default=TEST_MSA_ITERATIONS)
+    return parser
+
+
+def job_parser():
+    parser = main_parser()
+    parser.add_argument('--job_ind', action='store', type=int)
+    parser.add_argument('--curr_job_folder', action='store', type=str)
+    parser.add_argument('--test_msa', action='store', type=str)
+    return parser
+
+
+def get_job_related_files_paths(curr_job_folder, job_ind):
+    job_status_file = os.path.join(curr_job_folder, str(job_ind) + "_status")
+    job_local_tasks_path = os.path.join(curr_job_folder, "job_local_tasks_path" + str(job_ind))
+    job_local_raxml_leftovers_run= os.path.join(curr_job_folder, "local_raxml_leftovers" + str(job_ind))
+    job_local_raxml_done_run = os.path.join(curr_job_folder, "local_raxml_done" + str(job_ind))
+    general_log_path = os.path.join(curr_job_folder, "job_" + str(job_ind) + "_general_log.log")
+    job_log_folder = os.path.join(curr_job_folder,f'{job_ind}_tmp_log')
+    return {"job_status_file": job_status_file, "job_local_tasks_path": job_local_tasks_path,
+            "job_local_done_dump": job_local_raxml_done_run,
+            "job_local_leftovers_dump": job_local_raxml_leftovers_run,
+            "job_log_path": general_log_path,
+            "job_log_folder": job_log_folder,
+            "job_entire_folder": curr_job_folder
+            }
+
+
+
+def get_msa_files(results_folder):
+    global_paths = f"{results_folder}/%s.dump"
+    return {"TASKS": global_paths % "TASKS","LEFTOVER_TASKS": global_paths % "LEFTOVER_TASKS", "RESULTS" : global_paths % "RESULTS", "TEST_MSA" : global_paths % "TEST_MSA"}

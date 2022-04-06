@@ -1,14 +1,13 @@
-import sys
-sys.append('../')
-from side_code.help_functions import *
+from side_code.config import *
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor
 import pickle
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, accuracy_score, roc_auc_score
-
-
+import numpy as np
+import os
+import argparse
 
 # Instantiate model with 1000 decision trees
 

@@ -1,6 +1,13 @@
 
 from side_code.config import *
-from .basic_trees_manipulation import *
+from side_code.file_handling import create_or_clean_dir, delete_dir_content
+from side_code.code_submission import execute_command_and_write_to_log
+from side_code.basic_trees_manipulation import get_tree_string
+import os
+import time
+import re
+#from side_code.basic_trees_manipulation import *
+import datetime
 
 
 
@@ -126,7 +133,6 @@ def filter_unique_topologies(curr_run_directory, trees_path, n):
                 unique_topology_inds.remove(comp_tree)
         unique_trees = [original_trees[ind] for ind in unique_topology_inds]
         n_unique_top = len(unique_trees)
-        logging.info(f'Found {n_unique_top} unique topologies')
         UNIQUE_TREES.writelines(unique_trees)
     rf_prefix = os.path.join(curr_run_directory, "SPR_neighbours_check")
     rf_command = (
@@ -137,24 +143,23 @@ def filter_unique_topologies(curr_run_directory, trees_path, n):
 
 def generate_n_unique_tree_topologies_as_starting_trees(n, original_file_path, curr_run_directory,
                                             seed, tree_type, msa_type):
-    non_unique_trees_path = generate_n_tree_topologies_for_features(n, original_file_path, curr_run_directory,
+    trees_path = generate_n_tree_topologies(n, original_file_path, curr_run_directory,
                                             seed, tree_type, msa_type)
     if tree_type=="pars" and n>1:
-        logging.info("Removing duplicates parismony topologies")
         rf_prefix = os.path.join(curr_run_directory, "parsimony_rf_eval")
         rf_command = (
             "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
-            raxml_exe_path=RAXML_NG_EXE, rf_file_path=non_unique_trees_path , prefix=rf_prefix)
+            raxml_exe_path=RAXML_NG_EXE, rf_file_path=trees_path , prefix=rf_prefix)
         execute_command_and_write_to_log(rf_command)
         rf_distances_file_path = rf_prefix + ".raxml.rfDistances"
-        trees_path = extract_parsimony_unique_topologies(curr_run_directory, non_unique_trees_path,
+        trees_path = extract_parsimony_unique_topologies(curr_run_directory, trees_path,
                                                                rf_distances_file_path, n)
     return trees_path
 
 
 
-def generate_n_tree_topologies_for_features(n, original_file_path, curr_run_directory,
-                                            seed, tree_type, msa_type):
+def generate_n_tree_topologies(n, original_file_path, curr_run_directory,
+                               seed, tree_type, msa_type):
     prefix = os.path.join(curr_run_directory, f"{tree_type}_tree_generation")
     model = "GTR+G" if msa_type == "DNA" else "WAG+G"
     random_tree_generation_command = (
@@ -184,7 +189,6 @@ def extract_parsimony_unique_topologies(curr_run_directory, trees_path, dist_pat
                 unique_topology_inds.remove(comp_tree)
         unique_trees = [original_trees[ind] for ind in unique_topology_inds]
         n_unique_top = len(unique_trees)
-        logging.info(f'Found {n_unique_top} unique topologies')
         UNIQUE_TREES.writelines(unique_trees)
     rf_prefix = os.path.join(curr_run_directory, "parsimony_check_rf")
     rf_command = (
@@ -229,7 +233,6 @@ def raxml_optimize_trees_for_given_msa(full_data_path, ll_on_data_prefix, tree_f
         delete_dir_content(curr_run_directory)
     else:
         os.mkdir(curr_run_directory)
-    logging.debug("RaxML: Evaluating likelihood on : " + full_data_path)
     prefix = os.path.join(curr_run_directory, ll_on_data_prefix)
     brlen_command = "--opt-branches off --opt-model off " if not opt_brlen else ""
     model = "GTR+G" if msa_type == "DNA" else "WAG+G"
