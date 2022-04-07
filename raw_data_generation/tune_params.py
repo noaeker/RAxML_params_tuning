@@ -126,6 +126,7 @@ def handle_single_raxml_task(i, job_tasks_dict, task_ind, tmp_starting_tree_path
     pickle.dump(job_tasks_dict, open(job_local_leftovers_dump, "wb"))
 
 def main():
+    sys.path.append(PROJECT_ROOT_DIRECRTORY)
     parser = job_parser()
     args = parser.parse_args()
     job_related_file_paths = get_job_related_files_paths(args.curr_job_folder, args.job_ind)

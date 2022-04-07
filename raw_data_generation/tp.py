@@ -13,6 +13,7 @@ import random
 import numpy as np
 import pandas as pd
 from math import ceil
+import sys
 
 
 def generate_results_folder(curr_run_prefix):
@@ -155,6 +156,7 @@ def global_results_to_csv(global_results_dict, csv_path):
 
 
 def main():
+    sys.path.append(PROJECT_ROOT_DIRECRTORY)
     parser = main_parser()
     args = parser.parse_args()
     all_jobs_results_folder = generate_results_folder(args.run_prefix)
