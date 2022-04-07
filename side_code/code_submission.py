@@ -50,7 +50,7 @@ def generate_argument_str(args):
 def submit_linux_job(job_name, job_folder,job_log_path, run_command, cpus, job_ind="job", queue='pupkolab'):
     create_dir_if_not_exists(job_folder)
     cmds_path = os.path.join(job_folder, str(job_ind) + ".cmds")
-    job_line = f'{MODULE_LOAD_STR} {run_command}\t{job_name}'
+    job_line = f'{MODULE_LOAD_STR} cd {PROJECT_ROOT_DIRECRTORY}; {run_command}\t{job_name}'
     logging.debug("About to run on {} queue: {}".format(queue, job_line))
     with open(cmds_path, 'w') as cmds_f:
         cmds_f.write(job_line)

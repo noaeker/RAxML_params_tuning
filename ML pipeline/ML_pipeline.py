@@ -123,6 +123,12 @@ def train_error_model(train_data,data_features,search_features,test_data):
     rf_mod_err = rf_regressor(X_train, y_train_err, name="Err_rf_new")
     return rf_mod_err
 
+
+def train_accuracy_rf_model():
+    pass
+
+def train_running_time_rf_model():
+
 def train_rf_models(full_data, data_features, search_features,output_test_path):
     train_data, test_data, validation_data = train_test_validation_splits(
         full_data, test_pct=0.2, val_pct=0)
