@@ -1,10 +1,10 @@
-from raw_data_generation.msa_runs import generate_all_msa_single_raxml_runs
+from msa_runs import generate_all_msa_single_raxml_runs
 from side_code.config import *
-from raw_data_generation.job_runner_side_funcs import submit_linux_job, submit_local_job, generate_argument_list
+from job_runner_side_funcs import submit_linux_job, submit_local_job, generate_argument_list
 from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, extract_alignment_files_from_dirs
 from side_code.code_submission import is_job_done
 from side_code.MSA_manipulation import remove_MSAs_with_not_enough_seq_and_locis, trim_MSA
-from raw_data_generation.job_runner_side_funcs import main_parser, get_job_related_files_paths, get_msa_files
+from job_runner_side_funcs import main_parser, get_job_related_files_paths, get_msa_files
 import pickle
 import os
 import time

@@ -2,12 +2,13 @@
 from side_code.raxml import extract_param_from_raxmlNG_log, raxml_search
 from side_code.file_handling import create_or_clean_dir, unify_text_files
 from side_code.MSA_manipulation import get_msa_type
-from raw_data_generation.msa_runs import generate_test_msa_raxml_run
+from msa_runs import generate_test_msa_raxml_run
 from side_code.basic_trees_manipulation import *
-from raw_data_generation.job_runner_side_funcs import job_parser, get_job_related_files_paths
+from job_runner_side_funcs import job_parser, get_job_related_files_paths
 import pickle
 import numpy as np
 from shutil import rmtree
+import sys
 
 def calculate_rf_dist(rf_file_path, curr_run_directory, prefix="rf"):
     rf_prefix = os.path.join(curr_run_directory, prefix)
