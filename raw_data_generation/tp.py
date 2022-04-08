@@ -1,3 +1,11 @@
+import sys
+
+if sys.platform=="linux" or sys.platform == "linux2":
+    PROJECT_ROOT_DIRECRTORY = "/groups/pupko/noaeker/RAxML_params_tuning"
+else:
+    PROJECT_ROOT_DIRECRTORY = "/Users/noa/Workspace/RAxML_params_tuning"
+sys.path.append(PROJECT_ROOT_DIRECRTORY)
+
 from msa_runs import generate_all_msa_single_raxml_runs
 from side_code.config import *
 from job_runner_side_funcs import submit_linux_job, submit_local_job, generate_argument_list
@@ -156,7 +164,6 @@ def global_results_to_csv(global_results_dict, csv_path):
 
 
 def main():
-    sys.path.append(PROJECT_ROOT_DIRECRTORY)
     parser = main_parser()
     args = parser.parse_args()
     all_jobs_results_folder = generate_results_folder(args.run_prefix)

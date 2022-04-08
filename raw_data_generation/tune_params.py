@@ -1,3 +1,10 @@
+import sys
+
+if sys.platform=="linux" or sys.platform == "linux2":
+    PROJECT_ROOT_DIRECRTORY = "/groups/pupko/noaeker/RAxML_params_tuning"
+else:
+    PROJECT_ROOT_DIRECRTORY = "/Users/noa/Workspace/RAxML_params_tuning"
+sys.path.append(PROJECT_ROOT_DIRECRTORY)
 
 from side_code.raxml import extract_param_from_raxmlNG_log, raxml_search
 from side_code.file_handling import create_or_clean_dir, unify_text_files
@@ -8,7 +15,7 @@ from job_runner_side_funcs import job_parser, get_job_related_files_paths
 import pickle
 import numpy as np
 from shutil import rmtree
-import sys
+
 
 def calculate_rf_dist(rf_file_path, curr_run_directory, prefix="rf"):
     rf_prefix = os.path.join(curr_run_directory, prefix)
@@ -127,7 +134,6 @@ def handle_single_raxml_task(i, job_tasks_dict, task_ind, tmp_starting_tree_path
     pickle.dump(job_tasks_dict, open(job_local_leftovers_dump, "wb"))
 
 def main():
-    sys.path.append(PROJECT_ROOT_DIRECRTORY)
     parser = job_parser()
     args = parser.parse_args()
     job_related_file_paths = get_job_related_files_paths(args.curr_job_folder, args.job_ind)
