@@ -147,8 +147,8 @@ def main():
         job_related_file_paths[
             "job_log_path"]
 
-
-    logging.basicConfig(filename=general_log_path, level=LOGGING_LEVEL)
+    logging_level = logging.INFO if args.logging_level == "info" else logging.DEBUG
+    logging.basicConfig(filename=general_log_path, level=logging_level)
     job_arguments_path = os.path.join(args.curr_job_folder, "job_arguments")
     with open(job_arguments_path,'w') as JOB_ARGUMENTS:
         JOB_ARGUMENTS.write(f"Job arguments are: {args}")

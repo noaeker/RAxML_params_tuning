@@ -9,6 +9,7 @@ def main_parser():
     parser.add_argument('--run_prefix', action='store', type=str, default=CURR_RUN_PREFIX)
     parser.add_argument('--general_msa_dir',type=str, default = GENERAL_MSA_DIR)
     parser.add_argument('--jobs_prefix', action='store', type=str, default=CURR_JOBS_PREFIX)
+    parser.add_argument('--logging_level', action='store', type = str,default  = LOGGING_LEVEL)
     parser.add_argument('--n_MSAs', action='store', type=int, default=N_MSAS)
     parser.add_argument('--run_raxml_commands_locally',action='store_true', default= True)
     parser.add_argument('--first_msa_ind', action='store', type=int, default=0)

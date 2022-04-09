@@ -88,13 +88,16 @@ def update_msa_results_and_task_list(job_tracking_dict, msa_files):
     return total_new_tasks_performed
 
 
-def assign_msa_tasks_over_jobs(msa_files, number_of_tasks_per_job, number_of_jobs_to_send):
+def assign_msa_tasks_over_available_jobs(msa_files, number_of_jobs_to_send):
+    logging.debug("In assign_msa_tasks_over_jobs")
     msa_tasks_dict = pickle.load(open(msa_files["TASKS"], "rb"))
-    msa_tasks_chunk_keys = np.array_split(np.array(list(msa_tasks_dict.keys())),ceil(len(msa_tasks_dict)/number_of_tasks_per_job))
-    tasks_chunk_keys_to_be_performed = msa_tasks_chunk_keys[:number_of_jobs_to_send]
-    overall_keys_to_be_performed = list((np.array(tasks_chunk_keys_to_be_performed).flatten()))
-    tasks_chunks = [{key: msa_tasks_dict[key] for key in key_chunks} for key_chunks in tasks_chunk_keys_to_be_performed]
-    remaining_msa_tasks_dict = {key: msa_tasks_dict[key] for key in msa_tasks_dict.keys() if key not in overall_keys_to_be_performed}
+    if len(msa_tasks_dict)==0:
+        return []
+    msa_tasks_chunk_keys = np.array_split(np.array(list(msa_tasks_dict.keys())),number_of_jobs_to_send)
+    tasks_chunks = [{key: msa_tasks_dict[key] for key in key_chunks} for key_chunks in msa_tasks_chunk_keys]
+    logging.debug(f"Overall keys to be performed: {len(msa_tasks_dict)}:\n {msa_tasks_dict}")
+    logging.debug(f"length of msa tasks dict: {len(msa_tasks_dict)}:\n {msa_tasks_dict}")
+    remaining_msa_tasks_dict = {key: msa_tasks_dict[key] for key in msa_tasks_dict.keys() if key not in msa_tasks_dict.keys()}
     pickle.dump(remaining_msa_tasks_dict,open(msa_files["TASKS"], "wb")) #save remaining tasks
     return  tasks_chunks
 
@@ -102,8 +105,11 @@ def assign_msa_tasks_over_jobs(msa_files, number_of_tasks_per_job, number_of_job
 
 def distribute_tasks_to_available_jobs(msa_files,total_performed_tasks,job_first_index,all_jobs_results_folder,trimmed_test_msa_path, args,job_tracking_dict,number_of_tasks_per_msa):
     number_of_available_jobs_to_send = args.max_n_parallel_jobs - len(job_tracking_dict)
-    tasks_per_job = assign_msa_tasks_over_jobs(msa_files, args.max_n_tasks_per_job,
-                                               number_of_available_jobs_to_send)
+    if number_of_available_jobs_to_send==0:
+        return 0
+    tasks_per_job = assign_msa_tasks_over_available_jobs(msa_files,
+                                                         number_of_available_jobs_to_send)
+
     if len(tasks_per_job) > 0:
         t = time.localtime()
         current_time = time.strftime("%m/%d/%Y, %H:%M:%S", t)
@@ -150,9 +156,10 @@ def single_msa_pipeline(msa_files,msa_results_folder,msa_path, args,
     total_performed_tasks = 0
     while total_performed_tasks < number_of_tasks_per_msa:
         number_of_new_tasks_sent = distribute_tasks_to_available_jobs(msa_files,total_performed_tasks,job_first_index,current_running_jobs_folder,trimmed_test_msa_path, args,job_tracking_dict,number_of_tasks_per_msa)
-        job_first_index += number_of_new_tasks_sent
-        new_tasks_performed = update_msa_results_and_task_list(job_tracking_dict, msa_files)
-        total_performed_tasks += new_tasks_performed
+        if number_of_new_tasks_sent>0:
+            job_first_index += number_of_new_tasks_sent
+            new_tasks_performed = update_msa_results_and_task_list(job_tracking_dict, msa_files)
+            total_performed_tasks += new_tasks_performed
         time.sleep(WAITING_TIME_UPDATE)
 
 
@@ -168,7 +175,8 @@ def main():
     args = parser.parse_args()
     all_jobs_results_folder = generate_results_folder(args.run_prefix)
     all_jobs_general_log_file = os.path.join(all_jobs_results_folder, "log_file.log")
-    logging.basicConfig(filename=all_jobs_general_log_file, level=LOGGING_LEVEL)
+    logging_level = logging.INFO if args.logging_level=="info" else logging.DEBUG
+    logging.basicConfig(filename=all_jobs_general_log_file, level=logging_level)
     arguments_path = os.path.join(all_jobs_results_folder, "arguments")
     with open(arguments_path, 'w') as JOB_ARGUMENTS:
         JOB_ARGUMENTS.write(f"Arguments are: {args}")
