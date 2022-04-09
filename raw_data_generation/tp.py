@@ -74,6 +74,7 @@ def update_msa_results_and_task_list(job_tracking_dict, msa_files):
     msa_tasks_dict = pickle.load(open(msa_files["TASKS"], "rb"))
     total_new_tasks_performed = 0
     for job_ind in list(job_tracking_dict.keys()):
+        logging.debug("check if job is done")
         if is_job_done(job_tracking_dict[job_ind]["job_log_folder"]):
             logging.info(f"Job {job_ind} is done")
             job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"],"rb"))
@@ -156,7 +157,6 @@ def single_msa_pipeline(msa_files,msa_results_folder,msa_path, args,
     job_first_index = 0
     total_performed_tasks = 0
     while total_performed_tasks < number_of_tasks_per_msa:
-        logging.debug("")
         number_of_new_tasks_sent = distribute_tasks_to_available_jobs(msa_files,total_performed_tasks,job_first_index,current_running_jobs_folder,trimmed_test_msa_path, args,job_tracking_dict,number_of_tasks_per_msa)
         if number_of_new_tasks_sent>0:
             job_first_index += number_of_new_tasks_sent
