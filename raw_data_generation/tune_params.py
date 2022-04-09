@@ -119,31 +119,16 @@ def raxml_run_on_test_msa(args, tmp_starting_tree_path):
     return total_test_time
 
 
-def handle_single_raxml_task(i, job_tasks_dict, task_ind, tmp_starting_tree_path, args, total_test_time, job_done_dict, job_local_done_dump, job_local_leftovers_dump):
-    logging.info(f"Performing task number {i}/{len(job_tasks_dict)}")
-    raxml_run = job_tasks_dict[task_ind]
-    with open(tmp_starting_tree_path, 'w') as TMP_STARTING_TREE_PATH:
-        TMP_STARTING_TREE_PATH.write(raxml_run.starting_tree_object.write(format=1))
-
-    results = single_tree_RAxML_run(args.curr_job_folder, raxml_run, tmp_starting_tree_path)
-    logging.debug(f"Current task results: {results}")
-    results["test_norm_const"] = total_test_time
-    raxml_run.set_run_results(results)
-    job_done_dict[task_ind] = raxml_run
-    pickle.dump(job_done_dict, open(job_local_done_dump, "wb"))
-    pickle.dump(job_tasks_dict, open(job_local_leftovers_dump, "wb"))
 
 def main():
     parser = job_parser()
     args = parser.parse_args()
     job_related_file_paths = get_job_related_files_paths(args.curr_job_folder, args.job_ind)
-    job_local_tasks_path, job_local_done_dump, job_local_leftovers_dump, general_log_path, = \
+    job_local_tasks_path, job_local_done_dump_path, general_log_path, = \
         job_related_file_paths[
             "job_local_tasks_path"], \
         job_related_file_paths[
             "job_local_done_dump"], \
-     job_related_file_paths[
-         "job_local_leftovers_dump"], \
         job_related_file_paths[
             "job_log_path"]
 
@@ -158,7 +143,17 @@ def main():
     tmp_starting_tree_path = os.path.join(args.curr_job_folder, "tmp_tree")
     total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
     for i,task_ind in (enumerate(job_tasks_dict)):
-        handle_single_raxml_task(i, job_tasks_dict, task_ind, tmp_starting_tree_path, args, total_test_time, job_done_dict, job_local_done_dump, job_local_leftovers_dump)
+        logging.info(f"Performing task number {i + 1}/{len(job_tasks_dict)}")
+        raxml_run = job_tasks_dict[task_ind]
+        with open(tmp_starting_tree_path, 'w') as TMP_STARTING_TREE_PATH:
+            TMP_STARTING_TREE_PATH.write(raxml_run.starting_tree_object.write(format=1))
+
+        results = single_tree_RAxML_run(args.curr_job_folder, raxml_run, tmp_starting_tree_path)
+        results["test_norm_const"] = total_test_time
+        logging.debug(f"Current task results: {results}")
+        raxml_run.set_run_results(results)
+        job_done_dict[task_ind] = raxml_run
+        pickle.dump(job_done_dict, open(job_local_done_dump_path, "wb"))
     logging.info("Done with current job")
 
 

@@ -5,6 +5,7 @@
       <change beforePath="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/raw_data_generation/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/raw_data_generation/tune_params.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tune_params.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/side_code/code_submission.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/code_submission.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/side_code/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/config.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -18,8 +19,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/tune_params.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="177">
-              <caret line="150" column="70" selection-start-line="150" selection-start-column="70" selection-end-line="150" selection-end-column="70" />
+            <state relative-caret-position="411">
+              <caret line="155" column="72" selection-start-line="155" selection-start-column="72" selection-end-line="155" selection-end-column="72" />
             </state>
           </provider>
         </entry>
@@ -27,8 +28,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="190">
-              <caret line="94" column="17" selection-start-line="94" selection-start-column="17" selection-end-line="94" selection-end-column="17" />
+            <state relative-caret-position="208">
+              <caret line="137" column="35" lean-forward="true" selection-start-line="137" selection-start-column="35" selection-end-line="137" selection-end-column="35" />
             </state>
           </provider>
         </entry>
@@ -45,8 +46,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="123">
-              <caret line="11" column="70" selection-start-line="11" selection-start-column="70" selection-end-line="11" selection-end-column="70" />
+            <state relative-caret-position="125">
+              <caret line="51" column="60" selection-start-line="51" selection-start-column="60" selection-end-line="51" selection-end-column="60" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
               </folding>
@@ -57,8 +58,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/side_code/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="127">
-              <caret line="18" column="11" selection-start-line="18" selection-start-column="11" selection-end-line="18" selection-end-column="11" />
+            <state relative-caret-position="-418">
+              <caret line="26" column="24" selection-start-line="26" selection-start-column="24" selection-end-line="26" selection-end-column="24" />
               <folding>
                 <element signature="e#0#24#0" expanded="true" />
               </folding>
@@ -75,6 +76,18 @@
           </provider>
         </entry>
       </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/side_code/code_submission.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="258">
+              <caret line="14" column="38" lean-forward="true" selection-start-line="14" selection-start-column="38" selection-end-line="14" selection-end-column="38" />
+              <folding>
+                <element signature="e#1#61#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
     </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
@@ -86,7 +99,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>all_jobs_general_log_file</find>
       <find>del global_tasks_dict_per_MSA[msa_path]</find>
       <find>submitted</find>
       <find>n_tasks_</find>
@@ -97,7 +109,6 @@
       <find>submit_single_job</find>
       <find>pickle.load(open(msa_files[&quot;RESULTS&quot;], &quot;rb&quot;))</find>
       <find>global_results_dict_path</find>
-      <find>update_msa_results_and_task_list</find>
       <find>single_msa_pipeline</find>
       <find>pickle.load</find>
       <find>so far done with</find>
@@ -110,12 +121,14 @@
       <find>dis</find>
       <find>LOCAL</find>
       <find>distri</find>
-      <find>dist</find>
       <find>distrib</find>
-      <find>L</find>
       <find>number_of_new_tasks_sent</find>
       <find>distribute_tasks_to_available_jobs</find>
       <find>assign_msa_tasks_over_available_jobs</find>
+      <find>leftover</find>
+      <find>L</find>
+      <find>update_msa_results_and_task_list</find>
+      <find>dist</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -171,10 +184,10 @@
         <option value="$PROJECT_DIR$/raw_data_generation/__init__.py" />
         <option value="$PROJECT_DIR$/ML pipeline/ML_pipeline.py" />
         <option value="$PROJECT_DIR$/side_code/code_submission.py" />
-        <option value="$PROJECT_DIR$/raw_data_generation/tune_params.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
-        <option value="$PROJECT_DIR$/side_code/config.py" />
+        <option value="$PROJECT_DIR$/raw_data_generation/tune_params.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
+        <option value="$PROJECT_DIR$/side_code/config.py" />
       </list>
     </option>
   </component>
@@ -392,7 +405,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.08529412" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.28382352" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3779412" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.28235295" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -411,7 +424,7 @@
       <breakpoints>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tune_params.py</url>
-          <line>140</line>
+          <line>127</line>
           <option name="timeStamp" value="21" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -471,22 +484,22 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>219</line>
+          <line>221</line>
           <option name="timeStamp" value="114" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>213</line>
+          <line>215</line>
           <option name="timeStamp" value="115" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>92</line>
+          <line>93</line>
           <option name="timeStamp" value="116" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>99</line>
+          <line>100</line>
           <option name="timeStamp" value="117" />
         </line-breakpoint>
       </breakpoints>
@@ -836,16 +849,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/side_code/code_submission.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="254">
-          <caret line="52" column="42" selection-start-line="52" selection-start-column="42" selection-end-line="52" selection-end-column="42" />
-          <folding>
-            <element signature="e#1#61#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ML pipeline/ML_pipeline.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1100">
@@ -880,17 +883,20 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/raw_data_generation/tune_params.py">
+    <entry file="file://$PROJECT_DIR$/side_code/code_submission.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="177">
-          <caret line="150" column="70" selection-start-line="150" selection-start-column="70" selection-end-line="150" selection-end-column="70" />
+        <state relative-caret-position="258">
+          <caret line="14" column="38" lean-forward="true" selection-start-line="14" selection-start-column="38" selection-end-line="14" selection-end-column="38" />
+          <folding>
+            <element signature="e#1#61#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="123">
-          <caret line="11" column="70" selection-start-line="11" selection-start-column="70" selection-end-line="11" selection-end-column="70" />
+        <state relative-caret-position="125">
+          <caret line="51" column="60" selection-start-line="51" selection-start-column="60" selection-end-line="51" selection-end-column="60" />
           <folding>
             <element signature="e#0#15#0" expanded="true" />
           </folding>
@@ -899,18 +905,25 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/side_code/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="127">
-          <caret line="18" column="11" selection-start-line="18" selection-start-column="11" selection-end-line="18" selection-end-column="11" />
+        <state relative-caret-position="-418">
+          <caret line="26" column="24" selection-start-line="26" selection-start-column="24" selection-end-line="26" selection-end-column="24" />
           <folding>
             <element signature="e#0#24#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/raw_data_generation/tune_params.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="411">
+          <caret line="155" column="72" selection-start-line="155" selection-start-column="72" selection-end-line="155" selection-end-column="72" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="190">
-          <caret line="94" column="17" selection-start-line="94" selection-start-column="17" selection-end-line="94" selection-end-column="17" />
+        <state relative-caret-position="208">
+          <caret line="137" column="35" lean-forward="true" selection-start-line="137" selection-start-column="35" selection-end-line="137" selection-end-column="35" />
         </state>
       </provider>
     </entry>

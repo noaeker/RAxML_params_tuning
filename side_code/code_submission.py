@@ -12,7 +12,7 @@ def is_job_done(job_log_folder):
         return True
     else:
         for file in os.listdir(job_log_folder):
-            if (file.endswith('Err') or LOCAL_RUN):
+            if (file.endswith('.ER')):
                 return True
     return False
 

@@ -50,7 +50,6 @@ def get_job_related_files_paths(curr_job_folder, job_ind):
     job_log_folder = os.path.join(curr_job_folder,f'{job_ind}_tmp_log')
     return {"job_status_file": job_status_file, "job_local_tasks_path": job_local_tasks_path,
             "job_local_done_dump": job_local_raxml_done_run,
-            "job_local_leftovers_dump": job_local_raxml_leftovers_run,
             "job_log_path": general_log_path,
             "job_log_folder": job_log_folder,
             "job_entire_folder": curr_job_folder

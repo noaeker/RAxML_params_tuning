@@ -75,11 +75,12 @@ def update_msa_results_and_task_list(job_tracking_dict, msa_files):
     total_new_tasks_performed = 0
     for job_ind in list(job_tracking_dict.keys()):
         if is_job_done(job_tracking_dict[job_ind]["job_log_folder"]):
+            logging.info(f"Job {job_ind} is done")
             job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"],"rb"))
             total_new_tasks_performed = total_new_tasks_performed + len(job_raxml_runs_done_obj)
-            job_raxml_runs_leftover_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_leftovers_dump"],"rb"))
+            logging.debug(f"Job done size is {len(job_raxml_runs_done_obj)}")
             msa_results_dict.update(job_raxml_runs_done_obj)  # update new results
-            msa_tasks_dict.update(job_raxml_runs_leftover_obj)  # insert leftover tasks
+            msa_tasks_dict = {task_ind : msa_tasks_dict[task_ind] for task_ind in msa_tasks_dict if task_ind not in job_raxml_runs_done_obj}  # insert leftover tasks
             rmtree(job_tracking_dict[job_ind]["job_entire_folder"]) # delete job folder
             del job_tracking_dict[job_ind] #
     pickle.dump(msa_results_dict, open(msa_files["RESULTS"], "wb"))
@@ -93,7 +94,7 @@ def assign_msa_tasks_over_available_jobs(msa_files, number_of_jobs_to_send):
     msa_tasks_dict = pickle.load(open(msa_files["TASKS"], "rb"))
     if len(msa_tasks_dict)==0:
         return []
-    msa_tasks_chunk_keys = np.array_split(np.array(list(msa_tasks_dict.keys())),number_of_jobs_to_send)
+    msa_tasks_chunk_keys = np.array_split(np.array(list(msa_tasks_dict.keys())),min(number_of_jobs_to_send,len(msa_tasks_dict)))
     tasks_chunks = [{key: msa_tasks_dict[key] for key in key_chunks} for key_chunks in msa_tasks_chunk_keys]
     logging.debug(f"Overall keys to be performed: {len(msa_tasks_dict)}:\n {msa_tasks_dict}")
     logging.debug(f"length of msa tasks dict: {len(msa_tasks_dict)}:\n {msa_tasks_dict}")
@@ -155,6 +156,7 @@ def single_msa_pipeline(msa_files,msa_results_folder,msa_path, args,
     job_first_index = 0
     total_performed_tasks = 0
     while total_performed_tasks < number_of_tasks_per_msa:
+        logging.debug("")
         number_of_new_tasks_sent = distribute_tasks_to_available_jobs(msa_files,total_performed_tasks,job_first_index,current_running_jobs_folder,trimmed_test_msa_path, args,job_tracking_dict,number_of_tasks_per_msa)
         if number_of_new_tasks_sent>0:
             job_first_index += number_of_new_tasks_sent
