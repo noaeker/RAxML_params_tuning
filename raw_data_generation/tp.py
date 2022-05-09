@@ -150,9 +150,8 @@ def global_results_to_csv(global_results_dict, csv_path):
     df.to_csv(csv_path,sep = CSV_SEP, index = False)
 
 
-def generate_results_and_tasks(args,target_msas_list,global_results_folder,global_results_path,file_paths_path,trees_run_directory,global_tasks_path):
+def generate_results_and_tasks(args,target_msas_list,global_results_path,file_paths_path,trees_run_directory,global_tasks_path):
      # Not using existing global data
-    create_or_clean_dir(global_results_folder)
     pickle.dump({}, open(global_results_path, "wb"))
     pickle.dump(target_msas_list, open(file_paths_path, "wb"))
     target_MSAs_list = pickle.load(open(file_paths_path, "rb"))
@@ -200,10 +199,12 @@ def main():
     global_csv_path = os.path.join(global_results_folder, f'global_csv{CSV_SUFFIX}')
     file_paths_path = os.path.join(global_results_folder, "file_paths")
     trees_run_directory = os.path.join(all_jobs_results_folder, 'starting_trees_generation')
-    target_msas_list = generate_file_path_list_and_test_msa(args, trimmed_test_msa_path) #extract files
+     #extract files
     if not args.use_existing_global_data:
+        create_or_clean_dir(global_results_folder)
+        target_msas_list = generate_file_path_list_and_test_msa(args, trimmed_test_msa_path)
         logging.info("Generating glboal results and tasks from beggining")
-        generate_results_and_tasks(args,target_msas_list, global_results_folder, global_results_path,file_paths_path,
+        generate_results_and_tasks(args,target_msas_list, global_results_path,file_paths_path,
                                trees_run_directory, global_tasks_path)
     else:
         logging.info("Using existing global results and tasks")
