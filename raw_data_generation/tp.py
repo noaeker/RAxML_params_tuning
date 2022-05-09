@@ -8,7 +8,6 @@ sys.path.append(PROJECT_ROOT_DIRECRTORY)
 
 from msa_runs import generate_all_raxml_runs_per_msa
 from side_code.config import *
-from job_runner_side_funcs import generate_argument_list
 from side_code.code_submission import submit_linux_job, submit_local_job, generate_argument_list
 from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, extract_alignment_files_from_dirs
 from side_code.code_submission import is_job_done
