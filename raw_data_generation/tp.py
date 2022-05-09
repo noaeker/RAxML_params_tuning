@@ -8,7 +8,8 @@ sys.path.append(PROJECT_ROOT_DIRECRTORY)
 
 from msa_runs import generate_all_raxml_runs_per_msa
 from side_code.config import *
-from job_runner_side_funcs import submit_linux_job, submit_local_job, generate_argument_list
+from job_runner_side_funcs import generate_argument_list
+from side_code.code_submission import submit_linux_job, submit_local_job, generate_argument_list
 from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, extract_alignment_files_from_dirs
 from side_code.code_submission import is_job_done
 from side_code.MSA_manipulation import remove_MSAs_with_not_enough_seq_and_locis, trim_MSA
@@ -60,14 +61,14 @@ def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
     file_path_list_full = remove_MSAs_with_not_enough_seq_and_locis(file_path_list, args.min_n_seq, args.min_n_loci)
     test_msa_path = file_path_list_full[0]
     trim_MSA(test_msa_path, trimmed_test_msa_path, number_of_sequences=10, max_n_loci=500, loci_shift=0)
-    logging.debug("Alignment files are " + str(file_path_list))
+    #logging.debug("Alignment files are " + str(file_path_list))
     random.seed(SEED)
-    file_path_list = random.sample(file_path_list_full, args.n_MSAs)
+    file_path_list = random.sample(file_path_list_full, min(args.n_MSAs, len(file_path_list_full)))
     logging.info(
         "There are {} MSAs with at least {} sequences and {} positions".format(len(file_path_list), args.min_n_seq,
                                                                                args.min_n_loci))
     logging.info(
-        f"Sampling {args.n_MSAs} random MSAs")
+        f"Sampling {len(file_path_list)} random MSAs")
     return file_path_list
 
 
@@ -150,22 +151,21 @@ def global_results_to_csv(global_results_dict, csv_path):
     df.to_csv(csv_path,sep = CSV_SEP, index = False)
 
 
-def generate_results_and_tasks(args,global_results_folder,global_results_path,trimmed_test_msa_path,file_paths_path,trees_run_directory,global_tasks_path):
-    if not args.use_existing_global_data: # Not using existing global data
-        create_or_clean_dir(global_results_folder)
-        pickle.dump({}, open(global_results_path, "wb"))
-        target_msas_list = generate_file_path_list_and_test_msa(args, trimmed_test_msa_path)
-        pickle.dump(target_msas_list, open(file_paths_path, "wb"))
-        target_MSAs_list = pickle.load(open(file_paths_path, "rb"))
-        os.mkdir(trees_run_directory)
-        tasks_dict_per_msa = generate_all_raxml_runs_per_msa(target_MSAs_list, spr_radius_grid_str=args.spr_radius_grid,
-                                                     spr_cutoff_grid_str=args.spr_cutoff_grid,
-                                                     n_parsimony_tree_objects_per_msa=args.n_raxml_parsimony_trees,
-                                                     n_random_tree_objects_per_msa=args.n_raxml_random_trees,
-                                                     curr_run_directory=trees_run_directory, seed=SEED)
+def generate_results_and_tasks(args,target_msas_list,global_results_folder,global_results_path,file_paths_path,trees_run_directory,global_tasks_path):
+     # Not using existing global data
+    create_or_clean_dir(global_results_folder)
+    pickle.dump({}, open(global_results_path, "wb"))
+    pickle.dump(target_msas_list, open(file_paths_path, "wb"))
+    target_MSAs_list = pickle.load(open(file_paths_path, "rb"))
+    os.mkdir(trees_run_directory)
+    tasks_dict_per_msa = generate_all_raxml_runs_per_msa(target_MSAs_list, spr_radius_grid_str=args.spr_radius_grid,
+                                                 spr_cutoff_grid_str=args.spr_cutoff_grid,
+                                                 n_parsimony_tree_objects_per_msa=args.n_raxml_parsimony_trees,
+                                                 n_random_tree_objects_per_msa=args.n_raxml_random_trees,
+                                                 curr_run_directory=trees_run_directory, seed=SEED)
 
-        pickle.dump(tasks_dict_per_msa, open(global_tasks_path, "wb"))
-        rmtree(trees_run_directory)
+    pickle.dump(tasks_dict_per_msa, open(global_tasks_path, "wb"))
+    rmtree(trees_run_directory)
 
 
 def write_current_tasks_to_file(global_tasks_per_msa, current_tasks_path, global_tasks_path, args):
@@ -201,8 +201,13 @@ def main():
     global_csv_path = os.path.join(global_results_folder, f'global_csv{CSV_SUFFIX}')
     file_paths_path = os.path.join(global_results_folder, "file_paths")
     trees_run_directory = os.path.join(all_jobs_results_folder, 'starting_trees_generation')
-    generate_results_and_tasks(args, global_results_folder, global_results_path, trimmed_test_msa_path, file_paths_path,
+    target_msas_list = generate_file_path_list_and_test_msa(args, trimmed_test_msa_path) #extract files
+    if not args.use_existing_global_data:
+        logging.info("Generating glboal results and tasks from beggining")
+        generate_results_and_tasks(args,target_msas_list, global_results_folder, global_results_path,file_paths_path,
                                trees_run_directory, global_tasks_path)
+    else:
+        logging.info("Using existing global results and tasks")
 
     current_tasks_path = os.path.join(all_jobs_results_folder, 'current_tasks')
     global_tasks_per_msa = pickle.load(open(global_tasks_path, "rb"))
