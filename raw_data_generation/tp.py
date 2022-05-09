@@ -169,7 +169,7 @@ def generate_results_and_tasks(args,global_results_folder,global_results_path,tr
 
 
 def write_current_tasks_to_file(global_tasks_per_msa, current_tasks_path, global_tasks_path, args):
-    if len(pickle.load(open(current_tasks_path, "rb")))>0: #if there are currently tasks which are still not performed.
+    if os.path.exists(current_tasks_path) and len(pickle.load(open(current_tasks_path, "rb")))>0: #if there are currently tasks which are still not performed.
         return
     random.seed(SEED)
     current_iteration_MSAs = random.choices(list(global_tasks_per_msa.keys()),
