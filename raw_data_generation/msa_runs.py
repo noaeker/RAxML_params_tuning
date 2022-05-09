@@ -4,7 +4,8 @@ from side_code.config import *
 from side_code.MSA_manipulation import get_msa_type
 from sklearn.model_selection import ParameterGrid
 import numpy as np
-
+import uuid
+import random
 
 
 
@@ -79,21 +80,26 @@ def generate_tree_type_raxml_runs(msa_path, n_tree_objects_per_msa, msa_type, tr
     return runs
 
 
-def generate_all_msa_single_raxml_runs(msa_path, spr_radius_grid_str, spr_cutoff_grid_str,
-                                       n_parsimony_tree_objects_per_msa,
-                                       n_random_tree_objects_per_msa, curr_run_directory, seed):
+def generate_all_raxml_runs_per_msa(msa_paths, spr_radius_grid_str, spr_cutoff_grid_str,
+                                    n_parsimony_tree_objects_per_msa,
+                                    n_random_tree_objects_per_msa, curr_run_directory, seed):
+
+    runs_per_msa = {}
     param_grid_str = {"spr_radius": spr_radius_grid_str, "spr_cutoff": spr_cutoff_grid_str}
     param_grid_obj = get_param_obj(param_grid_str)
-    msa_type = get_msa_type(msa_path)
-    msa_parsimony_raxml_runs = generate_tree_type_raxml_runs(msa_path, n_parsimony_tree_objects_per_msa, msa_type,
-                                                         "pars", curr_run_directory, param_grid_obj, seed)
-    create_or_clean_dir(curr_run_directory)
-    msa_random_raxml_runs = generate_tree_type_raxml_runs(msa_path, n_random_tree_objects_per_msa, msa_type,
-                                                      "rand", curr_run_directory, param_grid_obj, seed)
-    create_or_clean_dir(curr_run_directory)
-    msa_runs = msa_parsimony_raxml_runs+msa_random_raxml_runs
-    raxml_runs_list = {id:raxml_run for id, raxml_run in enumerate(msa_runs)}
-    return  raxml_runs_list
+    i = 0
+    for msa_path in msa_paths:
+        msa_type = get_msa_type(msa_path)
+        msa_parsimony_raxml_runs = generate_tree_type_raxml_runs(msa_path, n_parsimony_tree_objects_per_msa, msa_type,
+                                                             "pars", curr_run_directory, param_grid_obj, seed)
+        create_or_clean_dir(curr_run_directory)
+        msa_random_raxml_runs = generate_tree_type_raxml_runs(msa_path, n_random_tree_objects_per_msa, msa_type,
+                                                          "rand", curr_run_directory, param_grid_obj, seed)
+        create_or_clean_dir(curr_run_directory)
+        msa_runs = msa_parsimony_raxml_runs+msa_random_raxml_runs
+        runs_per_msa[msa_path] = {(id+i):raxml_run for id, raxml_run in enumerate(msa_runs)}
+        i+= len(msa_runs)
+    return runs_per_msa
 
 
 def generate_test_msa_raxml_run(test_msa_path,curr_run_directory, seed):

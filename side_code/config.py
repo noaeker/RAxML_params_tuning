@@ -19,18 +19,19 @@ N_MSAS = 2
 N_JOBS = 60
 N_TASKS_PER_JOB = 300
 MIN_N_SEQ = 10
-N_PARSIMONY_RAXML_SEARCH = 1#15
+N_PARSIMONY_RAXML_SEARCH = 0#15
 N_RANDOM_RAXML_SEARCH = 1#15
 MIN_N_LOCI = 1
-LOGGING_LEVEL = "debug" #"debug"
+LOGGING_LEVEL = "info" #"debug"
 OUTPUT_CSV_NAME = "tune_raxml"
-WAITING_TIME_UPDATE = 60
+WAITING_TIME_UPDATE = 5
 TEST_MSA_ITERATIONS = 30
 EPSILON = 0.1
 SPR_RADIUS_GRID =  "1_30_1"#"1_30_10"
 SPR_CUTOFF_GRID = "0.1_10_1"#"0.1_10_10"
 CSV_SEP = "\t"
 CSV_SUFFIX = ".tsv"
+N_MSAS_PER_BUNCH = 1
 
 COLUMNS_TO_INCLUDE_CSV = ["msa_folder","original_alignment_path","msa_name","elapsed_running_time", "msa_type", "n_loci", "n_seq", "run_name",
                          "spr_cutoff","spr_radius","starting_tree_ll","final_ll","rf_from_curr_starting_tree_best_topology","curr_starting_tree_best_ll",

@@ -88,5 +88,11 @@ def remove_empty_columns(csv_path):
         df.to_csv(csv_path, index=False, sep=CSV_SEP)
 
 
+def unify_dicts(dicts):
+    super_dict = {}
+    for d in dicts:
+        for k, v in d.items():
+            super_dict[k] = v
+    return super_dict
 
 
