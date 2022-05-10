@@ -82,7 +82,7 @@ def generate_tree_type_raxml_runs(msa_path, n_tree_objects_per_msa, msa_type, tr
 
 def generate_all_raxml_runs_per_msa(msa_paths, spr_radius_grid_str, spr_cutoff_grid_str,
                                     n_parsimony_tree_objects_per_msa,
-                                    n_random_tree_objects_per_msa, curr_run_directory, seed):
+                                    n_random_tree_objects_per_msa, curr_run_directory, seed, start_index = 0):
 
     runs_per_msa = {}
     param_grid_str = {"spr_radius": spr_radius_grid_str, "spr_cutoff": spr_cutoff_grid_str}
@@ -97,7 +97,7 @@ def generate_all_raxml_runs_per_msa(msa_paths, spr_radius_grid_str, spr_cutoff_g
                                                           "rand", curr_run_directory, param_grid_obj, seed)
         create_or_clean_dir(curr_run_directory)
         msa_runs = msa_parsimony_raxml_runs+msa_random_raxml_runs
-        runs_per_msa[msa_path] = {(id+i):raxml_run for id, raxml_run in enumerate(msa_runs)}
+        runs_per_msa[msa_path] = {(start_index+id+i):raxml_run for id, raxml_run in enumerate(msa_runs)}
         i+= len(msa_runs)
     return runs_per_msa
 
