@@ -152,7 +152,7 @@ def global_results_to_csv(global_results_dict, csv_path):
 
 
 
-def write_current_tasks_to_file(i,file_paths_path, current_tasks_path, trees_run_directory, args):
+def write_current_tasks_to_file(max_result_key,file_paths_path, current_tasks_path, trees_run_directory, args):
     '''
 
     :param file_paths_path:
@@ -173,7 +173,7 @@ def write_current_tasks_to_file(i,file_paths_path, current_tasks_path, trees_run
                                                          spr_cutoff_grid_str=args.spr_cutoff_grid,
                                                          n_parsimony_tree_objects_per_msa=args.n_raxml_parsimony_trees,
                                                          n_random_tree_objects_per_msa=args.n_raxml_random_trees,
-                                                         curr_run_directory=trees_run_directory, seed=SEED, start_index = i *args.n_MSAs_per_bunch )
+                                                         curr_run_directory=trees_run_directory, seed=SEED, start_index = max_result_key )
 
     pickle.dump(tasks_dict_per_msa, open(current_tasks_path, "wb"))
     rmtree(trees_run_directory)
@@ -214,17 +214,18 @@ def main():
     total_msas_overall = len(target_msas_list)
     logging.info(f"Number of target MSAs: {total_msas_overall}, at each iteration {args.n_MSAs_per_bunch} are handled")
     i = 0
+    max_result_key =0
     while len(target_msas_list)>0:
         i+=1
         logging.info(f"iteration {i} starts, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
-        write_current_tasks_to_file(i,file_paths_path, current_tasks_path, trees_run_directory, args)
+        write_current_tasks_to_file(max_result_key,file_paths_path, current_tasks_path, trees_run_directory, args)
         # Perform pipeline on current MSA, making sure that all tasks in current_tasks_pool are performed.
         current_tasks_pipeline(trimmed_test_msa_path,current_tasks_path, global_results_path,all_jobs_results_folder, args)
-
         #Final procedures
         target_msas_list = pickle.load(open(file_paths_path, "rb")) #Update new tasks.
 
         global_results = pickle.load(open(global_results_path, "rb")) #Update new results.
+        max_result_key = max(global_results.keys())
         global_results_to_csv(global_results, global_csv_path)
         total_msas_done += args.n_MSAs_per_bunch
         logging.info(f"iteration {i} done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
