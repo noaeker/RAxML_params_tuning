@@ -71,7 +71,7 @@ def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
     return file_path_list
 
 
-def check_for_new_results_and_update_current_results(job_tracking_dict, global_results_path, current_tasks_path):
+def  update_results_tasks_and_jobs(job_tracking_dict, global_results_path, current_tasks_path):
     total_new_tasks_performed = 0
     for job_ind in list(job_tracking_dict.keys()):
         if is_job_done(job_tracking_dict[job_ind]["job_log_folder"]) and os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]):
@@ -114,27 +114,24 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
     :param global_results_path:
     :param all_jobs_results_folder:
     :param trimmed_test_msa_path:
-    :return: Full MSA pipeline: including job managing
+    :return: Divide tasks between jobs and update results and tasks
     '''
     job_tracking_dict = {}
     job_first_index = 0
     while len(pickle.load(open(current_tasks_path, "rb"))) > 0:  # Make sure all current tasks are performed
         number_of_available_jobs_to_send = args.max_n_parallel_jobs - len(job_tracking_dict)
-        if number_of_available_jobs_to_send == 0:  # No available new jobs.
-            return 0
-        tasks_per_job = assign_tasks_over_available_jobs(current_tasks_path,
-                                                         number_of_available_jobs_to_send)  # Partitioning of tasks over jobs
-        for i, job_task in enumerate(tasks_per_job):
-            job_ind = job_first_index + i
-            logging.debug(f"Submitted job number {job_ind}, which performs {len(job_task)} tasks")
-            curr_job_related_files_paths = submit_single_job(all_jobs_results_folder, job_ind, job_task,
-                                                             trimmed_test_msa_path, args)
-            job_tracking_dict[job_ind] = curr_job_related_files_paths
-        number_of_new_job_sent = len(tasks_per_job)
-        if number_of_new_job_sent > 0:
-            logging.debug(f"New {number_of_new_job_sent} jobs sent")
+        if number_of_available_jobs_to_send > 0:  # Available new jobs.
+            tasks_per_job = assign_tasks_over_available_jobs(current_tasks_path,
+                                                             number_of_available_jobs_to_send)  # Partitioning of tasks over jobs
+            for i, job_task in enumerate(tasks_per_job):
+                job_ind = job_first_index + i
+                logging.debug(f"Submitted job number {job_ind}, which performs {len(job_task)} tasks")
+                curr_job_related_files_paths = submit_single_job(all_jobs_results_folder, job_ind, job_task,
+                                                                 trimmed_test_msa_path, args)
+                job_tracking_dict[job_ind] = curr_job_related_files_paths
+            number_of_new_job_sent = len(tasks_per_job)
             job_first_index += number_of_new_job_sent
-            check_for_new_results_and_update_current_results(job_tracking_dict, global_results_path, current_tasks_path)
+        update_results_tasks_and_jobs(job_tracking_dict, global_results_path, current_tasks_path)
         time.sleep(WAITING_TIME_UPDATE)
     logging.debug("Done with current tasks.")
 
@@ -207,7 +204,7 @@ def main():
     total_msas_overall = len(target_msas_list)
     logging.info(f"Number of target MSAs: {total_msas_overall}, at each iteration {args.n_MSAs_per_bunch} are handled")
     i = 0
-    while len(target_msas_list) > 0 and total_msas_done<total_msas_overall: #sanity check
+    while len(target_msas_list) > 0 : #sanity check
         i += 1
         logging.info(f"iteration {i} starts, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         move_current_tasks_from_pool_to_file(file_paths_path, current_tasks_path, trees_run_directory, args)
@@ -224,6 +221,7 @@ def main():
         total_msas_done += args.n_MSAs_per_bunch
         logging.info(f"iteration {i} done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         logging.info(f"So far done with {total_msas_done}/{total_msas_overall} of the MSAs ")
+        
 
     logging.info(f"Done with all MSAs")
 

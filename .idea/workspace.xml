@@ -36,8 +36,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="682">
-              <caret line="31" column="80" selection-start-line="31" selection-start-column="80" selection-end-line="31" selection-end-column="80" />
+            <state relative-caret-position="-445">
+              <caret line="28" column="66" lean-forward="true" selection-start-line="28" selection-start-column="66" selection-end-line="28" selection-end-column="66" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
               </folding>
@@ -84,8 +84,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/side_code/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="116">
-              <caret line="27" selection-start-line="27" selection-end-line="27" />
+            <state relative-caret-position="94">
+              <caret line="26" column="23" lean-forward="true" selection-start-line="26" selection-start-column="23" selection-end-line="26" selection-end-column="23" />
               <folding>
                 <element signature="e#0#24#0" expanded="true" />
               </folding>
@@ -120,8 +120,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-2480">
-              <caret line="10" column="118" selection-start-line="10" selection-start-column="118" selection-end-line="10" selection-end-column="118" />
+            <state relative-caret-position="231">
+              <caret line="223" column="8" selection-start-line="223" selection-start-column="8" selection-end-line="223" selection-end-column="8" />
             </state>
           </provider>
         </entry>
@@ -137,8 +137,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>Number of target MSAs</find>
-      <find>logging.debug</find>
       <find>get_WORK_files</find>
       <find>write_current_tasks</find>
       <find>local</find>
@@ -163,10 +161,12 @@
       <find>rmtree</find>
       <find>shuti</find>
       <find>raxml_run_on_test_msa</find>
-      <find>n_msas</find>
       <find>args</find>
-      <find>debug</find>
       <find>job_parser()</find>
+      <find>debug</find>
+      <find>n_msas</find>
+      <find>check_for_new_results_and_update_current_results</find>
+      <find>trim</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -220,11 +220,11 @@
         <option value="$PROJECT_DIR$/ML pipeline/ML_pipeline.py" />
         <option value="$PROJECT_DIR$/side_code/file_handling.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/msa_runs.py" />
-        <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
         <option value="$PROJECT_DIR$/side_code/config.py" />
         <option value="$PROJECT_DIR$/side_code/code_submission.py" />
         <option value="$PROJECT_DIR$/side_code/raxml.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/tune_params.py" />
+        <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
       </list>
     </option>
@@ -443,7 +443,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.25735295" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.21764706" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.2867647" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.31911764" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -527,12 +527,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>222</line>
+          <line>219</line>
           <option name="timeStamp" value="130" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>208</line>
+          <line>205</line>
           <option name="timeStamp" value="134" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -936,30 +936,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/side_code/config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="116">
-          <caret line="27" selection-start-line="27" selection-end-line="27" />
-          <folding>
-            <element signature="e#0#24#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_generation/tune_params.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="413">
           <caret line="149" column="45" selection-start-line="149" selection-start-column="45" selection-end-line="149" selection-end-column="45" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="682">
-          <caret line="31" column="80" selection-start-line="31" selection-start-column="80" selection-end-line="31" selection-end-column="80" />
-          <folding>
-            <element signature="e#0#15#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -973,10 +953,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-445">
+          <caret line="28" column="66" lean-forward="true" selection-start-line="28" selection-start-column="66" selection-end-line="28" selection-end-column="66" />
+          <folding>
+            <element signature="e#0#15#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/side_code/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="94">
+          <caret line="26" column="23" lean-forward="true" selection-start-line="26" selection-start-column="23" selection-end-line="26" selection-end-column="23" />
+          <folding>
+            <element signature="e#0#24#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2480">
-          <caret line="10" column="118" selection-start-line="10" selection-start-column="118" selection-end-line="10" selection-end-column="118" />
+        <state relative-caret-position="231">
+          <caret line="223" column="8" selection-start-line="223" selection-start-column="8" selection-end-line="223" selection-end-column="8" />
         </state>
       </provider>
     </entry>
