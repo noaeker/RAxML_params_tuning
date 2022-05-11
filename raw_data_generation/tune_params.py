@@ -112,6 +112,7 @@ def raxml_run_on_test_msa(args, tmp_starting_tree_path):
         TMP_STARTING_TREE_PATH.write(test_raxml_run.starting_tree_object.write(format=1))
     total_test_time = 0
     for i in range(args.n_iters_test):
+        logging.debug(f"iter {i} of test")
         curr_i_folder = os.path.join(test_msa_folder,str(i))
         test_results = single_tree_RAxML_run( curr_i_folder, test_raxml_run, tmp_starting_tree_path)
         #create_or_clean_dir(test_msa_folder)
