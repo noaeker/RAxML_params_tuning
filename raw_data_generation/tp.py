@@ -132,6 +132,7 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
             job_tracking_dict[job_ind] = curr_job_related_files_paths
         number_of_new_job_sent = len(tasks_per_job)
         if number_of_new_job_sent > 0:
+            logging.debug(f"New {number_of_new_job_sent} jobs sent")
             job_first_index += number_of_new_job_sent
             check_for_new_results_and_update_current_results(job_tracking_dict, global_results_path, current_tasks_path)
         time.sleep(WAITING_TIME_UPDATE)
