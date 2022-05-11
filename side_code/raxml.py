@@ -212,7 +212,7 @@ def raxml_search(curr_run_directory, msa_path, msa_type, prefix,params_config, s
         msa_path=msa_path, starting_trees_command=starting_trees_command, seed=SEED,
         prefix=search_prefix, spr_radius_command = spr_radius_command, spr_cutoff_command = spr_cutoff_command, model = model)
     raxml_log_file = search_prefix + ".raxml.log"
-    execute_command_and_write_to_log(search_command)
+    execute_command_and_write_to_log(search_command, print_to_log= True)
     elapsed_running_time = extract_param_from_raxmlNG_log(raxml_log_file, 'time')
     best_ll = extract_param_from_raxmlNG_log(raxml_log_file, 'search_ll')
     starting_tree_ll  = extract_param_from_raxmlNG_log(raxml_log_file, 'starting_tree_ll')

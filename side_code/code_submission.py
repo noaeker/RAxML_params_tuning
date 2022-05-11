@@ -12,8 +12,9 @@ def is_job_done(job_log_folder):
         return True
     else:
         for file in os.listdir(job_log_folder):
+            full_file_path = os.path.join(job_log_folder,file)
             if (file.endswith('.ER')):
-                logging.debug(f"Found error log file= {file}")
+                logging.debug(f"Found error log file= {file}, error content is {open(full_file_path).read()}")
                 return True
     return False
 

@@ -207,7 +207,7 @@ def main():
     total_msas_overall = len(target_msas_list)
     logging.info(f"Number of target MSAs: {total_msas_overall}, at each iteration {args.n_MSAs_per_bunch} are handled")
     i = 0
-    while len(target_msas_list) > 0:
+    while len(target_msas_list) > 0 and total_msas_done<total_msas_overall: #sanity check
         i += 1
         logging.info(f"iteration {i} starts, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         move_current_tasks_from_pool_to_file(file_paths_path, current_tasks_path, trees_run_directory, args)
@@ -216,8 +216,10 @@ def main():
                                args)
         # Final procedures
         target_msas_list = pickle.load(open(file_paths_path, "rb"))  # Update new tasks.
+        logging.debug(f"Size of target MSAs list: {len(target_msas_list)}")
 
         global_results = pickle.load(open(global_results_path, "rb"))  # Update new results.
+        logging.debug(f"Size of Global results: {len(target_msas_list)}")
         global_results_to_csv(global_results, global_csv_path)
         total_msas_done += args.n_MSAs_per_bunch
         logging.info(f"iteration {i} done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
