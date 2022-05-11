@@ -27,7 +27,6 @@ def main_parser():
     parser.add_argument('--remove_output_files',action='store_true', default= True)
     parser.add_argument('--use_existing_global_data',action='store_true', default= False)
     parser.add_argument('--max_n_parallel_jobs', action='store', type=int, default=N_JOBS)
-    parser.add_argument('--max_n_tasks_per_job', action='store', type=int, default=N_TASKS_PER_JOB)
     parser.add_argument('--print_commands_to_log', action='store_true')
     parser.add_argument('--n_iters_test', action='store', type=int, default=TEST_MSA_ITERATIONS)
     parser.add_argument('--n_MSAs_per_bunch',type=int, default= N_MSAS_PER_BUNCH)
