@@ -82,10 +82,12 @@ def  update_results_tasks_and_jobs(job_tracking_dict, global_results_path, curre
             global_results_dict = pickle.load(open(global_results_path, "rb"))
             global_results_dict.update(job_raxml_runs_done_obj)  # update new results
             pickle.dump(global_results_dict, open(global_results_path, "wb"))
+            logging.debug(f"Global results dict size is now {len(global_results_dict)}")
             # update tasks dictionary
             tasks_dict = pickle.load(open(current_tasks_path, "rb"))
             tasks_dict = {task_ind: tasks_dict[task_ind] for task_ind in tasks_dict if
                           task_ind not in job_raxml_runs_done_obj}  # insert leftover tasks
+            logging.debug(f"Tasks dict size is now {len(tasks_dict)}")
             pickle.dump(tasks_dict, open(current_tasks_path, "wb"))
             # remove job tracking dict
             rmtree(job_tracking_dict[job_ind]["job_entire_folder"])  # delete job folder
@@ -121,11 +123,12 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
     while len(pickle.load(open(current_tasks_path, "rb"))) > 0:  # Make sure all current tasks are performed
         number_of_available_jobs_to_send = args.max_n_parallel_jobs - len(job_tracking_dict)
         if number_of_available_jobs_to_send > 0:  # Available new jobs.
+            logging.debug(f"There are {number_of_available_jobs_to_send} available")
             tasks_per_job = assign_tasks_over_available_jobs(current_tasks_path,
                                                              number_of_available_jobs_to_send)  # Partitioning of tasks over jobs
             for i, job_task in enumerate(tasks_per_job):
                 job_ind = job_first_index + i
-                logging.debug(f"Submitted job number {job_ind}, which performs {len(job_task)} tasks")
+                logging.debug(f"Submitted job number {job_ind}, which will perform {len(job_task)} tasks")
                 curr_job_related_files_paths = submit_single_job(all_jobs_results_folder, job_ind, job_task,
                                                                  trimmed_test_msa_path, args)
                 job_tracking_dict[job_ind] = curr_job_related_files_paths
@@ -221,7 +224,7 @@ def main():
         total_msas_done += args.n_MSAs_per_bunch
         logging.info(f"iteration {i} done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         logging.info(f"So far done with {total_msas_done}/{total_msas_overall} of the MSAs ")
-        
+
 
     logging.info(f"Done with all MSAs")
 
