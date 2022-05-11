@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/raw_data_generation/msa_runs.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/msa_runs.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/raw_data_generation/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/side_code/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/config.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -34,8 +35,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="158">
-              <caret line="29" column="39" selection-start-line="29" selection-start-column="39" selection-end-line="29" selection-end-column="39" />
+            <state relative-caret-position="198">
+              <caret line="33" column="76" lean-forward="true" selection-start-line="33" selection-start-column="62" selection-end-line="33" selection-end-column="76" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
               </folding>
@@ -43,11 +44,23 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="171">
-              <caret line="101" column="100" selection-start-line="101" selection-start-column="100" selection-end-line="101" selection-end-column="100" />
+            <state relative-caret-position="89">
+              <caret line="56" column="26" selection-start-line="56" selection-start-column="12" selection-end-line="56" selection-end-column="26" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/side_code/MSA_manipulation.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="29">
+              <caret line="139" column="4" selection-start-line="139" selection-start-column="4" selection-end-line="139" selection-end-column="4" />
+              <folding>
+                <element signature="e#0#30#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -64,11 +77,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/side_code/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="88">
-              <caret line="17" column="10" selection-start-line="17" selection-start-column="10" selection-end-line="17" selection-end-column="10" />
+            <state relative-caret-position="203">
+              <caret line="34" column="20" selection-start-line="34" selection-start-column="20" selection-end-line="34" selection-end-column="20" />
               <folding>
                 <element signature="e#0#24#0" expanded="true" />
               </folding>
@@ -111,8 +124,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>check_for_new_results_and_update_current_results</find>
-      <find>args.</find>
       <find>global_tasks</find>
       <find>current_tasks_pipeline</find>
       <find>distribute_tasks_to_available_jobs</find>
@@ -141,6 +152,8 @@
       <find>max</find>
       <find>move_current_tasks_from_pool_to_file</find>
       <find>generate_all_raxml_runs_per_msa</find>
+      <find>debug</find>
+      <find>100</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -195,17 +208,17 @@
         <option value="$PROJECT_DIR$/ML pipeline/ML_pipeline.py" />
         <option value="$PROJECT_DIR$/side_code/file_handling.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/tune_params.py" />
-        <option value="$PROJECT_DIR$/side_code/config.py" />
-        <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
         <option value="$PROJECT_DIR$/side_code/code_submission.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/msa_runs.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
+        <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
+        <option value="$PROJECT_DIR$/side_code/config.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
     <option name="x" value="-23" />
-    <option name="y" value="62" />
+    <option name="y" value="61" />
     <option name="width" value="1440" />
     <option name="height" value="772" />
   </component>
@@ -409,15 +422,15 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-23" y="62" width="1440" height="772" extended-state="0" />
+    <frame x="-23" y="61" width="1440" height="772" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.09090909" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.1663143" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.25735295" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.34411764" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.37941176" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.31911764" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -506,7 +519,7 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>209</line>
+          <line>208</line>
           <option name="timeStamp" value="134" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -521,7 +534,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>101</line>
+          <line>102</line>
           <option name="timeStamp" value="142" />
         </line-breakpoint>
       </breakpoints>
@@ -810,13 +823,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/side_code/MSA_manipulation.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="128">
-          <caret line="6" column="13" selection-start-line="6" selection-start-column="13" selection-end-line="6" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/side_code/basic_trees_manipulation.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-1329">
@@ -897,26 +903,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/side_code/config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="88">
-          <caret line="17" column="10" selection-start-line="17" selection-start-column="10" selection-end-line="17" selection-end-column="10" />
-          <folding>
-            <element signature="e#0#24#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="158">
-          <caret line="29" column="39" selection-start-line="29" selection-start-column="39" selection-end-line="29" selection-end-column="39" />
-          <folding>
-            <element signature="e#0#15#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/side_code/code_submission.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-527">
@@ -946,8 +932,38 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="171">
-          <caret line="101" column="100" selection-start-line="101" selection-start-column="100" selection-end-line="101" selection-end-column="100" />
+        <state relative-caret-position="89">
+          <caret line="56" column="26" selection-start-line="56" selection-start-column="12" selection-end-line="56" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/side_code/MSA_manipulation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="29">
+          <caret line="139" column="4" selection-start-line="139" selection-start-column="4" selection-end-line="139" selection-end-column="4" />
+          <folding>
+            <element signature="e#0#30#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="198">
+          <caret line="33" column="76" lean-forward="true" selection-start-line="33" selection-start-column="62" selection-end-line="33" selection-end-column="76" />
+          <folding>
+            <element signature="e#0#15#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/side_code/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="203">
+          <caret line="34" column="20" selection-start-line="34" selection-start-column="20" selection-end-line="34" selection-end-column="20" />
+          <folding>
+            <element signature="e#0#24#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
