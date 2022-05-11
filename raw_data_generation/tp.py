@@ -8,7 +8,7 @@ sys.path.append(PROJECT_ROOT_DIRECRTORY)
 
 from msa_runs import generate_all_raxml_runs_per_msa
 from side_code.config import *
-from side_code.code_submission import submit_linux_job, submit_local_job, generate_argument_list
+from side_code.code_submission import submit_linux_job, submit_local_job, generate_argument_list,generate_argument_str
 from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, extract_alignment_files_from_dirs
 from side_code.code_submission import is_job_done
 from side_code.MSA_manipulation import remove_MSAs_with_not_enough_seq_and_locis, trim_MSA
@@ -40,7 +40,7 @@ def submit_single_job(all_jobs_results_folder, job_ind, curr_job_tasks_list, tes
     curr_job_tasks_path = curr_job_related_files_paths["job_local_tasks_path"]
     pickle.dump(curr_job_tasks_list, open(curr_job_tasks_path, "wb"))
     curr_job_log_path = os.path.join(curr_job_folder, str(job_ind) + "_tmp_log")
-    run_command = f' python {MAIN_CODE_PATH} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --test_msa {test_msa_path} '
+    run_command = f' python {MAIN_CODE_PATH} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --test_msa {test_msa_path} {generate_argument_str(args)} '
     job_name = f"{job_ind}_{args.jobs_prefix}"
     if not LOCAL_RUN:
         submit_linux_job(job_name, curr_job_folder, curr_job_log_path, run_command, args.n_cpus_per_job, job_ind,
