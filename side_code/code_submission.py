@@ -18,8 +18,7 @@ def is_job_done(job_log_folder):
     return False
 
 def execute_command_and_write_to_log(command, print_to_log=False):
-    if print_to_log:
-        logging.info(f"About to run: {command}")
+    logging.debug(f"About to run: {command}")
     subprocess.run(command, shell=True, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 
 def generate_argument_list(args):

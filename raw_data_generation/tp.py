@@ -41,7 +41,7 @@ def submit_single_job(all_jobs_results_folder, job_ind, curr_job_tasks_list, tes
     pickle.dump(curr_job_tasks_list, open(curr_job_tasks_path, "wb"))
     curr_job_log_path = os.path.join(curr_job_folder, str(job_ind) + "_tmp_log")
     run_command = f' python {MAIN_CODE_PATH} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --test_msa {test_msa_path} '
-    job_name = args.jobs_prefix + str(job_ind)
+    job_name = f"{job_ind}_{args.jobs_prefix}"
     if not LOCAL_RUN:
         submit_linux_job(job_name, curr_job_folder, curr_job_log_path, run_command, args.n_cpus_per_job, job_ind,
                          queue=args.queue)
@@ -74,8 +74,7 @@ def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
 def check_for_new_results_and_update_current_results(job_tracking_dict, global_results_path, current_tasks_path):
     total_new_tasks_performed = 0
     for job_ind in list(job_tracking_dict.keys()):
-        logging.debug("check if job is done")
-        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"]):
+        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"]) and os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]):
             logging.info(f"Job {job_ind} is done")
             job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"], "rb"))
             logging.debug(f"Job done size is {len(job_raxml_runs_done_obj)}")
