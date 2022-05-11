@@ -142,6 +142,7 @@ def main():
     job_done_dict = {}
     tmp_starting_tree_path = os.path.join(args.curr_job_folder, "tmp_tree")
     total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
+    logging.info(f"Total test time is: {total_test_time}")
     for i,task_ind in (enumerate(job_tasks_dict)):
         logging.info(f"Performing task number {i + 1}/{len(job_tasks_dict)}")
         raxml_run = job_tasks_dict[task_ind]
