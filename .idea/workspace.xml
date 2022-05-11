@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/raw_data_generation/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/side_code/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/side_code/code_submission.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/code_submission.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -31,11 +31,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="117">
-              <caret line="27" column="88" selection-start-line="27" selection-start-column="88" selection-end-line="27" selection-end-column="88" />
+            <state relative-caret-position="158">
+              <caret line="29" column="39" selection-start-line="29" selection-start-column="39" selection-end-line="29" selection-end-column="39" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
               </folding>
@@ -43,11 +43,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="262">
-              <caret line="175" column="136" selection-start-line="175" selection-start-column="136" selection-end-line="175" selection-end-column="136" />
+            <state relative-caret-position="271">
+              <caret line="142" column="17" selection-start-line="142" selection-start-column="17" selection-end-line="142" selection-end-column="17" />
             </state>
           </provider>
         </entry>
@@ -103,8 +103,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/side_code/code_submission.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="145">
-              <caret line="50" column="4" selection-start-line="50" selection-start-column="4" selection-end-line="50" selection-end-column="4" />
+            <state relative-caret-position="-527">
+              <caret line="15" column="48" selection-start-line="15" selection-start-column="48" selection-end-line="15" selection-end-column="48" />
               <folding>
                 <element signature="e#1#61#0" expanded="true" />
               </folding>
@@ -123,7 +123,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>trees_run_directory</find>
       <find>generate_file_path_list_and_test_msa</find>
       <find>check_for_new_results_and_update_current_results</find>
       <find>args.</find>
@@ -153,6 +152,7 @@
       <find>submit_linux_job</find>
       <find>submit_single_job</find>
       <find>n_msas</find>
+      <find>max</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -205,13 +205,13 @@
         <option value="$PROJECT_DIR$/raw_data_sampling_analysis/__init__.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/__init__.py" />
         <option value="$PROJECT_DIR$/ML pipeline/ML_pipeline.py" />
-        <option value="$PROJECT_DIR$/side_code/code_submission.py" />
         <option value="$PROJECT_DIR$/side_code/file_handling.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/tune_params.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/msa_runs.py" />
-        <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
         <option value="$PROJECT_DIR$/side_code/config.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
+        <option value="$PROJECT_DIR$/side_code/code_submission.py" />
+        <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
       </list>
     </option>
   </component>
@@ -422,13 +422,14 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-23" y="62" width="1440" height="772" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15221988" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.1430585" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.25735295" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.50147057" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.16029412" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.2720588" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -512,12 +513,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>228</line>
+          <line>227</line>
           <option name="timeStamp" value="130" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>215</line>
+          <line>214</line>
           <option name="timeStamp" value="134" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -532,12 +533,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>179</line>
+          <line>178</line>
           <option name="timeStamp" value="140" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>200</line>
+          <line>199</line>
           <option name="timeStamp" value="141" />
         </line-breakpoint>
       </breakpoints>
@@ -886,16 +887,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/side_code/code_submission.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="145">
-          <caret line="50" column="4" selection-start-line="50" selection-start-column="4" selection-end-line="50" selection-end-column="4" />
-          <folding>
-            <element signature="e#1#61#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/side_code/file_handling.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="24">
@@ -940,13 +931,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="262">
-          <caret line="175" column="136" selection-start-line="175" selection-start-column="136" selection-end-line="175" selection-end-column="136" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/side_code/config.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="88">
@@ -959,11 +943,28 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="117">
-          <caret line="27" column="88" selection-start-line="27" selection-start-column="88" selection-end-line="27" selection-end-column="88" />
+        <state relative-caret-position="158">
+          <caret line="29" column="39" selection-start-line="29" selection-start-column="39" selection-end-line="29" selection-end-column="39" />
           <folding>
             <element signature="e#0#15#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/side_code/code_submission.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-527">
+          <caret line="15" column="48" selection-start-line="15" selection-start-column="48" selection-end-line="15" selection-end-column="48" />
+          <folding>
+            <element signature="e#1#61#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="271">
+          <caret line="142" column="17" selection-start-line="142" selection-start-column="17" selection-end-line="142" selection-end-column="17" />
         </state>
       </provider>
     </entry>

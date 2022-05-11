@@ -123,7 +123,6 @@ def current_tasks_pipeline(trimmed_test_msa_path,current_tasks_path, global_resu
     '''
     job_tracking_dict = {}
     job_first_index = 0
-    total_performed_tasks = 0
     while len(pickle.load(open(current_tasks_path, "rb")))>0: # Make sure all current tasks are performed
         number_of_available_jobs_to_send = args.max_n_parallel_jobs - len(job_tracking_dict)
         if number_of_available_jobs_to_send == 0: #No available new jobs.
@@ -132,16 +131,16 @@ def current_tasks_pipeline(trimmed_test_msa_path,current_tasks_path, global_resu
                                                          number_of_available_jobs_to_send) # Partitioning of tasks over jobs
         for i, job_task in enumerate(tasks_per_job):
             job_ind = job_first_index + i
-            logging.info(f"Submitted job number {job_ind}, which performs {len(job_task)} tasks")
+            logging.debug(f"Submitted job number {job_ind}, which performs {len(job_task)} tasks")
             curr_job_related_files_paths = submit_single_job(all_jobs_results_folder, job_ind, job_task,
                                                              trimmed_test_msa_path, args)
             job_tracking_dict[job_ind] = curr_job_related_files_paths
         number_of_new_job_sent = len(tasks_per_job)
         if number_of_new_job_sent>0:
             job_first_index += number_of_new_job_sent
-            new_tasks_actually_performed = check_for_new_results_and_update_current_results(job_tracking_dict, global_results_path, current_tasks_path)
-            total_performed_tasks += new_tasks_actually_performed
+            check_for_new_results_and_update_current_results(job_tracking_dict, global_results_path, current_tasks_path)
         time.sleep(WAITING_TIME_UPDATE)
+    logging.debug("Done with current tasks.")
 
 
 def global_results_to_csv(global_results_dict, csv_path):
