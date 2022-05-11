@@ -11,7 +11,7 @@ from side_code.config import *
 from side_code.code_submission import submit_linux_job, submit_local_job, generate_argument_list,generate_argument_str
 from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, extract_alignment_files_from_dirs
 from side_code.code_submission import is_job_done
-from side_code.MSA_manipulation import remove_MSAs_with_not_enough_seq_and_locis, trim_MSA
+from side_code.MSA_manipulation import remove_MSAs_with_not_enough_seq_and_locis, trim_MSA, get_alignment_data
 from job_runner_side_funcs import main_parser, get_job_related_files_paths, get_WORK_files
 from side_code.file_handling import unify_dicts
 import pickle
@@ -21,6 +21,7 @@ from shutil import rmtree
 import random
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import uuid
 from math import ceil
 import sys

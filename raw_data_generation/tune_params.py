@@ -94,7 +94,7 @@ def single_tree_RAxML_run(curr_run_directory, single_raxml_run_obj, tmp_starting
     create_or_clean_dir(curr_param_run_directory)
     raxml_search_results = raxml_search(curr_param_run_directory, single_raxml_run_obj.msa_path, msa_type, prefix, single_raxml_run_obj.params_config,
                                         tmp_starting_tree_path)
-    #rmtree(run_directory)
+    rmtree(run_directory)
     return raxml_search_results
 
 
@@ -116,9 +116,8 @@ def raxml_run_on_test_msa(args, tmp_starting_tree_path):
         curr_i_folder = os.path.join(test_msa_folder,str(i))
         os.mkdir(curr_i_folder)
         test_results = single_tree_RAxML_run( curr_i_folder, test_raxml_run, tmp_starting_tree_path)
-        #create_or_clean_dir(test_msa_folder)
         total_test_time = total_test_time + test_results["elapsed_running_time"]
-    #rmtree(test_msa_folder)
+    rmtree(test_msa_folder)
     return total_test_time
 
 
