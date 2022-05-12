@@ -75,7 +75,6 @@ def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
 def  update_results_tasks_and_jobs(job_tracking_dict, global_results_path, current_tasks_path):
     for job_ind in list(job_tracking_dict.keys()):
         if  os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]):
-            logging.info(f"Job {job_ind} is done")
             job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"], "rb"))
             logging.debug(f"Job done size is {len(job_raxml_runs_done_obj)}")
             # update global results
