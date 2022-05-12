@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/raw_data_generation/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/raw_data_generation/tune_params.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tune_params.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -82,7 +81,7 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/side_code/config.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="109">
@@ -118,11 +117,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="129">
-              <caret line="19" column="25" selection-start-line="19" selection-start-column="19" selection-end-line="19" selection-end-column="25" />
+            <state relative-caret-position="229">
+              <caret line="93" column="67" selection-start-line="93" selection-start-column="67" selection-end-line="93" selection-end-column="67" />
             </state>
           </provider>
         </entry>
@@ -138,7 +137,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>local</find>
       <find>pickle.load</find>
       <find>write_</find>
       <find>LOCAL</find>
@@ -162,12 +160,13 @@
       <find>debug</find>
       <find>check_for_new_results_and_update_current_results</find>
       <find>trim</find>
-      <find>n_msas</find>
       <find>args.msas</find>
       <find>generate_all_raxml_runs_per_msa</find>
       <find>shut</find>
       <find>rmtree</find>
       <find>job_parser()</find>
+      <find>n_msas</find>
+      <find>update_results_tasks_and_jobs</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -224,15 +223,15 @@
         <option value="$PROJECT_DIR$/side_code/code_submission.py" />
         <option value="$PROJECT_DIR$/side_code/raxml.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
-        <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/tune_params.py" />
         <option value="$PROJECT_DIR$/side_code/config.py" />
+        <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-23" />
-    <option name="y" value="61" />
+    <option name="x" value="-21" />
+    <option name="y" value="73" />
     <option name="width" value="1440" />
     <option name="height" value="772" />
   </component>
@@ -436,15 +435,15 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-23" y="61" width="1440" height="772" extended-state="0" />
+    <frame x="-21" y="73" width="1440" height="772" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2114165" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14446793" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.25735295" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.40882352" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.2720588" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.31764707" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -528,12 +527,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>226</line>
+          <line>225</line>
           <option name="timeStamp" value="130" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>212</line>
+          <line>211</line>
           <option name="timeStamp" value="134" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -548,13 +547,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>107</line>
+          <line>106</line>
           <option name="timeStamp" value="142" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>61</line>
-          <option name="timeStamp" value="144" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -952,13 +946,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="129">
-          <caret line="19" column="25" selection-start-line="19" selection-start-column="19" selection-end-line="19" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_generation/tune_params.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="212">
@@ -983,6 +970,13 @@
           <folding>
             <element signature="e#0#24#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="229">
+          <caret line="93" column="67" selection-start-line="93" selection-start-column="67" selection-end-line="93" selection-end-column="67" />
         </state>
       </provider>
     </entry>

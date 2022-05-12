@@ -73,9 +73,8 @@ def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
 
 
 def  update_results_tasks_and_jobs(job_tracking_dict, global_results_path, current_tasks_path):
-    total_new_tasks_performed = 0
     for job_ind in list(job_tracking_dict.keys()):
-        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"]) and os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]):
+        if  os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]):
             logging.info(f"Job {job_ind} is done")
             job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"], "rb"))
             logging.debug(f"Job done size is {len(job_raxml_runs_done_obj)}")
@@ -90,18 +89,21 @@ def  update_results_tasks_and_jobs(job_tracking_dict, global_results_path, curre
                           task_ind not in job_raxml_runs_done_obj}  # insert leftover tasks
             logging.debug(f"Tasks dict size is now {len(tasks_dict)}")
             pickle.dump(tasks_dict, open(current_tasks_path, "wb"))
-            # remove job tracking dict
+            # remove job tracking dict is job is done
+        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"]): #if job is done, remove it from dictionary
+            logging.info(f"Job {job_ind} is done, global results size is now {len(global_results_dict)}, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
             rmtree(job_tracking_dict[job_ind]["job_entire_folder"])  # delete job folder
             del job_tracking_dict[job_ind]
-            total_new_tasks_performed += len(job_raxml_runs_done_obj)
-    return total_new_tasks_performed
+
 
 
 def assign_tasks_over_available_jobs(current_tasks_path, number_of_jobs_to_send):
     tasks_dict = pickle.load(open(current_tasks_path, "rb"))  # load tasks file
     if len(tasks_dict) == 0:
         return []
-    tasks_chunk_keys = np.array_split(np.array(list(tasks_dict.keys())), min(number_of_jobs_to_send, len(tasks_dict)))
+    tasks = np.array(list(tasks_dict.keys()))
+    np.random.shuffle(tasks)
+    tasks_chunk_keys = np.array_split(tasks, min(number_of_jobs_to_send, len(tasks_dict)))
     tasks_chunks = [{key: tasks_dict[key] for key in key_chunks} for key_chunks in tasks_chunk_keys]
     return tasks_chunks
 
@@ -129,7 +131,7 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
                                                              number_of_available_jobs_to_send)  # Partitioning of tasks over jobs
             for i, job_task in enumerate(tasks_per_job):
                 job_ind = job_first_index + i
-                logging.debug(f"Submitted job number {job_ind}, which will perform {len(job_task)} tasks")
+                logging.info(f"Submitted job number {job_ind}, which will perform {len(job_task)} tasks")
                 curr_job_related_files_paths = submit_single_job(all_jobs_results_folder, job_ind, job_task,
                                                                  trimmed_test_msa_path, args)
                 job_tracking_dict[job_ind] = curr_job_related_files_paths
@@ -155,7 +157,6 @@ def move_current_tasks_from_pool_to_file(file_paths_path, current_tasks_path, tr
     :param args:
     :return: Choose a bunch of MSAs, generate tasks from them, and update the target MSAs list.
     '''
-    logging.info(f"Writing new tasks to {current_tasks_path}")
     if os.path.exists(current_tasks_path) and len(pickle.load(
             open(current_tasks_path, "rb"))) > 0:  # if there are currently tasks which are still not performed.
         return
@@ -170,6 +171,7 @@ def move_current_tasks_from_pool_to_file(file_paths_path, current_tasks_path, tr
                                                  n_random_tree_objects_per_msa=args.n_raxml_random_trees,
                                                  curr_run_directory=trees_run_directory, seed=SEED)
 
+    logging.info(f"Writing {len(tasks_dict)} tasks belonging to {args.n_MSAs_per_bunch} MSAs to current tasks file : {current_tasks_path}")
     pickle.dump(tasks_dict, open(current_tasks_path, "wb"))
     rmtree(trees_run_directory)
     pickle.dump(tasks_dict, open(current_tasks_path, "wb"))
@@ -193,6 +195,7 @@ def main():
     global_csv_path = os.path.join(global_results_folder, f'global_csv{CSV_SUFFIX}')
     file_paths_path = os.path.join(global_results_folder, "file_paths")
     trees_run_directory = os.path.join(all_jobs_results_folder, 'starting_trees_generation')
+    current_tasks_path = os.path.join(global_results_folder, 'current_tasks')
     # extract files
     if not args.use_existing_global_data:
         create_or_clean_dir(global_results_folder)
@@ -203,7 +206,6 @@ def main():
     else:
         logging.info("Using existing global results and tasks")
     target_msas_list = pickle.load(open(file_paths_path, "rb"))
-    current_tasks_path = os.path.join(all_jobs_results_folder, 'current_tasks')
     total_msas_done = 0
     total_msas_overall = len(target_msas_list)
     logging.info(f"Number of target MSAs: {total_msas_overall}, at each iteration {args.n_MSAs_per_bunch} are handled")
