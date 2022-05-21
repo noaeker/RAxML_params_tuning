@@ -24,6 +24,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import uuid
 from math import ceil
+import subprocess
+from subprocess import PIPE, STDOUT
 import sys
 
 
@@ -141,6 +143,8 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
             job_first_index += number_of_new_job_sent
         update_results_tasks_and_jobs(job_tracking_dict, global_results_path, current_tasks_path,global_results_csv_path)
         time.sleep(WAITING_TIME_UPDATE)
+    logging.info("Done with the current tasks bunch, deleting all current jobs")
+    subprocess.run(f"qselect -u noaeker | xargs qdel -q {args.queue}",shell=True, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
     logging.debug("Done with current tasks.")
 
 
