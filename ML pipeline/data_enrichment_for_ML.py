@@ -38,15 +38,15 @@ def enrich_sampling_data_with_defaults_and_msa_statistics(sampling_data, default
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--raw_data_path', action='store', type=str, default=f"{RESULTS_FOLDER}/full_raxml_data{CSV_SUFFIX}")
+    parser.add_argument('--raw_data_path', action='store', type=str, default=f"{DATASETS_FOLDER}/full_raxml_data{CSV_SUFFIX}")
     parser.add_argument('--sampling_data', action='store', type=str,
-                        default=f"{RESULTS_FOLDER}/sampled_raxml_data_large{CSV_SUFFIX}")
+                        default=f"{DATASETS_FOLDER}/sampled_raxml_data_large{CSV_SUFFIX}")
     parser.add_argument('--default_sampling_data', action='store', type=str,
-                        default=f"{RESULTS_FOLDER}/default_sampling{CSV_SUFFIX}")
+                        default=f"{DATASETS_FOLDER}/default_sampling{CSV_SUFFIX}")
     parser.add_argument('--features_path', action='store', type=str,
-                        default=f"{RESULTS_FOLDER}/features{CSV_SUFFIX}")
+                        default=f"{ML_RESULTS_FOLDER}/features{CSV_SUFFIX}")
     parser.add_argument('--ML_dataset_output_path', action='store', type=str,
-                        default=f"{RESULTS_FOLDER}/final_ML_dataset{CSV_SUFFIX}")
+                        default=f"{ML_RESULTS_FOLDER}/final_ML_dataset{CSV_SUFFIX}")
     args = parser.parse_args()
     raw_data = pd.read_csv(args.raw_data_path, sep=CSV_SEP)
     sampling_data =  pd.read_csv(args.sampling_data, sep=CSV_SEP)

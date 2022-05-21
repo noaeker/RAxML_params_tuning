@@ -45,7 +45,6 @@ def job_parser():
 def get_job_related_files_paths(curr_job_folder, job_ind):
     job_status_file = os.path.join(curr_job_folder, str(job_ind) + "_status")
     job_local_tasks_path = os.path.join(curr_job_folder, "job_local_tasks_path" + str(job_ind))
-    job_local_raxml_leftovers_run= os.path.join(curr_job_folder, "local_raxml_leftovers" + str(job_ind))
     job_local_raxml_done_run = os.path.join(curr_job_folder, "local_raxml_done" + str(job_ind))
     general_log_path = os.path.join(curr_job_folder, "job_" + str(job_ind) + "_general_log.log")
     job_log_folder = os.path.join(curr_job_folder,f'{job_ind}_tmp_log')
@@ -58,6 +57,3 @@ def get_job_related_files_paths(curr_job_folder, job_ind):
 
 
 
-def get_WORK_files(results_folder):
-    global_paths = f"{results_folder}/%s.dump"
-    return {"TASKS": global_paths % "TASKS","LEFTOVER_TASKS": global_paths % "LEFTOVER_TASKS", "RESULTS" : global_paths % "RESULTS", "TEST_MSA" : global_paths % "TEST_MSA"}

@@ -28,7 +28,7 @@ WAITING_TIME_UPDATE = 60
 TEST_MSA_ITERATIONS = 30
 EPSILON = 0.1
 SPR_RADIUS_GRID =  "1_30_2"#"1_30_10"
-SPR_CUTOFF_GRID = "0.1_10_2"#"0.1_10_10"
+SPR_CUTOFF_GRID = "0_5_"#"0.1_10_10"
 CSV_SEP = "\t"
 CSV_SUFFIX = ".tsv"
 N_MSAS_PER_BUNCH = 2
@@ -62,6 +62,8 @@ elif LOCAL_RUN:
     MAD_COMMAND_PREFIX = "/Users/noa/Programs/mad.osx"
     RATE4SITE_COMMAND_PREFIX = "/Users/noa/Programs/rate4site"
     RESULTS_FOLDER = "/Users/noa/Workspace/raxml_deep_learning_results"
+    ML_RESULTS_FOLDER = f"{RESULTS_FOLDER}/ML_pipeline_results"
+    DATASETS_FOLDER = f"{RESULTS_FOLDER}/Datasets"
     MSAs_CSV_PATH = "/Users/noa/Workspace/data/sampled_datasets.csv"
     GENERAL_MSA_DIR = "/Users/noa/Workspace/data/single-gene_alignments"
     PROJECT_ROOT_DIRECRTORY = "/Users/noa/Workspace/RAxML_params_tuning"

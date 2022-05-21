@@ -255,9 +255,15 @@ def RF_distances(curr_run_directory, trees_path):
         "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
         raxml_exe_path=RAXML_NG_EXE, rf_file_path=trees_path, prefix=rf_prefix)
     execute_command_and_write_to_log(rf_command)
-    rf_log_file_path = rf_prefix + ".raxml.log"
-    relative_rf_dist = extract_param_from_raxmlNG_log(rf_log_file_path, "rf_dist")
-    return relative_rf_dist
+    rf_log_file_path = rf_prefix + ".raxml.rfDistances"
+    rf_distances = []
+    with open(rf_log_file_path) as RF:
+        distances = RF.readlines()
+        for line in distances:
+            lst = line.split("\t")
+            curr_tree, comp_tree, dist = int(lst[0]), int(lst[1]), int(lst[2])
+            rf_distances.append(dist)
+    return rf_distances
 
 
 

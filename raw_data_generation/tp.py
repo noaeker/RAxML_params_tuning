@@ -12,7 +12,7 @@ from side_code.code_submission import submit_linux_job, submit_local_job, genera
 from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, extract_alignment_files_from_dirs
 from side_code.code_submission import is_job_done
 from side_code.MSA_manipulation import remove_MSAs_with_not_enough_seq_and_locis, trim_MSA, get_alignment_data
-from job_runner_side_funcs import main_parser, get_job_related_files_paths, get_WORK_files
+from job_runner_side_funcs import main_parser, get_job_related_files_paths
 from side_code.file_handling import unify_dicts
 import pickle
 import os
@@ -72,7 +72,7 @@ def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
     return file_path_list
 
 
-def  update_results_tasks_and_jobs(job_tracking_dict, global_results_path, current_tasks_path):
+def  update_results_tasks_and_jobs(job_tracking_dict, global_results_path, current_tasks_path, global_results_csv_path):
     for job_ind in list(job_tracking_dict.keys()):
         if  os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]):
             job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"], "rb"))
@@ -81,6 +81,7 @@ def  update_results_tasks_and_jobs(job_tracking_dict, global_results_path, curre
             global_results_dict = pickle.load(open(global_results_path, "rb"))
             global_results_dict.update(job_raxml_runs_done_obj)  # update new results
             pickle.dump(global_results_dict, open(global_results_path, "wb"))
+            global_results_to_csv(global_results_dict,global_results_csv_path)
             logging.debug(f"Global results dict size is now {len(global_results_dict)}")
             # update tasks dictionary
             tasks_dict = pickle.load(open(current_tasks_path, "rb"))
@@ -107,7 +108,7 @@ def assign_tasks_over_available_jobs(current_tasks_path, number_of_jobs_to_send)
     return tasks_chunks
 
 
-def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_results_path, all_jobs_results_folder,
+def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_results_path, global_results_csv_path, all_jobs_results_folder,
                            args):
     '''
 
@@ -136,7 +137,7 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
                 job_tracking_dict[job_ind] = curr_job_related_files_paths
             number_of_new_job_sent = len(tasks_per_job)
             job_first_index += number_of_new_job_sent
-        update_results_tasks_and_jobs(job_tracking_dict, global_results_path, current_tasks_path)
+        update_results_tasks_and_jobs(job_tracking_dict, global_results_path, current_tasks_path,global_results_csv_path)
         time.sleep(WAITING_TIME_UPDATE)
     logging.debug("Done with current tasks.")
 
@@ -188,13 +189,13 @@ def main():
     with open(arguments_path, 'w') as JOB_ARGUMENTS:
         JOB_ARGUMENTS.write(f"Arguments are: {args}")
     logging.info('#Started running')
-    global_results_folder = os.path.join(RESULTS_FOLDER, 'global_shared_results')
+    global_results_folder = os.path.join(RESULTS_FOLDER, f'global_shared_results_{args.run_prefix}')
     global_results_path = os.path.join(global_results_folder, 'global_results_dict')
     trimmed_test_msa_path = os.path.join(global_results_folder, "TEST_MSA")
     global_csv_path = os.path.join(global_results_folder, f'global_csv{CSV_SUFFIX}')
     file_paths_path = os.path.join(global_results_folder, "file_paths")
     trees_run_directory = os.path.join(all_jobs_results_folder, 'starting_trees_generation')
-    current_tasks_path = os.path.join(global_results_folder, 'current_tasks')
+    current_tasks_path = os.path.join(all_jobs_results_folder, 'current_tasks')
     # extract files
     if not args.use_existing_global_data:
         create_or_clean_dir(global_results_folder)
@@ -214,15 +215,14 @@ def main():
         logging.info(f"iteration {i} starts, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         move_current_tasks_from_pool_to_file(file_paths_path, current_tasks_path, trees_run_directory, args)
         # Perform pipeline on current MSA, making sure that all tasks in current_tasks_pool are performed.
-        current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_results_path, all_jobs_results_folder,
+        current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_results_path, global_csv_path, all_jobs_results_folder,
                                args)
         # Final procedures
         target_msas_list = pickle.load(open(file_paths_path, "rb"))  # Update new tasks.
         logging.debug(f"Size of target MSAs list: {len(target_msas_list)}")
 
         global_results = pickle.load(open(global_results_path, "rb"))  # Update new results.
-        logging.debug(f"Size of Global results: {len(target_msas_list)}")
-        global_results_to_csv(global_results, global_csv_path)
+        logging.debug(f"Size of Global results: {len(global_results)}")
         total_msas_done += args.n_MSAs_per_bunch
         logging.info(f"iteration {i} done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         logging.info(f"So far done with {total_msas_done}/{total_msas_overall} of the MSAs ")

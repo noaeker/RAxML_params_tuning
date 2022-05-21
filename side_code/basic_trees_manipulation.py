@@ -5,6 +5,7 @@ from side_code.config import *
 from ete3 import *
 import logging
 import re
+import shutil
 
 
 class Edge:
@@ -93,12 +94,16 @@ def max_distance_between_leaves(tree):
     return max_dist
 
 
-def mad_tree_parameter(tree_path):
+def mad_tree_parameter(tree_object):
+        tree_path = os.path.join(RESULTS_FOLDER,"trees_mad")
+        with open( tree_path,'w') as MAD:
+            MAD.write(tree_object.write(format=1))
         mad_command = "{mad_exe_path} -t -s {tree_path}".format(mad_exe_path=MAD_COMMAND_PREFIX,
                                                                 tree_path=tree_path)
         execute_command_and_write_to_log(mad_command)
         mad_log_path = tree_path + ".rooted"
         mad = extract_mad_file_statistic(mad_log_path)
+        os.remove(tree_path)
         return mad
 
 def extract_mad_file_statistic(mad_log_path):

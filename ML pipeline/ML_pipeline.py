@@ -1,4 +1,5 @@
 from side_code.config import *
+from side_code.file_handling import create_dir_if_not_exists
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -9,25 +10,12 @@ import numpy as np
 import os
 import argparse
 
-# Instantiate model with 1000 decision trees
-
 
 # Mean absolute error (MAE)
 def rf_metrics(y_test, predictions):
-    mae = mean_absolute_error(y_test, predictions)
-
-    # Mean squared error (MSE)
-    mse = mean_squared_error(y_test, predictions)
-
-    # R-squared scores
-    r2 = r2_score(y_test, predictions)
-
-    print('Mean Absolute Error:', round(mae, 2))
-    print('Mean Squared Error:', round(mse, 2))
-    print('R-squared scores:', round(r2, 2))
-
-
-# Print metrics
+    return {"r2": r2_score(y_test, predictions), "MAE": mean_absolute_error(y_test, predictions),
+            "MSE": mean_squared_error(y_test, predictions)
+            }
 
 
 def train_test_validation_splits(full_data, test_pct, val_pct):
@@ -44,9 +32,6 @@ def train_test_validation_splits(full_data, test_pct, val_pct):
     return train_data, test_data, validation_data
 
 
-
-
-
 def variable_importance(X_train, rf_model):
     feats = {}  # a dict to hold feature_name: feature_importance
     for feature, importance in zip(X_train.columns, rf_model.feature_importances_):
@@ -55,6 +40,7 @@ def variable_importance(X_train, rf_model):
     importances = pd.DataFrame.from_dict(feats, orient='index').rename(columns={0: 'Gini-importance'})
     importances.sort_values(by='Gini-importance', inplace=True)
     return importances
+
 
 #
 # def rf_classifier(X_train, y_train):
@@ -70,112 +56,108 @@ def variable_importance(X_train, rf_model):
 #     return rf
 
 
-def rf_regressor(X_train, y_train, name):
-    rf_err_file = name
-    if os.path.exists(rf_err_file):
-        rf = pickle.load(open(rf_err_file, 'rb'))
+def rf_regressor(X_train, y_train, path):
+    if os.path.exists(path):
+        rf = pickle.load(open(path, 'rb'))
     else:
-        rf = RandomForestRegressor(n_estimators=100, random_state=42, oob_score=True)
+        rf = RandomForestRegressor(n_estimators=30, random_state=42)
         rf.fit(X_train, y_train)
-        pickle.dump(rf, open(rf_err_file, 'wb'))
+        pickle.dump(rf, open(path, 'wb'))
         # Calculate the absolute errors
     return rf
 
 
 
-def get_predicted_outcome_per_test_msa(test_data, msa):
-    msa_data = test_data[test_data["msa_name"] == msa]
-    best_predicted_accuracy_msa_data = msa_data[msa_data['predicted_Err'] == msa_data['best_predicted_error']]
-    best_predicted_accuracy = (min(best_predicted_accuracy_msa_data["predicted_Err"]))
-    best_predicted_running_time = (max(best_predicted_accuracy_msa_data["predicted_time"]))
-    corresponding_row = msa_data[(msa_data["predicted_Err"] == best_predicted_accuracy) & (
-                msa_data["predicted_time"] == best_predicted_running_time)]
-    running_time = min(corresponding_row["running_time_vs_default"])
-    accurcy = (max(corresponding_row["mean_Err_normalized"]))
-    return {"predicted_running_time":running_time, "predicted_accuracy":accurcy}
+def grid_search_time_and_rf(rf_mod_err, rf_mod_time, data_dict, epsilon):
+    full_data = data_dict["full_test_data"][
+        ["msa_name", "spr_radius", "spr_cutoff", "n_parsimony", "n_random", "running_time_vs_default",
+         "default_mean_Err_normalized"
+         ]].copy()
+    full_data["predicted_errors"] = rf_mod_err.predict(data_dict["X_test"])
+    full_data["predicted_times"] = rf_mod_time.predict(data_dict["X_test"])
+    full_data["actual_errors"] = data_dict["y_test_err"]
+    full_data["actual_times"] = data_dict["y_test_time"]
+    allowed_predicted_error_data = full_data[(full_data["predicted_errors"] > epsilon)]
+    allowed_actual_error_data = full_data[(full_data["actual_errors"] > epsilon)]
+    predicted_best_time_per_msa = pd.merge(allowed_predicted_error_data,
+                                           allowed_predicted_error_data.groupby("msa_name").agg(
+                                               best_predicted_running_time=(
+                                                   'predicted_times', max)).reset_index(),
+                                               left_on=["msa_name", "predicted_times"],
+                                               right_on=["msa_name", "best_predicted_running_time"])
+    actual_best_time_per_msa = pd.merge(allowed_actual_error_data,
+                                           allowed_actual_error_data.groupby("msa_name").agg(
+                                               best_actual_running_time=(
+                                                   'actual_times', max)).reset_index(),
+                                           left_on=["msa_name", "actual_times"],
+                                           right_on=["msa_name", "best_actual_running_time"])
 
-def grid_search_time_and_rf(test_data):
-    potential_results_vs_default = test_data[test_data["is_optimal_run"]]["running_time_vs_default","msa_name","normalized_error_vs_default"]
-
-    predicted_config_vs_default = [get_predicted_outcome_per_test_msa(test_data, msa) for msa in msas]
-    predicted_accuracies = [predicted_accuracy_and_running_time[i]["predicted_accuracy"] for i in range(len(predicted_accuracy_and_running_time))]
-    predicted_running_times = [predicted_accuracy_and_running_time[i]["predicted_running_time"] for i in
-                          range(len(predicted_accuracy_and_running_time))]
-
-    #sns.histplot(y= predicted_accuracies , color="red", bins=50)
-    #sns.histplot(y= predicted_running_times, color="blue", bins=50)
-    plt.show()
-    print(np.mean(predicted_running_times))
-    print(np.median(predicted_running_times))
-
-    print(np.mean(potential_results_vs_default))
-    print(np.median(potential_results_vs_default))
+    predicted_best_time_per_msa = predicted_best_time_per_msa.groupby("msa_name").first().reset_index()
+    actual_best_time_per_msa = actual_best_time_per_msa.groupby("msa_name").first().reset_index()
+    #ax = sns.histplot(predicted_best_time_per_msa["predicted_errors"]-predicted_best_time_per_msa["actual_errors"])
     #plt.show()
+    ax = sns.scatterplot(x = predicted_best_time_per_msa["actual_errors"], y = predicted_best_time_per_msa["actual_times"])
+    plt.show()
 
 
 
+def train_rf_models(data_dict):
+    logging.info("About to calculate RF for modelling error")
+    rf_mod_err = rf_regressor(data_dict["X_train"], data_dict["y_train_err"],
+                              path=os.path.join(ML_RESULTS_FOLDER, "Err_rf_new"))
+    err_var_impt = variable_importance(data_dict["X_train"], rf_mod_err)
+    logging.info(f"Error RF variable importance: \n {err_var_impt}")
+    y_test_err_predicted = rf_mod_err.predict(data_dict["X_test"])
+    err_test_metrics = rf_metrics(data_dict["y_test_err"], y_test_err_predicted)
+    logging.info(f"Error RF metrics: \n {err_test_metrics}")
+    rf_mod_time = rf_regressor(data_dict["X_train"], data_dict["y_train_time"],
+                               path=os.path.join(ML_RESULTS_FOLDER, "time_rf_new"))
+    time_var_impt = variable_importance(data_dict["X_train"], rf_mod_time)
+    logging.info(f"Time RF variable importance: \n {time_var_impt}")
+    y_test_time_predicted = rf_mod_time.predict(data_dict["X_test"])
+    time_test_metrics = rf_metrics(data_dict["y_test_time"], y_test_time_predicted)
+    logging.info(f"Time_test_metrics: \n {time_test_metrics}")
+    return rf_mod_err, rf_mod_time
 
-def train_error_model(train_data,data_features,search_features,test_data):
-    X_train = train_data[data_features + search_features]
-    y_train_err = train_data["mean_Err_normalized"]
-    X_test = test_data[data_features + search_features]
-    y_test_err = test_data["mean_Err_normalized"]
-    rf_mod_err = rf_regressor(X_train, y_train_err, name="Err_rf_new")
-    return rf_mod_err
 
-
-def train_accuracy_rf_model():
-    pass
-
-def train_running_time_rf_model():
-
-def train_rf_models(full_data, data_features, search_features,output_test_path):
+def split_to_train_and_test(full_data, data_feature_names, search_feature_names):
     train_data, test_data, validation_data = train_test_validation_splits(
         full_data, test_pct=0.2, val_pct=0)
-    X_train = train_data[data_features + search_features]
+    X_train = train_data[data_feature_names + search_feature_names]
     y_train_err = train_data["mean_Err_normalized"]
     y_train_time = train_data["running_time_vs_default"]
-    X_test = test_data[data_features + search_features]
+    X_test = test_data[data_feature_names + search_feature_names]
     y_test_err = test_data["mean_Err_normalized"]
     y_test_time = test_data["running_time_vs_default"]
-    rf_mod_err = rf_regressor(X_train, y_train_err, name="Err_rf_new")
-    print(variable_importance(X_train, rf_mod_err))
-    y_test_err_predicted = rf_mod_err.predict(X_test)
-    rf_metrics(y_test_err, y_test_err_predicted)
-    rf_mod_time = rf_regressor(X_train, y_train_time, name="time_rf_new")
-    print(variable_importance(X_train, rf_mod_time))
-    y_test_time_predicted = rf_mod_time.predict(X_test)
-    rf_metrics(list(y_test_time), list(y_test_time_predicted))
-    test_data["predicted_Err"] = y_test_err
-    test_data["predicted_time"] = y_test_time_predicted
-    test_data.to_csv(output_test_path, sep = CSV_SEP)
-    return test_data
-
-def test_RF_model_predictions():
-    1==1
-
-
-
+    return {"X_train": X_train, "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test": X_test,
+            "y_test_err": y_test_err, "y_test_time": y_test_time, "full_test_data": test_data}
 
 
 def main():
+    epsilon = -1 * (10 ** -4)
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ML_data_path', action='store', type=str, default=f"{RESULTS_FOLDER}/full_raxml_data.tsv")
+    parser.add_argument('--ML_data_path', action='store', type=str,
+                        default=f"{ML_RESULTS_FOLDER}/final_ML_dataset{CSV_SUFFIX}")
     args = parser.parse_args()
-    data_features = ['n_seq', 'n_loci', 'parsimony_tree_alpha', 'tree_divergence',
-                     'largest_branch_length', 'largest_distance_between_taxa', 'tree_MAD', 'msa_type_numeric',
-                     'avg_parsimony_rf_dist', 'parsimony_vs_random_diff', 'parsimony_var_vs_mean', 'random_var_vs_mean','best_parsimony_vs_best_random','distances_vs_ll_corr']
+    all_jobs_general_log_file = os.path.join(ML_RESULTS_FOLDER, "ML_log_file.log")
+    create_dir_if_not_exists(ML_RESULTS_FOLDER)
+    logging_level = logging.INFO
+    logging.basicConfig(filename=all_jobs_general_log_file, level=logging_level)
+    data_features = ['n_seq', 'n_loci', 'avg_tree_divergence',
+                     'avg_largest_branch_length', 'avg_largest_distance_between_taxa', 'avg_tree_MAD',
+                     'msa_type_numeric',
+                     'avg_parsimony_rf_dist', 'mean_unique_topolgies_rf_dist', 'max_parsimony_rf_dist',
+                     'best_parsimony_vs_best_random', 'parsimony_ll_var_vs_random_ll_var']
     search_features = ['spr_radius', 'spr_cutoff', 'n_parsimony',
                        'n_random']
 
-    output_test_path = f"test_data_for_greed_search_new{CSV_SUFFIX}"
-    if os.path.exists(output_test_path):
-        test = pd.read_csv(output_test_path, sep = CSV_SEP)
-    else:
-        test = train_rf_models(args.ML_data_path, data_features, search_features, output_test_path= output_test_path)
+    full_data = pd.read_csv(args.ML_data_path, sep=CSV_SEP)
+    full_data["avg_parsimony_rf_dist"] = full_data["avg_parsimony_rf_dist"]/(2*(full_data["n_seq"]-3))
+    data_dict = split_to_train_and_test(full_data, data_features, search_features)
+    rf_mod_err, rf_mod_time = train_rf_models(data_dict)
 
+    grid_search_time_and_rf(rf_mod_err, rf_mod_time, data_dict, epsilon)
 
-    grid_search_time_and_rf(test)
 
 if __name__ == "__main__":
     main()
