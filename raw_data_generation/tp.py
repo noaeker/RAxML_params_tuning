@@ -190,10 +190,10 @@ def main():
         JOB_ARGUMENTS.write(f"Arguments are: {args}")
     logging.info('#Started running')
     global_results_folder = os.path.join(RESULTS_FOLDER, f'global_shared_results_{args.run_prefix}')
+    file_paths_path = os.path.join(RESULTS_FOLDER, "global_file_paths")
     global_results_path = os.path.join(global_results_folder, 'global_results_dict')
     trimmed_test_msa_path = os.path.join(global_results_folder, "TEST_MSA")
     global_csv_path = os.path.join(global_results_folder, f'global_csv{CSV_SUFFIX}')
-    file_paths_path = os.path.join(global_results_folder, "file_paths")
     current_tasks_path = os.path.join(global_results_folder, 'current_tasks')
     trees_run_directory = os.path.join(all_jobs_results_folder, 'starting_trees_generation')
     # extract files
