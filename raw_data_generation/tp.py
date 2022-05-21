@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 import uuid
 from math import ceil
 import subprocess
-from subprocess import PIPE, STDOUT
+from subprocess import PIPE, STDOUT, call
 import sys
 
 
@@ -92,10 +92,10 @@ def  update_results_tasks_and_jobs(job_tracking_dict, global_results_path, curre
             logging.debug(f"Tasks dict size is now {len(tasks_dict)}")
             pickle.dump(tasks_dict, open(current_tasks_path, "wb"))
             # remove job tracking dict is job is done
-        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"]): #if job is done, remove it from dictionary
-            logging.info(f"Job {job_ind} is done, global results size is now {len(global_results_dict)}, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
-            rmtree(job_tracking_dict[job_ind]["job_entire_folder"])  # delete job folder
-            del job_tracking_dict[job_ind]
+            if is_job_done(job_tracking_dict[job_ind]["job_log_folder"]): #if job is done, remove it from dictionary
+                logging.info(f"Job {job_ind} is done, global results size is now {len(global_results_dict)}, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
+                rmtree(job_tracking_dict[job_ind]["job_entire_folder"])  # delete job folder
+                del job_tracking_dict[job_ind]
 
 
 
@@ -143,9 +143,13 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
             job_first_index += number_of_new_job_sent
         update_results_tasks_and_jobs(job_tracking_dict, global_results_path, current_tasks_path,global_results_csv_path)
         time.sleep(WAITING_TIME_UPDATE)
-    logging.info("Done with the current tasks bunch, deleting all current jobs")
-    subprocess.run(f"qselect -u noaeker | xargs qdel -q {args.queue}",shell=True, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-    logging.debug("Done with current tasks.")
+    logging.info("Done with the current tasks bunch, deleting all current job folders")
+    for job_ind in job_tracking_dict:
+        logging.info(f"Deleting folder of job {job_ind}")
+        rmtree(job_tracking_dict[job_ind]["job_entire_folder"])  # delete job folder
+        del job_tracking_dict[job_ind]
+    #call(f"qselect -u noaeker | xargs qdel -q {args.queue}",shell=True)
+        logging.debug("Done with current tasks.")
 
 
 def global_results_to_csv(global_results_dict, csv_path):

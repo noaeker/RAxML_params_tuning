@@ -60,7 +60,12 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
 
     parsimony_rf_distances = np.array(RF_distances(curr_run_directory, parsimony_trees_path))
     tree_features_dict = {'avg_tree_divergence': np.mean([compute_tree_divergence(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
+                          'var_tree_divergence': np.var(
+                              [compute_tree_divergence(parsimony_tree) for parsimony_tree in parsimony_tree_objects])
                           'avg_largest_branch_length': np.mean([compute_largest_branch_length(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
+                          'var_largest_branch_length': np.var(
+                              [compute_largest_branch_length(parsimony_tree) for parsimony_tree in
+                               parsimony_tree_objects]),
                           'avg_largest_distance_between_taxa': np.mean([max_distance_between_leaves(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
                           'avg_tree_MAD': np.mean([mad_tree_parameter(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
                           'avg_parsimony_rf_dist': np.mean(parsimony_rf_distances),
@@ -68,6 +73,10 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
                           'max_parsimony_rf_dist': np.max(parsimony_rf_distances),
                           'best_parsimony_vs_best_random': (
                                       max(parsimony_trees_ll_on_data) - max(random_trees_ll_on_data)),
+                          'worse_parsimony_vs_best_random': (
+                                  min(parsimony_trees_ll_on_data) - max(random_trees_ll_on_data)),
+                          'best_parsimony_vs_worse_random': (
+                                  max(parsimony_trees_ll_on_data) - min(random_trees_ll_on_data)),
                           'parsimony_ll_var_vs_random_ll_var': (
                                   np.var(parsimony_trees_ll_on_data) / np.var(random_trees_ll_on_data)),
                           #'distances_vs_ll_corr': np.corrcoef(np.array(distances), np.array(ll_improvements))[0, 1],
