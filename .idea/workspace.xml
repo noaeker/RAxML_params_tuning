@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ML pipeline/ML_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML pipeline/ML_pipeline.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/raw_data_generation/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/side_code/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/config.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -59,11 +58,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/side_code/config.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="184">
-              <caret line="26" column="26" selection-start-line="26" selection-start-column="26" selection-end-line="26" selection-end-column="26" />
+              <caret line="26" column="25" selection-start-line="26" selection-start-column="25" selection-end-line="26" selection-end-column="25" />
               <folding>
                 <element signature="e#0#24#0" expanded="true" />
               </folding>
@@ -74,8 +73,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ML pipeline/ML_pipeline.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="902">
-              <caret line="154" column="5" selection-start-line="154" selection-start-column="5" selection-end-line="154" selection-end-column="5" />
+            <state relative-caret-position="-1925">
+              <caret line="60" selection-start-line="60" selection-end-line="60" />
               <folding>
                 <element signature="e#0#30#0" expanded="true" />
               </folding>
@@ -107,11 +106,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="259">
-              <caret line="219" column="18" selection-start-line="219" selection-start-column="18" selection-end-line="219" selection-end-column="18" />
+            <state relative-caret-position="289">
+              <caret line="125" column="42" selection-start-line="125" selection-start-column="42" selection-end-line="125" selection-end-column="42" />
             </state>
           </provider>
         </entry>
@@ -139,7 +138,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>debug</find>
       <find>check_for_new_results_and_update_current_results</find>
       <find>trim</find>
       <find>args.msas</find>
@@ -165,10 +163,11 @@
       <find>full_test_data</find>
       <find>submit_linux_job</find>
       <find>global_results_to_csv</find>
-      <find>train</find>
       <find>shutil.</find>
       <find>shutil</find>
       <find>rmtree</find>
+      <find>move_current_tasks_from_pool_to_file</find>
+      <find>train</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -226,8 +225,8 @@
         <option value="$PROJECT_DIR$/raw_data_generation/enrich_raw_data.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
         <option value="$PROJECT_DIR$/ML pipeline/ML_pipeline.py" />
-        <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
         <option value="$PROJECT_DIR$/side_code/config.py" />
+        <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
       </list>
     </option>
   </component>
@@ -305,7 +304,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.ML_pipeline">
+  <component name="RunManager" selected="Python.tp (1)">
     <configuration name="ML_pipeline" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="RAxML_params_tuning" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -420,8 +419,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.ML_pipeline" />
         <item itemvalue="Python.tp (1)" />
+        <item itemvalue="Python.ML_pipeline" />
         <item itemvalue="Python.data_enrichment_for_ML" />
         <item itemvalue="Python.features_extractor" />
         <item itemvalue="Python.raxml" />
@@ -445,19 +444,19 @@
     <frame x="-21" y="73" width="1440" height="772" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.22269204" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.22269204" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.25735295" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.4989429" visible="true" weight="0.31470588" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.4989429" visible="true" weight="0.29705882" />
       <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49964765" weight="0.29117647" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Terminal" order="8" weight="0.32833582" />
-      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5010571" side_tool="true" visible="true" weight="0.31470588" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5010571" side_tool="true" visible="true" weight="0.29705882" />
       <window_info anchor="bottom" id="Python Console" order="10" weight="0.11844078" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -529,7 +528,7 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>211</line>
+          <line>214</line>
           <option name="timeStamp" value="134" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -935,16 +934,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ML pipeline/ML_pipeline.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="902">
-          <caret line="154" column="5" selection-start-line="154" selection-start-column="5" selection-end-line="154" selection-end-column="5" />
-          <folding>
-            <element signature="e#0#30#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_sampling_analysis/random_and_parsimony_sampling.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="858">
@@ -982,20 +971,30 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="259">
-          <caret line="219" column="18" selection-start-line="219" selection-start-column="18" selection-end-line="219" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/side_code/config.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="184">
-          <caret line="26" column="26" selection-start-line="26" selection-start-column="26" selection-end-line="26" selection-end-column="26" />
+          <caret line="26" column="25" selection-start-line="26" selection-start-column="25" selection-end-line="26" selection-end-column="25" />
           <folding>
             <element signature="e#0#24#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ML pipeline/ML_pipeline.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1925">
+          <caret line="60" selection-start-line="60" selection-end-line="60" />
+          <folding>
+            <element signature="e#0#30#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="289">
+          <caret line="125" column="42" selection-start-line="125" selection-start-column="42" selection-end-line="125" selection-end-column="42" />
         </state>
       </provider>
     </entry>

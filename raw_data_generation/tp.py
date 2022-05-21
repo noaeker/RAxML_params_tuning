@@ -97,18 +97,18 @@ def  update_results_tasks_and_jobs(job_tracking_dict, global_results_path, curre
 
 
 
-def assign_tasks_over_available_jobs(current_tasks_path, number_of_jobs_to_send):
+def assign_tasks_over_available_jobs(current_tasks_path, number_of_jobs_to_send,max_n_tasks_per_job):
     tasks_dict = pickle.load(open(current_tasks_path, "rb"))  # load tasks file
     if len(tasks_dict) == 0:
         return []
-    tasks = np.array(list(tasks_dict.keys()))
+    tasks = np.array(list(tasks_dict.keys())[:max_n_tasks_per_job*number_of_jobs_to_send])
     np.random.shuffle(tasks)
     tasks_chunk_keys = np.array_split(tasks, min(number_of_jobs_to_send, len(tasks_dict)))
     tasks_chunks = [{key: tasks_dict[key] for key in key_chunks} for key_chunks in tasks_chunk_keys]
     return tasks_chunks
 
 
-def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_results_path, global_results_csv_path, all_jobs_results_folder,
+def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_results_path, global_results_csv_path, all_jobs_results_folder, total_tasks,
                            args):
     '''
 
@@ -123,12 +123,14 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
     '''
     job_tracking_dict = {}
     job_first_index = 0
+    max_n_tasks_per_job = ceil(total_tasks/args.max_n_parallel_jobs)
+    logging.info(f"Maximal number of tasks per job is {max_n_tasks_per_job}")
     while len(pickle.load(open(current_tasks_path, "rb"))) > 0:  # Make sure all current tasks are performed
         number_of_available_jobs_to_send = args.max_n_parallel_jobs - len(job_tracking_dict)
         if number_of_available_jobs_to_send > 0:  # Available new jobs.
             logging.debug(f"There are {number_of_available_jobs_to_send} available")
             tasks_per_job = assign_tasks_over_available_jobs(current_tasks_path,
-                                                             number_of_available_jobs_to_send)  # Partitioning of tasks over jobs
+                                                             number_of_available_jobs_to_send,max_n_tasks_per_job)  # Partitioning of tasks over jobs
             for i, job_task in enumerate(tasks_per_job):
                 job_ind = job_first_index + i
                 logging.info(f"Submitted job number {job_ind}, which will perform {len(job_task)} tasks")
@@ -176,6 +178,7 @@ def move_current_tasks_from_pool_to_file(file_paths_path, current_tasks_path, tr
     rmtree(trees_run_directory)
     pickle.dump(tasks_dict, open(current_tasks_path, "wb"))
     pickle.dump(remaining_MSAs, open(file_paths_path, "wb"))
+    return len(tasks_dict)
 
 
 def main():
@@ -213,9 +216,9 @@ def main():
     while len(target_msas_list) > 0 : #sanity check
         i += 1
         logging.info(f"iteration {i} starts, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
-        move_current_tasks_from_pool_to_file(file_paths_path, current_tasks_path, trees_run_directory, args)
+        total_tasks = move_current_tasks_from_pool_to_file(file_paths_path, current_tasks_path, trees_run_directory, args)
         # Perform pipeline on current MSA, making sure that all tasks in current_tasks_pool are performed.
-        current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_results_path, global_csv_path, all_jobs_results_folder,
+        current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_results_path, global_csv_path, all_jobs_results_folder, total_tasks,
                                args)
         # Final procedures
         target_msas_list = pickle.load(open(file_paths_path, "rb"))  # Update new tasks.
