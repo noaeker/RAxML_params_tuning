@@ -2,18 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/raw_data_generation/enrich_raw_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ML pipeline/ML_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML pipeline/ML_pipeline.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ML pipeline/data_enrichment_for_ML.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML pipeline/data_enrichment_for_ML.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ML pipeline/features_extractor.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML pipeline/features_extractor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ML pipeline/test_data_for_greed_search_new.tsv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/raw_data_generation/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/raw_data_generation/tune_params.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tune_params.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/side_code/basic_trees_manipulation.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/basic_trees_manipulation.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/side_code/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/side_code/raxml.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/raxml.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -26,7 +16,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/tune_params.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="137">
+            <state relative-caret-position="-986">
               <caret line="37" column="36" selection-start-line="37" selection-start-column="36" selection-end-line="37" selection-end-column="36" />
             </state>
           </provider>
@@ -71,8 +61,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/side_code/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-7">
-              <caret line="16" column="16" lean-forward="true" selection-start-line="16" selection-start-column="16" selection-end-line="16" selection-end-column="16" />
+            <state relative-caret-position="-457">
+              <caret line="22" column="28" lean-forward="true" selection-start-line="22" selection-start-column="28" selection-end-line="22" selection-end-column="28" />
               <folding>
                 <element signature="e#0#24#0" expanded="true" />
               </folding>
@@ -119,8 +109,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-2710">
-              <caret line="83" column="12" lean-forward="true" selection-start-line="83" selection-start-column="12" selection-end-line="83" selection-end-column="78" />
+            <state relative-caret-position="-1574">
+              <caret line="150" column="4" selection-start-line="150" selection-start-column="4" selection-end-line="150" selection-end-column="4" />
             </state>
           </provider>
         </entry>
@@ -128,8 +118,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/msa_runs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-271">
-              <caret line="91" column="42" selection-start-line="91" selection-start-column="42" selection-end-line="91" selection-end-column="42" />
+            <state relative-caret-position="140">
+              <caret line="114" selection-start-line="114" selection-end-line="114" />
               <folding>
                 <element signature="e#0#29#0" expanded="true" />
               </folding>
@@ -174,10 +164,10 @@
       <find>rf_regressor</find>
       <find>process_all_msa_RAxML_runs</find>
       <find>get_predicted_outcome_per_test_msa</find>
-      <find>submit_linux_job</find>
       <find>queue</find>
-      <find>global_results_to_csv</find>
       <find>full_test_data</find>
+      <find>global_results_to_csv</find>
+      <find>submit_linux_job</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -234,8 +224,8 @@
         <option value="$PROJECT_DIR$/raw_data_generation/tune_params.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/enrich_raw_data.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
-        <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
         <option value="$PROJECT_DIR$/ML pipeline/ML_pipeline.py" />
+        <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
         <option value="$PROJECT_DIR$/side_code/config.py" />
       </list>
     </option>
@@ -314,7 +304,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.ML_pipeline">
+  <component name="RunManager" selected="Python.tp (1)">
     <configuration name="ML_pipeline" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="RAxML_params_tuning" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -429,8 +419,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.ML_pipeline" />
         <item itemvalue="Python.tp (1)" />
+        <item itemvalue="Python.ML_pipeline" />
         <item itemvalue="Python.data_enrichment_for_ML" />
         <item itemvalue="Python.features_extractor" />
         <item itemvalue="Python.raxml" />
@@ -459,14 +449,14 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.25735295" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49964765" weight="0.35441175" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49964765" visible="true" weight="0.29117647" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.4989429" visible="true" weight="0.31176472" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49964765" weight="0.29117647" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Terminal" order="8" weight="0.32833582" />
-      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5003524" side_tool="true" visible="true" weight="0.29117647" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5010571" side_tool="true" visible="true" weight="0.31176472" />
       <window_info anchor="bottom" id="Python Console" order="10" weight="0.11844078" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -934,23 +924,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/raw_data_generation/msa_runs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-271">
-          <caret line="91" column="42" selection-start-line="91" selection-start-column="42" selection-end-line="91" selection-end-column="42" />
-          <folding>
-            <element signature="e#0#29#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/raw_data_generation/tune_params.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="137">
-          <caret line="37" column="36" selection-start-line="37" selection-start-column="36" selection-end-line="37" selection-end-column="36" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/side_code/raxml.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="209">
@@ -981,16 +954,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/side_code/config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-7">
-          <caret line="16" column="16" lean-forward="true" selection-start-line="16" selection-start-column="16" selection-end-line="16" selection-end-column="16" />
-          <folding>
-            <element signature="e#0#24#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ML pipeline/ML_pipeline.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="424">
@@ -1001,10 +964,37 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/raw_data_generation/msa_runs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="140">
+          <caret line="114" selection-start-line="114" selection-end-line="114" />
+          <folding>
+            <element signature="e#0#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/side_code/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-457">
+          <caret line="22" column="28" lean-forward="true" selection-start-line="22" selection-start-column="28" selection-end-line="22" selection-end-column="28" />
+          <folding>
+            <element signature="e#0#24#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raw_data_generation/tune_params.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-986">
+          <caret line="37" column="36" selection-start-line="37" selection-start-column="36" selection-end-line="37" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2710">
-          <caret line="83" column="12" lean-forward="true" selection-start-line="83" selection-start-column="12" selection-end-line="83" selection-end-column="78" />
+        <state relative-caret-position="-1574">
+          <caret line="150" column="4" selection-start-line="150" selection-start-column="4" selection-end-line="150" selection-end-column="4" />
         </state>
       </provider>
     </entry>

@@ -194,8 +194,8 @@ def main():
     trimmed_test_msa_path = os.path.join(global_results_folder, "TEST_MSA")
     global_csv_path = os.path.join(global_results_folder, f'global_csv{CSV_SUFFIX}')
     file_paths_path = os.path.join(global_results_folder, "file_paths")
+    current_tasks_path = os.path.join(global_results_folder, 'current_tasks')
     trees_run_directory = os.path.join(all_jobs_results_folder, 'starting_trees_generation')
-    current_tasks_path = os.path.join(all_jobs_results_folder, 'current_tasks')
     # extract files
     if not args.use_existing_global_data:
         create_or_clean_dir(global_results_folder)
