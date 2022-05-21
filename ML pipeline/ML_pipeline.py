@@ -60,7 +60,7 @@ def rf_regressor(X_train, y_train, path):
     if os.path.exists(path):
         rf = pickle.load(open(path, 'rb'))
     else:
-        rf = RandomForestRegressor(n_estimators=30, random_state=42)
+        rf = RandomForestRegressor(n_estimators=100, random_state=42)
         rf.fit(X_train, y_train)
         pickle.dump(rf, open(path, 'wb'))
         # Calculate the absolute errors
@@ -152,7 +152,7 @@ def main():
                        'n_random']
 
     full_data = pd.read_csv(args.ML_data_path, sep=CSV_SEP)
-    full_data["avg_parsimony_rf_dist"] = full_data["avg_parsimony_rf_dist"]/(2*(full_data["n_seq"]-3))
+    #full_data["avg_parsimony_rf_dist"] = full_data["avg_parsimony_rf_dist"]/(2*(full_data["n_seq"]-3))
     data_dict = split_to_train_and_test(full_data, data_features, search_features)
     rf_mod_err, rf_mod_time = train_rf_models(data_dict)
 
