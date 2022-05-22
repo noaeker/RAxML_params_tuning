@@ -24,7 +24,7 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
     os.mkdir(general_raxml_folder)
     features_path = os.path.join(msa_features_path,"tree_features")
     if os.path.exists(features_path):
-        trees_data = pickle.load(open(features_path,"wb"))
+        trees_data = pickle.load(open(features_path,"rb"))
         parsimony_trees_ll_on_data = trees_data ["parsimony_trees_ll_on_data"]
         parsimony_trees_path = trees_data ["parsimony_trees_path"]
         random_trees_ll_on_data = trees_data["random_trees_ll_on_data"]
@@ -41,6 +41,8 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
                                                                                               several_parsimony_and_random_folder,
                                                                                               msa_type, opt_brlen=True
                                                                                               )
+        local_parsimony_path = f'{msa_features_path}/parsimony'
+        shutil.copy(parsimony_trees_path,local_parsimony_path)
 
         random_trees_path = generate_n_tree_topologies(30, msa_path, several_parsimony_and_random_folder,
                                                        seed=SEED, tree_type="random", msa_type=msa_type)
@@ -50,34 +52,36 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
                                                                                         msa_type, opt_brlen=True
                                                                                         )
 
+        local_random_path = f'{msa_features_path}/random'
+        shutil.copy(random_trees_path, local_random_path)
 
-        trees_data = {"parsimony_trees_ll_on_data" : parsimony_trees_ll_on_data, "parsimony_trees_path": parsimony_trees_path,
-                                "random_trees_ll_on_data" :random_trees_ll_on_data,"random_trees_path" :random_trees_path
+        trees_data = {"parsimony_trees_ll_on_data" : parsimony_trees_ll_on_data, "parsimony_trees_path": local_parsimony_path,
+                                "random_trees_ll_on_data" :random_trees_ll_on_data,"random_trees_path" :local_random_path
                                 }
         pickle.dump(trees_data,open(features_path,'wb'))
 
     parsimony_tree_objects = generate_multiple_tree_object_from_newick(parsimony_trees_path)
 
     parsimony_rf_distances = np.array(RF_distances(curr_run_directory, parsimony_trees_path))
-    tree_features_dict = {'avg_tree_divergence': np.mean([compute_tree_divergence(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
-                          'var_tree_divergence': np.var(
-                              [compute_tree_divergence(parsimony_tree) for parsimony_tree in parsimony_tree_objects])
-                          'avg_largest_branch_length': np.mean([compute_largest_branch_length(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
-                          'var_largest_branch_length': np.var(
+    tree_features_dict = {'feature_avg_tree_divergence': np.mean([compute_tree_divergence(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
+                          'feature_var_tree_divergence': np.var(
+                              [compute_tree_divergence(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
+                          'feature_avg_largest_branch_length': np.mean([compute_largest_branch_length(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
+                          'feature_var_largest_branch_length': np.var(
                               [compute_largest_branch_length(parsimony_tree) for parsimony_tree in
                                parsimony_tree_objects]),
-                          'avg_largest_distance_between_taxa': np.mean([max_distance_between_leaves(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
-                          'avg_tree_MAD': np.mean([mad_tree_parameter(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
-                          'avg_parsimony_rf_dist': np.mean(parsimony_rf_distances),
-                          'mean_unique_topolgies_rf_dist': np.mean(parsimony_rf_distances>0),
-                          'max_parsimony_rf_dist': np.max(parsimony_rf_distances),
-                          'best_parsimony_vs_best_random': (
+                          'feature_avg_largest_distance_between_taxa': np.mean([max_distance_between_leaves(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
+                          'feature_avg_tree_MAD': np.mean([mad_tree_parameter(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
+                          'feature_avg_parsimony_rf_dist': np.mean(parsimony_rf_distances),
+                          'feature_mean_unique_topolgies_rf_dist': np.mean(parsimony_rf_distances>0),
+                          'feature_max_parsimony_rf_dist': np.max(parsimony_rf_distances),
+                          'feature_best_parsimony_vs_best_random': (
                                       max(parsimony_trees_ll_on_data) - max(random_trees_ll_on_data)),
-                          'worse_parsimony_vs_best_random': (
+                          'feature_worse_parsimony_vs_best_random': (
                                   min(parsimony_trees_ll_on_data) - max(random_trees_ll_on_data)),
-                          'best_parsimony_vs_worse_random': (
+                          'feature_best_parsimony_vs_worse_random': (
                                   max(parsimony_trees_ll_on_data) - min(random_trees_ll_on_data)),
-                          'parsimony_ll_var_vs_random_ll_var': (
+                          'feature_parsimony_ll_var_vs_random_ll_var': (
                                   np.var(parsimony_trees_ll_on_data) / np.var(random_trees_ll_on_data)),
                           #'distances_vs_ll_corr': np.corrcoef(np.array(distances), np.array(ll_improvements))[0, 1],
 

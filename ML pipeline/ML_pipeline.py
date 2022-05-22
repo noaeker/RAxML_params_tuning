@@ -143,15 +143,11 @@ def main():
     create_dir_if_not_exists(ML_RESULTS_FOLDER)
     logging_level = logging.INFO
     logging.basicConfig(filename=all_jobs_general_log_file, level=logging_level)
-    data_features = ['n_seq', 'n_loci', 'avg_tree_divergence',
-                     'avg_largest_branch_length', 'avg_largest_distance_between_taxa', 'avg_tree_MAD',
-                     'msa_type_numeric',
-                     'avg_parsimony_rf_dist', 'mean_unique_topolgies_rf_dist', 'max_parsimony_rf_dist',
-                     'best_parsimony_vs_best_random', 'parsimony_ll_var_vs_random_ll_var']
-    search_features = ['spr_radius', 'spr_cutoff', 'n_parsimony',
-                       'n_random']
 
     full_data = pd.read_csv(args.ML_data_path, sep=CSV_SEP)
+    data_features = ['n_seq', 'n_loci'] + [col for col in full_data.columns if col.startswith("feature_")]
+    search_features = ['spr_radius', 'spr_cutoff', 'n_parsimony',
+                       'n_random']
     #full_data["avg_parsimony_rf_dist"] = full_data["avg_parsimony_rf_dist"]/(2*(full_data["n_seq"]-3))
     data_dict = split_to_train_and_test(full_data, data_features, search_features)
     rf_mod_err, rf_mod_time = train_rf_models(data_dict)

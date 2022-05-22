@@ -144,7 +144,7 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
         update_results_tasks_and_jobs(job_tracking_dict, global_results_path, current_tasks_path,global_results_csv_path)
         time.sleep(WAITING_TIME_UPDATE)
     logging.info("Done with the current tasks bunch, deleting all current job folders")
-    for job_ind in job_tracking_dict:
+    for job_ind in list(job_tracking_dict.keys()):
         logging.info(f"Deleting folder of job {job_ind}")
         rmtree(job_tracking_dict[job_ind]["job_entire_folder"])  # delete job folder
         del job_tracking_dict[job_ind]
