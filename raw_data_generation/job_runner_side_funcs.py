@@ -39,6 +39,7 @@ def job_parser():
     parser.add_argument('--job_ind', action='store', type=int)
     parser.add_argument('--curr_job_folder', action='store', type=str)
     parser.add_argument('--test_msa', action='store', type=str)
+    parser.add_argument('--current_tasks_path',action='store', type=str)
     return parser
 
 

@@ -89,6 +89,8 @@ def main():
     total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
     logging.info(f"Total test time is: {total_test_time}")
     for i,task_ind in (enumerate(job_tasks_dict)):
+        if len(pickle.load(open(args.current_tasks_path, "rb"))) == 0: #break out of the loop if all tasks are done
+            break
         logging.info(f"Performing task number {i + 1}/{len(job_tasks_dict)}")
         raxml_run = job_tasks_dict[task_ind]
         with open(tmp_starting_tree_path, 'w') as TMP_STARTING_TREE_PATH:

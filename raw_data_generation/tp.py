@@ -36,21 +36,21 @@ def generate_results_folder(curr_run_prefix):
     return curr_run_prefix
 
 
-def submit_single_job(all_jobs_results_folder, job_ind, curr_job_tasks_list, test_msa_path, args):
+def submit_single_job(all_jobs_results_folder, job_ind, curr_job_tasks_list, test_msa_path, current_tasks_path, args):
     curr_job_folder = os.path.join(all_jobs_results_folder, "job_" + str(job_ind))
     create_or_clean_dir(curr_job_folder)
     curr_job_related_files_paths = get_job_related_files_paths(curr_job_folder, job_ind)
     curr_job_tasks_path = curr_job_related_files_paths["job_local_tasks_path"]
     pickle.dump(curr_job_tasks_list, open(curr_job_tasks_path, "wb"))
     curr_job_log_path = os.path.join(curr_job_folder, str(job_ind) + "_tmp_log")
-    run_command = f' python {MAIN_CODE_PATH} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --test_msa {test_msa_path} {generate_argument_str(args)} '
+    run_command = f' python {MAIN_CODE_PATH} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --test_msa {test_msa_path} --current_tasks_path {current_tasks_path} {generate_argument_str(args)} '
     job_name = f"{job_ind}_{args.jobs_prefix}"
     if not LOCAL_RUN:
         submit_linux_job(job_name, curr_job_folder, curr_job_log_path, run_command, args.n_cpus_per_job, job_ind,
                          queue=args.queue)
     else:
         submit_local_job(MAIN_CODE_PATH,
-                         ["--job_ind", str(job_ind), "--curr_job_folder", curr_job_folder, "--test_msa", test_msa_path
+                         ["--job_ind", str(job_ind), "--curr_job_folder", curr_job_folder, "--test_msa", test_msa_path,"--current_tasks_path", current_tasks_path
                           ] + generate_argument_list(args))
     return curr_job_related_files_paths
 
@@ -94,7 +94,9 @@ def  update_results_tasks_and_jobs(job_tracking_dict, global_results_path, curre
             # remove job tracking dict is job is done
             if is_job_done(job_tracking_dict[job_ind]["job_log_folder"]): #if job is done, remove it from dictionary
                 logging.info(f"Job {job_ind} is done, global results size is now {len(global_results_dict)}, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
-                rmtree(job_tracking_dict[job_ind]["job_entire_folder"])  # delete job folder
+                if os.path.exists(job_tracking_dict[job_ind]["job_entire_folder"]):
+                    logging.info("Deleting its folder")
+                    rmtree(job_tracking_dict[job_ind]["job_entire_folder"])  # delete job folder
                 del job_tracking_dict[job_ind]
 
 
@@ -127,7 +129,7 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
     job_first_index = 0
     max_n_tasks_per_job = ceil(total_tasks/args.max_n_parallel_jobs)
     logging.info(f"Maximal number of tasks per job is {max_n_tasks_per_job}")
-    while len(pickle.load(open(current_tasks_path, "rb"))) > 0:  # Make sure all current tasks are performed
+    while len(pickle.load(open(current_tasks_path, "rb"))) > 0 or len(job_tracking_dict)>0:  # Make sure all current tasks are performed
         number_of_available_jobs_to_send = args.max_n_parallel_jobs - len(job_tracking_dict)
         if number_of_available_jobs_to_send > 0:  # Available new jobs.
             logging.debug(f"There are {number_of_available_jobs_to_send} available")
@@ -137,19 +139,14 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
                 job_ind = job_first_index + i
                 logging.info(f"Submitted job number {job_ind}, which will perform {len(job_task)} tasks")
                 curr_job_related_files_paths = submit_single_job(all_jobs_results_folder, job_ind, job_task,
-                                                                 trimmed_test_msa_path, args)
+                                                                 trimmed_test_msa_path, current_tasks_path, args)
                 job_tracking_dict[job_ind] = curr_job_related_files_paths
             number_of_new_job_sent = len(tasks_per_job)
             job_first_index += number_of_new_job_sent
         update_results_tasks_and_jobs(job_tracking_dict, global_results_path, current_tasks_path,global_results_csv_path)
         time.sleep(WAITING_TIME_UPDATE)
     logging.info("Done with the current tasks bunch, deleting all current job folders")
-    for job_ind in list(job_tracking_dict.keys()):
-        logging.info(f"Deleting folder of job {job_ind}")
-        rmtree(job_tracking_dict[job_ind]["job_entire_folder"])  # delete job folder
-        del job_tracking_dict[job_ind]
-    #call(f"qselect -u noaeker | xargs qdel -q {args.queue}",shell=True)
-        logging.debug("Done with current tasks.")
+
 
 
 def global_results_to_csv(global_results_dict, csv_path):
