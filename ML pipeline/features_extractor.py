@@ -3,9 +3,25 @@ from side_code.raxml import *
 from side_code.basic_trees_manipulation import *
 from side_code.MSA_manipulation import get_msa_data, get_msa_name
 from side_code.file_handling import create_or_clean_dir, create_dir_if_not_exists
+from side_code.MSA_manipulation import get_alignment_data,alignment_list_to_df
 from side_code.config import *
 import pandas as pd
 import pickle
+
+
+def get_positions_stats(msa_path):
+    alignment_data = get_alignment_data(msa_path)
+    alignment_df = alignment_list_to_df(alignment_data)
+    alignment_df_fixed = alignment_df.replace('-', np.nan)
+    gap_positions_pct = np.mean(alignment_df_fixed.isnull().sum() / len(alignment_df_fixed))
+    counts_per_position = [dict(alignment_df_fixed[col].value_counts(dropna=True)) for col in list(alignment_df)]
+    probabilities = [list(map(lambda x: x / sum(counts_per_position[col].values()), counts_per_position[col].values()))
+                     for col in
+                     list(alignment_df)]
+    entropy = [sum(list(map(lambda x: -x * np.log(x), probabilities[col]))) for col in list(alignment_df)]
+    avg_entropy = np.mean(entropy)
+    constant_sites_pct = sum([1 for et in entropy if et == 0]) / len(entropy)
+    return {"feature_constant_sites_pct":constant_sites_pct,"feature_avg_entropy": avg_entropy, "feature_gap_positions_pct":gap_positions_pct}
 
 
 def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
@@ -23,6 +39,10 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
     general_raxml_folder = os.path.join(curr_run_directory, "general_raxml_features")
     os.mkdir(general_raxml_folder)
     features_path = os.path.join(msa_features_path,"tree_features")
+    raxml_statistics = extract_raxml_statistics_from_msa(msa_path=msa_path, msa_type = msa_type,curr_run_directory =curr_run_directory,output_name = "MSA_features")
+    all_features.update(raxml_statistics)
+    positions_stats_dict = get_positions_stats(msa_path = msa_path)
+    all_features.update(positions_stats_dict)
     if os.path.exists(features_path):
         trees_data = pickle.load(open(features_path,"rb"))
         parsimony_trees_ll_on_data = trees_data ["parsimony_trees_ll_on_data"]

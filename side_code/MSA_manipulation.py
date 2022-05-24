@@ -7,6 +7,7 @@ import numpy as np
 import logging
 import random
 import re
+import pandas as pd
 
 def get_msa_name(msa_path, general_msa_dir):
     return msa_path.replace(general_msa_dir, "").replace(os.path.sep,
@@ -134,6 +135,14 @@ def get_alignment_data(msa_path):
         if len(data) == 0:
             return -1
         return data
+
+
+def alignment_list_to_df(alignment_data):
+    alignment_list = [list(alignment_data[i].seq) for i in range(len(alignment_data))]
+    loci_num = len(alignment_data[0].seq)
+    columns = list(range(0, loci_num))
+    original_alignment_df = pd.DataFrame(alignment_list, columns=columns)
+    return original_alignment_df
 
 
 

@@ -129,7 +129,7 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
     job_first_index = 0
     max_n_tasks_per_job = ceil(total_tasks/args.max_n_parallel_jobs)
     logging.info(f"Maximal number of tasks per job is {max_n_tasks_per_job}")
-    while len(pickle.load(open(current_tasks_path, "rb"))) > 0 or len(job_tracking_dict)>0:  # Make sure all current tasks are performed
+    while len(pickle.load(open(current_tasks_path, "rb"))) > 0:  # Make sure all current tasks are performed
         number_of_available_jobs_to_send = args.max_n_parallel_jobs - len(job_tracking_dict)
         if number_of_available_jobs_to_send > 0:  # Available new jobs.
             logging.debug(f"There are {number_of_available_jobs_to_send} available")
@@ -146,6 +146,14 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
         update_results_tasks_and_jobs(job_tracking_dict, global_results_path, current_tasks_path,global_results_csv_path)
         time.sleep(WAITING_TIME_UPDATE)
     logging.info("Done with the current tasks bunch, deleting all current job folders")
+    for job_ind in job_tracking_dict:
+        stop_running_path = job_tracking_dict[job_ind]["job_local_stop_running_path"]
+        with open(stop_running_path,'w') as STOP_RUNNING:
+            STOP_RUNNING.write("Stop running message")
+    while sum([is_job_done(job_tracking_dict[job_ind]["job_log_folder"]) for job_ind in job_tracking_dict])>0: #wait until jobs are cancelled
+        time.sleep(10)
+    logging.info("All jobs are done, now ready to move to next iteration")
+
 
 
 

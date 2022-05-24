@@ -25,14 +25,6 @@ def enrich_sampling_data_with_defaults_and_msa_statistics(sampling_data, default
                                                           sampling_data_vs_default[
                                                               "mean_time"]
     sampling_data_vs_default = sampling_data_vs_default[sampling_data_vs_default["spr_radius"] != "default"]
-    best_running_time = sampling_data_vs_default[sampling_data_vs_default["normalized_error_vs_default"] <= 0].groupby(
-        ["msa_name"]).agg({'running_time_vs_default': 'max'}).rename(
-        columns={"running_time_vs_default": "best_running_time_vs_default"})
-    sampling_data_vs_default = pd.merge(sampling_data_vs_default, best_running_time, on=["msa_name"])
-
-    sampling_data_vs_default["is_optimal_run"] = (sampling_data_vs_default["running_time_vs_default"] ==
-                                                  sampling_data_vs_default["best_running_time_vs_default"]) & (
-                                                         sampling_data_vs_default["normalized_error_vs_default"] <= 0)
     return sampling_data_vs_default
 
 

@@ -33,7 +33,7 @@ def extract_raxml_statistics_from_msa(msa_path,msa_type, output_name, curr_run_d
     parsimony_log_path = parsimony_model_evaluation_prefix + ".raxml.log"
     parsimony_optimized_tree_path = parsimony_model_evaluation_prefix + ".raxml.bestTree"
     parsimony_tree_alpha = extract_param_from_raxmlNG_log(parsimony_log_path, "alpha")
-    return {"parsimony_tree_path" : parsimony_optimized_tree_path,"parsimony_tree_alpha" : parsimony_tree_alpha }
+    return {"parsimony_tree_alpha" : parsimony_tree_alpha }
 
 
 def generate_raxml_ng_command_prefix(cpus=1):

@@ -61,21 +61,17 @@ def rf_regressor(X_train, y_train, path):
     if os.path.exists(path):
         rf = pickle.load(open(path, 'rb'))
     else:
-        #rf = RandomForestRegressor(n_estimators=100, random_state=42)
-        #rf.fit(X_train, y_train)
-        #pickle.dump(rf, open(path, 'wb'))
-        gbm_reg = lightgbm.LGBMRegressor()
-        gbm_reg.fit(X_train, y_train)
+        rf = RandomForestRegressor(n_estimators=30, random_state=42)
+        rf.fit(X_train, y_train)
+        pickle.dump(rf, open(path, 'wb'))
         # Calculate the absolute errors
-    return gbm_reg
+    return rf
 
 
 def plot_full_data_metrics(full_data, epsilon):
+
     allowed_actual_error_data = full_data[(full_data["mean_Err_normalized"] > epsilon)]
-    allowed_actual_error_data["total_starting_points"] = allowed_actual_error_data["n_parsimony"]+allowed_actual_error_data["n_random"]
-    full_data_names = (full_data["msa_name"].unique())
-    allowed_names = (allowed_actual_error_data["msa_name"].unique())
-    not_included_msas = [x for x in full_data_names if x not in allowed_names]
+    allowed_actual_error_data["total_starting_points"] = full_data["n_parsimony"]+full_data["n_random"]
     actual_best_time_per_msa = pd.merge(allowed_actual_error_data,
                                         allowed_actual_error_data.groupby("msa_name").agg(
                                             best_actual_running_time=(
@@ -90,13 +86,24 @@ def plot_full_data_metrics(full_data, epsilon):
                                        left_on=["msa_name", "total_starting_points"],
                                        right_on=["msa_name", "min_actual_n_trees"])
     actual_lowest_n_trees_per_msa = actual_lowest_n_trees_per_msa.groupby("msa_name").first().reset_index()
+    conditions = [
+        actual_lowest_n_trees_per_msa['n_seq'] <= 30,
+        (actual_lowest_n_trees_per_msa['n_seq'] <= 30)& (actual_lowest_n_trees_per_msa['n_seq']<=50),
+        (actual_lowest_n_trees_per_msa['n_seq']>50) & (actual_lowest_n_trees_per_msa['n_seq']<=70),
+        (actual_lowest_n_trees_per_msa['n_seq']>70) & (actual_lowest_n_trees_per_msa['n_seq']<=100),
+        (actual_lowest_n_trees_per_msa['n_seq'] > 100)
+    ]
+    choices = [30,50, 70, 100,200]
+    actual_lowest_n_trees_per_msa['n_seq_binned'] = np.select(conditions, choices, default=-1)
+
+
     sns.set(font_scale=1.5)
     ax = sns.scatterplot(y = actual_lowest_n_trees_per_msa["total_starting_points"], x = actual_lowest_n_trees_per_msa["n_seq"])
     ax.set(xlabel = '')
     ax.set(ylabel='')
     plt.show()
     sns.set(font_scale=1.5)
-    ax = sns.histplot(x = actual_best_time_per_msa["best_actual_running_time"])
+    ax = sns.histplot(x = actual_best_time_per_msa["best_actual_running_time"], bins = 30)
     ax.set(xlabel = '')
     ax.set(ylabel='')
     plt.show()
@@ -114,9 +121,6 @@ def grid_search_time_and_rf(rf_mod_err, rf_mod_time, data_dict, epsilon):
     full_data["predicted_times"] = rf_mod_time.predict(data_dict["X_test"])
     full_data["actual_errors"] = data_dict["y_test_err"]
     full_data["actual_times"] = data_dict["y_test_time"]
-    ax = sns.scatterplot(x=full_data["actual_errors"],
-                         y=full_data["predicted_errors"])
-    plt.show()
     allowed_predicted_error_data = full_data[(full_data["predicted_errors"] > epsilon)]
     allowed_actual_error_data = full_data[(full_data["actual_errors"] > epsilon)]
     predicted_best_time_per_msa = pd.merge(allowed_predicted_error_data,
@@ -137,18 +141,16 @@ def grid_search_time_and_rf(rf_mod_err, rf_mod_time, data_dict, epsilon):
     actual_best_time_per_msa = actual_best_time_per_msa.groupby("msa_name").first().reset_index()
     #ax = sns.histplot(predicted_best_time_per_msa["actual_times"])
     #plt.show()
-    ax = sns.scatterplot(x = predicted_best_time_per_msa["actual_errors"], y = predicted_best_time_per_msa["predicted_errors"])
-    plt.show()
+    #ax = sns.scatterplot(x = predicted_best_time_per_msa["actual_errors"], y = predicted_best_time_per_msa["actual_times"])
+    #plt.show()
     good_predicted_results = predicted_best_time_per_msa[(predicted_best_time_per_msa["actual_errors"]>epsilon)&(predicted_best_time_per_msa["actual_times"]>=1)][["actual_times"]]
 
-    good_predicted_results["Type"] = "Obtained via ML"#plt.show()
+    good_predicted_results["Type"] = "predicted"#plt.show()
     good_actual_results = actual_best_time_per_msa[
         (actual_best_time_per_msa["actual_errors"] > epsilon) & (actual_best_time_per_msa["actual_times"] >= 1)][["actual_times"]]
-    good_actual_results["Type"] = "Potential"
+    good_actual_results["Type"] = "actual"
     actual_vs_predicted = pd.concat([good_predicted_results,good_actual_results])
-    sns.set(font_scale=1.5)
-    ax = sns.histplot(x = "actual_times",hue = "Type", data = actual_vs_predicted)
-    ax.set(xlabel = '', ylabel = '')
+    sns.histplot(x = "actual_times",hue = "Type", data = actual_vs_predicted)
     plt.show()
 
 
@@ -187,7 +189,7 @@ def split_to_train_and_test(full_data, data_feature_names, search_feature_names)
 
 
 def main():
-    epsilon = -1 * (10 ** -4)
+    epsilon = -1 * (10 ** -5)
     parser = argparse.ArgumentParser()
     parser.add_argument('--ML_data_path', action='store', type=str,
                         default=f"{ML_RESULTS_FOLDER}/final_ML_dataset{CSV_SUFFIX}")
@@ -204,7 +206,7 @@ def main():
     data_dict = split_to_train_and_test(full_data, data_features, search_features)
     rf_mod_err, rf_mod_time = train_rf_models(data_dict)
 
-    #plot_full_data_metrics(full_data, epsilon)
+#    plot_full_data_metrics(full_data, epsilon)
     grid_search_time_and_rf(rf_mod_err, rf_mod_time, data_dict, epsilon)
 
 
