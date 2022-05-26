@@ -1,8 +1,11 @@
 
-from side_code.raxml import extract_param_from_raxmlNG_log, raxml_search
+from side_code.raxml import extract_param_from_raxmlNG_log
 from side_code.file_handling import create_or_clean_dir, unify_text_files
-from side_code.basic_trees_manipulation import *
+import os
+from side_code.code_submission import execute_command_and_write_to_log
+from side_code.config import *
 import numpy as np
+import pandas as pd
 
 def calculate_rf_dist(rf_file_path, curr_run_directory, prefix="rf"):
     rf_prefix = os.path.join(curr_run_directory, prefix)
@@ -58,12 +61,13 @@ def process_all_msa_RAxML_runs(curr_run_directory, given_msa_data):
     given_msa_data["rf_from_overall_msa_best_topology"] = given_msa_data["final_tree_topology"].apply(
         lambda x: rf_distance(curr_run_directory, x, best_msa_tree_topology))
     given_msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
-        (given_msa_data["rf_from_overall_msa_best_topology"]) > 0, best_msa_ll - given_msa_data["final_ll"], 0)
+        (given_msa_data["rf_from_overall_msa_best_topology"]) > 0,  given_msa_data["final_ll"]-best_msa_ll, 0)
     return given_msa_data
 
 
 def main():
-    pass
+    raw_data_path = f''
+    raw_data_df = pd.read_csv(raw_data_path)
 
 if __name__ == "__main__":
     main()

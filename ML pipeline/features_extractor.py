@@ -45,10 +45,11 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
     all_features.update(positions_stats_dict)
     if os.path.exists(features_path):
         trees_data = pickle.load(open(features_path,"rb"))
-        parsimony_trees_ll_on_data = trees_data ["parsimony_trees_ll_on_data"]
+        parsimony_trees_ll_on_data = trees_data["parsimony_trees_ll_on_data"]
         parsimony_trees_path = trees_data ["parsimony_trees_path"]
         random_trees_ll_on_data = trees_data["random_trees_ll_on_data"]
         random_trees_path = trees_data ["random_trees_path"]
+        parsimony_rf_distances = trees_data["parsimony_rf_distances"]
     else:
         several_parsimony_and_random_folder = os.path.join(curr_run_directory, f"parsimony_and_random_statistics_{i}")
         os.mkdir(several_parsimony_and_random_folder)
@@ -74,15 +75,17 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
 
         local_random_path = f'{msa_features_path}/random'
         shutil.copy(random_trees_path, local_random_path)
+        parsimony_rf_distances = np.array(RF_distances(curr_run_directory, parsimony_trees_path))
 
-        trees_data = {"parsimony_trees_ll_on_data" : parsimony_trees_ll_on_data, "parsimony_trees_path": local_parsimony_path,
-                                "random_trees_ll_on_data" :random_trees_ll_on_data,"random_trees_path" :local_random_path
+        trees_data = {"parsimony_trees_ll_on_data" : parsimony_trees_ll_on_data, "parsimony_trees_path": local_parsimony_path,"parsimony_rf_distances":parsimony_rf_distances,
+                                "random_trees_ll_on_data" :random_trees_ll_on_data,"random_trees_path" :local_random_path,
+
                                 }
+        parsimony_tree_objects = generate_multiple_tree_object_from_newick(parsimony_trees_path)
+
         pickle.dump(trees_data,open(features_path,'wb'))
 
-    parsimony_tree_objects = generate_multiple_tree_object_from_newick(parsimony_trees_path)
 
-    parsimony_rf_distances = np.array(RF_distances(curr_run_directory, parsimony_trees_path))
     tree_features_dict = {'feature_avg_tree_divergence': np.mean([compute_tree_divergence(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
                           'feature_var_tree_divergence': np.var(
                               [compute_tree_divergence(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
@@ -103,9 +106,11 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
                                   max(parsimony_trees_ll_on_data) - min(random_trees_ll_on_data)),
                           'feature_parsimony_ll_var_vs_random_ll_var': (
                                   np.var(parsimony_trees_ll_on_data) / np.var(random_trees_ll_on_data)),
+                          'feature_mean_parsimony_scores' :max(parsimony_trees_ll_on_data)-np.mean(random_trees_ll_on_data)
                           #'distances_vs_ll_corr': np.corrcoef(np.array(distances), np.array(ll_improvements))[0, 1],
 
                           }
+
     all_features.update(tree_features_dict)
     return all_features
 

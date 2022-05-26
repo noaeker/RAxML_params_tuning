@@ -76,28 +76,30 @@ def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
 
 def  update_results_tasks_and_jobs(job_tracking_dict, global_results_path, current_tasks_path, global_results_csv_path):
     for job_ind in list(job_tracking_dict.keys()):
-        if  os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]):
-            job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"], "rb"))
-            logging.debug(f"Job done size is {len(job_raxml_runs_done_obj)}")
-            # update global results
-            global_results_dict = pickle.load(open(global_results_path, "rb"))
-            global_results_dict.update(job_raxml_runs_done_obj)  # update new results
-            pickle.dump(global_results_dict, open(global_results_path, "wb"))
-            global_results_to_csv(global_results_dict,global_results_csv_path)
-            logging.debug(f"Global results dict size is now {len(global_results_dict)}")
-            # update tasks dictionary
-            tasks_dict = pickle.load(open(current_tasks_path, "rb"))
-            tasks_dict = {task_ind: tasks_dict[task_ind] for task_ind in tasks_dict if
-                          task_ind not in job_raxml_runs_done_obj}  # insert leftover tasks
-            logging.debug(f"Tasks dict size is now {len(tasks_dict)}")
-            pickle.dump(tasks_dict, open(current_tasks_path, "wb"))
+        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"]):  # if job is done, remove it from dictionary
+            logging.info(
+                f"Job {job_ind} is done, global results size is now {len(global_results_dict)}, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
+            if os.path.exists(job_tracking_dict[job_ind]["job_entire_folder"]):
+                logging.info("Deleting its folder")
+                rmtree(job_tracking_dict[job_ind]["job_entire_folder"])  # delete job folder
+            del job_tracking_dict[job_ind]
+            if  os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]) and os.path.getsize(job_tracking_dict[job_ind]["job_local_done_dump"])>0:
+                job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"], "rb"))
+                logging.info(f"Job done size is {len(job_raxml_runs_done_obj)}")
+                # update global results
+                global_results_dict = pickle.load(open(global_results_path, "rb"))
+                global_results_dict.update(job_raxml_runs_done_obj)  # update new results
+                pickle.dump(global_results_dict, open(global_results_path, "wb"))
+                global_results_to_csv(global_results_dict,global_results_csv_path)
+                logging.debug(f"Global results dict size is now {len(global_results_dict)}")
+                # update tasks dictionary
+                tasks_dict = pickle.load(open(current_tasks_path, "rb"))
+                tasks_dict = {task_ind: tasks_dict[task_ind] for task_ind in tasks_dict if
+                              task_ind not in job_raxml_runs_done_obj}  # insert leftover tasks
+                logging.debug(f"Tasks dict size is now {len(tasks_dict)}")
+                pickle.dump(tasks_dict, open(current_tasks_path, "wb"))
             # remove job tracking dict is job is done
-            if is_job_done(job_tracking_dict[job_ind]["job_log_folder"]): #if job is done, remove it from dictionary
-                logging.info(f"Job {job_ind} is done, global results size is now {len(global_results_dict)}, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
-                if os.path.exists(job_tracking_dict[job_ind]["job_entire_folder"]):
-                    logging.info("Deleting its folder")
-                    rmtree(job_tracking_dict[job_ind]["job_entire_folder"])  # delete job folder
-                del job_tracking_dict[job_ind]
+
 
 
 
