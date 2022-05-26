@@ -152,12 +152,12 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
             job_first_index += number_of_new_job_sent
         check_jobs_status(job_tracking_dict, global_results_path, current_tasks_path, global_results_csv_path)
         time.sleep(WAITING_TIME_UPDATE)
-    logging.info("Done with the current tasks bunch, deleting all current job folders")
+    logging.info("Done with the current tasks bunch")
     for job_ind in job_tracking_dict:
         stop_running_path = job_tracking_dict[job_ind]["job_local_stop_running_path"]
         with open(stop_running_path,'w') as STOP_RUNNING:
             STOP_RUNNING.write("Stop running message")
-    while sum([is_job_done(job_tracking_dict[job_ind]["job_log_folder"])>0 for job_ind in job_tracking_dict])>0: #wait until jobs are cancelled
+    while sum([(not is_job_done(job_tracking_dict[job_ind]["job_log_folder"])) for job_ind in job_tracking_dict])>0: #wait until jobs are cancelled
         time.sleep(10)
     logging.info("All jobs are done! About to remove all remaining folders")
     for job_ind in list(job_tracking_dict.keys()): # remove all remaining folders
