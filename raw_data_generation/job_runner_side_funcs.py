@@ -31,7 +31,7 @@ def main_parser():
     parser.add_argument('--n_iters_test', action='store', type=int, default=TEST_MSA_ITERATIONS)
     parser.add_argument('--n_MSAs_per_bunch',type=int, default= N_MSAS_PER_BUNCH)
     parser.add_argument('--MSAs_pool_size', type=int, default=MSAs_POOL_SIZE)
-    parser.add_argument('--use_files_from_csv', action='store_true', default= True)
+    parser.add_argument('--use_files_from_csv', action='store_true')
     return parser
 
 
