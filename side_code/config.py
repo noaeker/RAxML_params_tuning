@@ -54,6 +54,7 @@ if not LOCAL_RUN:
     RAXML_HPC_EXE = "/groups/pupko/noaeker/standard-RAxML/raxmlHPC"
     RATE4SITE_COMMAND_PREFIX = "/groups/pupko/noaeker/programs/other_programs/rate4site/rate4site"
     TMP_RESULTS_FOLDER = f"{RESULTS_FOLDER}/single_gene_MSAs"
+    CSV_MSAs_FOLDER = "/groups/pupko/noaeker/data/ABC_DR"
 
 elif LOCAL_RUN:
     IQTREE_EXE = "/Users/noa/Programs/iqtree-2.1.3-MacOSX/bin/iqtree2"
@@ -70,4 +71,4 @@ elif LOCAL_RUN:
     MAIN_CODE_PATH = f"{PROJECT_ROOT_DIRECRTORY}/raw_data_generation/tune_params.py"
     SAMPLING_MAIN_CODE_PATH = f"{PROJECT_ROOT_DIRECRTORY}/raw_data_sampling_analysis.py"
     TMP_RESULTS_FOLDER =  f"{RESULTS_FOLDER}/single_gene_MSAs"
-
+    CSV_MSAs_FOLDER = "/Users/noa/Workspace/data/ABC_DR"

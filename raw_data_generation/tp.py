@@ -9,7 +9,7 @@ sys.path.append(PROJECT_ROOT_DIRECRTORY)
 from msa_runs import generate_all_raxml_runs_per_msa
 from side_code.config import *
 from side_code.code_submission import submit_linux_job, submit_local_job, generate_argument_list,generate_argument_str
-from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, extract_alignment_files_from_dirs
+from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, extract_alignment_files_from_dirs, extract_alignment_files_from_general_csv
 from side_code.code_submission import is_job_done
 from side_code.MSA_manipulation import remove_MSAs_with_not_enough_seq_and_locis, trim_MSA, get_alignment_data
 from job_runner_side_funcs import main_parser, get_job_related_files_paths
@@ -56,9 +56,12 @@ def submit_single_job(all_jobs_results_folder, job_ind, curr_job_tasks_list, tes
 
 
 def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
-    file_path_list = extract_alignment_files_from_dirs(args.general_msa_dir)
-    if args.MSAs_pool_size > 0:
-        file_path_list = file_path_list[:args.MSAs_pool_size]
+    if args.use_files_from_csv:
+        file_path_list = extract_alignment_files_from_general_csv(os.path.join(CSV_MSAs_FOLDER,"sampled_datasets.csv"))
+    else:
+        file_path_list = extract_alignment_files_from_dirs(args.general_msa_dir)
+        if args.MSAs_pool_size > 0:
+            file_path_list = file_path_list[:args.MSAs_pool_size]
     logging.info("There are overall {nMSAs} available MSAs ".format(nMSAs=len(file_path_list)))
     file_path_list_full = remove_MSAs_with_not_enough_seq_and_locis(file_path_list, args.min_n_seq, args.min_n_loci)
     test_msa_path = file_path_list_full[0]
@@ -67,7 +70,7 @@ def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
     random.seed(SEED)
     file_path_list = random.sample(file_path_list_full, min(args.n_MSAs, len(file_path_list_full)))
     logging.info(
-        "There are {} MSAs with at least {} sequences and {} positions".format(len(file_path_list), args.min_n_seq,
+        "Using {} MSAs with at least {} sequences and {} positions".format(len(file_path_list), args.min_n_seq,
                                                                                args.min_n_loci))
     logging.info(
         f"Sampling {len(file_path_list)} random MSAs")
@@ -81,7 +84,7 @@ def update_tasks_and_results(job_tracking_dict,job_ind,global_results_path,globa
     global_results_dict.update(job_raxml_runs_done_obj)  # update new results
     pickle.dump(global_results_dict, open(global_results_path, "wb"))
     global_results_to_csv(global_results_dict, global_results_csv_path)
-    logging.debug(f"Global results dict size is now {len(global_results_dict)}")
+    logging.info(f"Global results dict size is now {len(global_results_dict)}")
     # update tasks dictionary
     tasks_dict = pickle.load(open(current_tasks_path, "rb"))
     tasks_dict = {task_ind: tasks_dict[task_ind] for task_ind in tasks_dict if
@@ -219,7 +222,7 @@ def main():
         JOB_ARGUMENTS.write(f"Arguments are: {args}")
     logging.info('#Started running')
     global_results_folder = os.path.join(RESULTS_FOLDER, f'global_shared_results_{args.run_prefix}')
-    file_paths_path = os.path.join(RESULTS_FOLDER, "global_file_paths")
+    file_paths_path = os.path.join(RESULTS_FOLDER, f"global_file_paths_{args.run_prefix}")
     global_results_path = os.path.join(global_results_folder, 'global_results_dict')
     trimmed_test_msa_path = os.path.join(global_results_folder, "TEST_MSA")
     global_csv_path = os.path.join(global_results_folder, f'global_csv{CSV_SUFFIX}')
@@ -253,6 +256,8 @@ def main():
         global_results = pickle.load(open(global_results_path, "rb"))  # Update new results.
         logging.debug(f"Size of Global results: {len(global_results)}")
         total_msas_done += args.n_MSAs_per_bunch
+        with open(all_jobs_general_log_file,'w'): #empty log file
+            pass
         logging.info(f"iteration {i} done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         logging.info(f"So far done with {total_msas_done}/{total_msas_overall} of the MSAs ")
 

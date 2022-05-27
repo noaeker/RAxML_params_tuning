@@ -96,3 +96,24 @@ def unify_dicts(dicts):
     return super_dict
 
 
+def extract_dir_list_from_csv(dir_list_csv_path):
+    df = pd.read_csv(dir_list_csv_path)
+    dir_list = [os.path.join(CSV_MSAs_FOLDER, path) for path in list(df["path"])]
+    logging.debug("Number of paths in original csv = {n_paths}".format(n_paths=len(df.index)))
+    return dir_list
+
+
+def extract_alignment_files_from_general_csv(dir_list_csv_path):
+    files_list = []
+    logging.debug("Extracting alignments from {}".format(dir_list_csv_path))
+    dir_list = extract_dir_list_from_csv(dir_list_csv_path)
+    for dir in dir_list:
+        if os.path.exists(dir):
+            for file in os.listdir(dir):
+                if (file.endswith(".phy") or file.endswith(".fasta")):
+                    files_list.append(os.path.join(dir, file))
+                    break
+        else:
+            logging.error("Following MSA dir does not exist {dir}".format(dir=dir))
+    logging.debug("Overalls number of MSAs found in the given directories is: {nMSAs}".format(nMSAs=len(files_list)))
+    return files_list
