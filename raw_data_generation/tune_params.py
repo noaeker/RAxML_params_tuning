@@ -90,7 +90,7 @@ def main():
     for i, task_ind in (enumerate(job_tasks_dict)):
         if os.path.exists(job_local_stop_running_path):  # break out of the loop if all tasks are done
             break
-        logging.info(f"Performing task number {i + 1}/{len(job_tasks_dict)}")
+        logging.info(f"Performing task number {i + 1}/{len(job_tasks_dict)},, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
         raxml_run = job_tasks_dict[task_ind]
         with open(tmp_starting_tree_path, 'w') as TMP_STARTING_TREE_PATH:
             TMP_STARTING_TREE_PATH.write(raxml_run.starting_tree_object.write(format=1))

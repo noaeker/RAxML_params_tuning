@@ -14,6 +14,7 @@ def main_parser():
     parser.add_argument('--run_raxml_commands_locally',action='store_true', default= True)
     parser.add_argument('--first_msa_ind', action='store', type=int, default=0)
     parser.add_argument('--min_n_seq', action='store', type=int, default=MIN_N_SEQ)
+    parser.add_argument('--max_n_seq', action='store', type=int, default=MAX_N_SEQ)
     parser.add_argument('--min_n_loci', type=int, default=MIN_N_LOCI)
     parser.add_argument('--n_raxml_parsimony_trees', action='store', type=int, default=N_PARSIMONY_RAXML_SEARCH)
     parser.add_argument('--n_raxml_random_trees', action='store', type=int, default=N_RANDOM_RAXML_SEARCH)

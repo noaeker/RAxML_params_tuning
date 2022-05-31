@@ -147,7 +147,7 @@ def alignment_list_to_df(alignment_data):
 
 
 
-def remove_MSAs_with_not_enough_seq_and_locis(file_path_list, min_seq, min_n_loci):
+def remove_MSAs_with_not_enough_seq_and_locis(file_path_list, min_n_seq, max_n_seq, min_n_loci):
     proper_file_path_list = []
     for path in file_path_list:
         data = get_alignment_data(path)
@@ -155,7 +155,7 @@ def remove_MSAs_with_not_enough_seq_and_locis(file_path_list, min_seq, min_n_loc
             continue
         n_seq = len(data)
         n_loci = len(data[0])
-        if n_seq >= min_seq and n_loci>= min_n_loci:
+        if n_seq >= min_n_seq and n_seq<=max_n_seq and n_loci>= min_n_loci:
             proper_file_path_list.append(path)
     return proper_file_path_list
 

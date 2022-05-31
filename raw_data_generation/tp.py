@@ -63,7 +63,7 @@ def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
         if args.MSAs_pool_size > 0:
             file_path_list = file_path_list[:args.MSAs_pool_size]
     logging.info("There are overall {nMSAs} available MSAs ".format(nMSAs=len(file_path_list)))
-    file_path_list_full = remove_MSAs_with_not_enough_seq_and_locis(file_path_list, args.min_n_seq, args.min_n_loci)
+    file_path_list_full = remove_MSAs_with_not_enough_seq_and_locis(file_path_list, args.min_n_seq, args.max_n_seq, args.min_n_loci)
     test_msa_path = file_path_list_full[0]
     trim_MSA(test_msa_path, trimmed_test_msa_path, number_of_sequences=10, max_n_loci=500, loci_shift=0)
     logging.debug("Alignment files are " + str(file_path_list))

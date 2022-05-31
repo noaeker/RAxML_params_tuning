@@ -1,6 +1,6 @@
 
 from side_code.config import *
-from raw_data_sampling_analysis.job_runner_side_funcs import random_and_parsimony_job_parser,get_sampling_job_related_files_paths
+from raw_data_aggregation_analysis.job_runner_side_funcs import random_and_parsimony_job_parser,get_sampling_job_related_files_paths
 import pandas as pd
 import pickle
 
