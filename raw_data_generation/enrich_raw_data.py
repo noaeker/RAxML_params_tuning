@@ -66,7 +66,7 @@ def process_all_msa_RAxML_runs(curr_run_directory, given_msa_data):
 
 
 def main():
-    raw_data = pd.read_csv('/Users/noa/Workspace/raxml_deep_learning_results/current_raw_results/global_csv.tsv', sep=CSV_SEP)
+    raw_data = pd.read_csv('/Users/noa/Workspace/raxml_deep_learning_results/current_raw_results/global_csv_new.tsv', sep=CSV_SEP)
     curr_run_directory = '/Users/noa/Workspace/raxml_deep_learning_results/current_raw_results'
     enriched_datasets = []
     for msa in raw_data["msa_path"].unique():
@@ -74,7 +74,7 @@ def main():
         msa_enriched_data = process_all_msa_RAxML_runs(curr_run_directory,msa_data)
         enriched_datasets.append(msa_enriched_data)
     enriched_data = pd.concat(enriched_datasets)
-    enriched_data.to_csv('/Users/noa/Workspace/raxml_deep_learning_results/current_raw_results/global_csv_enriched.tsv', sep = CSV_SEP)
+    enriched_data.to_csv('/Users/noa/Workspace/raxml_deep_learning_results/current_raw_results/global_csv_enriched_new.tsv', sep = CSV_SEP)
 
 if __name__ == "__main__":
     main()

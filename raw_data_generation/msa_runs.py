@@ -120,7 +120,7 @@ def get_param_obj(param_grid_dict_str):
     param_grid_obj = {}
     for param_name in param_grid_dict_str:
         if param_grid_dict_str[param_name] != "default":
-            linspace = str_to_linspace(param_grid_dict_str[param_name])
+            linspace = [float(x) for x in str.split(param_grid_dict_str[param_name],"_")]
             param_grid_obj[param_name] = linspace
     param_obj = (ParameterGrid(param_grid_obj))
     return param_obj

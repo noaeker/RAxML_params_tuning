@@ -160,13 +160,19 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
         stop_running_path = job_tracking_dict[job_ind]["job_local_stop_running_path"]
         with open(stop_running_path,'w') as STOP_RUNNING:
             STOP_RUNNING.write("Stop running message")
-    while sum([(not is_job_done(job_tracking_dict[job_ind]["job_log_folder"])) for job_ind in job_tracking_dict])>0: #wait until jobs are cancelled
-        time.sleep(10)
-    logging.info("All jobs are done! About to remove all remaining folders")
-    for job_ind in list(job_tracking_dict.keys()): # remove all remaining folders
-        if os.path.exists(job_tracking_dict[job_ind]["job_entire_folder"]):
-            logging.info(f"Deleting {job_ind} folder")
-            rmtree(job_tracking_dict[job_ind]["job_entire_folder"])  # d
+    #while sum([(not is_job_done(job_tracking_dict[job_ind]["job_log_folder"])) for job_ind in job_tracking_dict])>0: #wait until jobs are cancelled
+    #    time.sleep(10)
+    #logging.info("All jobs are done! About to remove all remaining folders")
+    while len(job_tracking_dict)>0:
+        for job_ind in list(job_tracking_dict.keys()): # remove all remaining folders
+            try:
+                if os.path.exists(job_tracking_dict[job_ind]["job_entire_folder"]):
+                    logging.info(f"Deleting {job_ind} folder")
+                    rmtree(job_tracking_dict[job_ind]["job_entire_folder"])
+                    del job_tracking_dict[job_ind]
+            except Exception:
+                pass
+        time.sleep()
 
 
 
