@@ -172,7 +172,7 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
                     del job_tracking_dict[job_ind]
             except Exception:
                 pass
-        time.sleep()
+        time.sleep(15)
 
 
 
