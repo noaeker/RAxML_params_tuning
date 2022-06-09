@@ -1,5 +1,6 @@
 from side_code.config import *
 from side_code.file_handling import create_dir_if_not_exists
+from side_code.MSA_manipulation import remove_env_path_prefix
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -58,16 +59,17 @@ def variable_importance(X_train, rf_model):
 
 
 def rf_regressor(X_train, y_train, path):
-    if os.path.exists(path):
-        rf = pickle.load(open(path, 'rb'))
-    else:
-        #rf = RandomForestRegressor(n_estimators=100, random_state=42)
+    #if os.path.exists(path):
+
+        #rf = pickle.load(open(path, 'rb'))
+    #else:
+        #rf = RandomForestRegressor(n_estimators=10, random_state=42)
         #rf.fit(X_train, y_train)
         #pickle.dump(rf, open(path, 'wb'))
         gbm_reg = lightgbm.LGBMRegressor()
         gbm_reg.fit(X_train, y_train)
         # Calculate the absolute errors
-    return gbm_reg
+        return gbm_reg
 
 
 def plot_full_data_metrics(full_data, epsilon):
@@ -75,7 +77,7 @@ def plot_full_data_metrics(full_data, epsilon):
     full_data = full_data[full_data["msa_name"]==first_msa]
 
 
-    allowed_actual_error_data = full_data[(full_data["mean_Err_normalized"] > epsilon)]
+    allowed_actual_error_data = full_data[(full_data["pct_global"] > epsilon)]
     allowed_actual_error_data["total_starting_points"] = allowed_actual_error_data["n_parsimony"]+allowed_actual_error_data["n_random"]
     actual_best_time_per_msa = pd.merge(allowed_actual_error_data,
                                         allowed_actual_error_data.groupby("msa_name").agg(
@@ -165,13 +167,13 @@ def train_rf_models(data_dict):
 
 def split_to_train_and_test(full_data, data_feature_names, search_feature_names):
     train_data, test_data, validation_data = train_test_validation_splits(
-        full_data, test_pct=0.2, val_pct=0)
+        full_data, test_pct=0.1, val_pct=0)
     X_train = train_data[data_feature_names + search_feature_names]
-    y_train_err = train_data["mean_Err_normalized"]
-    y_train_time = train_data["running_time_vs_default"]
+    y_train_err = train_data["pct_global"]
+    y_train_time = train_data["avg_time"]
     X_test = test_data[data_feature_names + search_feature_names]
-    y_test_err = test_data["mean_Err_normalized"]
-    y_test_time = test_data["running_time_vs_default"]
+    y_test_err = test_data["pct_global"]
+    y_test_time = test_data["avg_time"]
     return {"X_train": X_train, "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test": X_test,
             "y_test_err": y_test_err, "y_test_time": y_test_time, "full_test_data": test_data}
 
@@ -179,22 +181,31 @@ def split_to_train_and_test(full_data, data_feature_names, search_feature_names)
 def main():
     epsilon = -1 * (10 ** -4)
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ML_data_path', action='store', type=str,
-                        default=f"{ML_RESULTS_FOLDER}/final_ML_dataset{CSV_SUFFIX}")
+    parser.add_argument('--data_path', action='store', type=str,
+                        default=f"/Users/noa/Workspace/raxml_deep_learning_results/current_raw_results/global_csv_enriched_agg.tsv")
+    parser.add_argument('--features_path', action='store', type=str,
+                        default=f"/Users/noa/Workspace/raxml_deep_learning_results/current_ML_results/features{CSV_SUFFIX}")
+
     args = parser.parse_args()
+    features = pd.read_csv(args.features_path, sep=CSV_SEP)
+    data = pd.read_csv(args.data_path, sep=CSV_SEP)
+    data["avg_time"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["avg_time"]
+    data["pct_global"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["pct_global"]
+    features["msa_name"] = features["msa_path"].apply(lambda s: remove_env_path_prefix(s))
+    data["msa_name"] = data["msa_path"].apply(lambda s: remove_env_path_prefix(s))
+    data["starting_tree_bool"] = data["starting_tree_type"]=="pars"
+    full_data = data.merge(features, on = "msa_name")
+
     all_jobs_general_log_file = os.path.join(ML_RESULTS_FOLDER, "ML_log_file.log")
     create_dir_if_not_exists(ML_RESULTS_FOLDER)
     logging_level = logging.INFO
     logging.basicConfig(filename=all_jobs_general_log_file, level=logging_level)
-
-    full_data = pd.read_csv(args.ML_data_path, sep=CSV_SEP)
-    data_features = ['n_seq', 'n_loci'] + [col for col in full_data.columns if col.startswith("feature_")]
-    search_features = ['spr_radius', 'spr_cutoff', 'n_parsimony',
-                       'n_random']
-    data_dict = split_to_train_and_test(full_data, data_features, search_features)
+    msa_features = ['n_seq', 'n_loci'] + [col for col in full_data.columns if col.startswith("feature_")]
+    search_features = ['spr_radius', 'spr_cutoff', 'starting_tree_bool']
+    data_dict = split_to_train_and_test(full_data, msa_features, search_features)
     rf_mod_err, rf_mod_time = train_rf_models(data_dict)
 
-    plot_full_data_metrics(full_data, epsilon)
+    #plot_full_data_metrics(full_data, epsilon)
     #grid_search_time_and_rf(rf_mod_err, rf_mod_time, data_dict, epsilon)
 
 

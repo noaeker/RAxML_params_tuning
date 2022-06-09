@@ -145,6 +145,10 @@ def alignment_list_to_df(alignment_data):
     original_alignment_df = pd.DataFrame(alignment_list, columns=columns)
     return original_alignment_df
 
+def remove_env_path_prefix(path):
+    path = path.replace("/groups/pupko/noaeker/", "")
+    path = path.replace("/Users/noa/Workspace/","")
+    return  path
 
 
 def remove_MSAs_with_not_enough_seq_and_locis(file_path_list, min_n_seq, max_n_seq, min_n_loci):

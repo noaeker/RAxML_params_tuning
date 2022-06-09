@@ -227,7 +227,7 @@ def main():
     with open(arguments_path, 'w') as JOB_ARGUMENTS:
         JOB_ARGUMENTS.write(f"Arguments are: {args}")
     logging.info('#Started running')
-    global_results_folder = os.path.join(RESULTS_FOLDER, f'global_shared_results_{args.run_prefix}')
+    global_results_folder = os.path.join(RESULTS_FOLDER, f'global_shared_results_{args.existing_global_data_to_use if args.existing_global_data_to_use is not None else args.run_prefix}')
     global_results_path = os.path.join(global_results_folder, 'global_results_dict')
     file_paths_path = os.path.join(global_results_folder, f"global_file_paths_{args.run_prefix}")
     trimmed_test_msa_path = os.path.join(global_results_folder, "TEST_MSA")
@@ -253,6 +253,8 @@ def main():
         logging.info(f"iteration {i} starts, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         total_tasks = move_current_tasks_from_pool_to_file(file_paths_path, current_tasks_path, trees_run_directory, args)
         # Perform pipeline on current MSA, making sure that all tasks in current_tasks_pool are performed.
+        curr_iterartion_results_folder = os.path.join(all_jobs_results_folder,f"iter_{i}")
+        os.mkdir(curr_iterartion_results_folder)
         current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_results_path, global_csv_path, all_jobs_results_folder, total_tasks,
                                args)
         # Final procedures

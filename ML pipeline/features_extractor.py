@@ -1,7 +1,7 @@
 from side_code.SPR_moves import *
 from side_code.raxml import *
 from side_code.basic_trees_manipulation import *
-from side_code.MSA_manipulation import get_msa_data, get_msa_name
+from side_code.MSA_manipulation import get_alignment_data, get_msa_name
 from side_code.file_handling import create_or_clean_dir, create_dir_if_not_exists
 from side_code.MSA_manipulation import get_alignment_data,alignment_list_to_df
 from side_code.config import *
@@ -25,9 +25,9 @@ def get_positions_stats(msa_path):
 
 
 def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
-    msa_features_path = os.path.join(existing_features_dir, f'msa_{i}')
+    msa_features_path = os.path.join(existing_features_dir, msa_path.replace('/','_'))
     create_dir_if_not_exists(msa_features_path)
-    msa_data = get_msa_data(msa_path, 'fasta')
+    msa_data = get_alignment_data(msa_path)
     n_seq, n_loci = len(msa_data), len(msa_data[0].seq)
     msa_path_no_extension = os.path.splitext(msa_path)[0]
     if re.search('\w+D[\da-z]+', msa_path_no_extension.split(os.sep)[-2]) is not None:
@@ -81,11 +81,10 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
                                 "random_trees_ll_on_data" :random_trees_ll_on_data,"random_trees_path" :local_random_path,
 
                                 }
-        parsimony_tree_objects = generate_multiple_tree_object_from_newick(parsimony_trees_path)
 
         pickle.dump(trees_data,open(features_path,'wb'))
 
-
+    parsimony_tree_objects = generate_multiple_tree_object_from_newick(parsimony_trees_path)
     tree_features_dict = {'feature_avg_tree_divergence': np.mean([compute_tree_divergence(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
                           'feature_var_tree_divergence': np.var(
                               [compute_tree_divergence(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
@@ -94,7 +93,7 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
                               [compute_largest_branch_length(parsimony_tree) for parsimony_tree in
                                parsimony_tree_objects]),
                           'feature_avg_largest_distance_between_taxa': np.mean([max_distance_between_leaves(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
-                          'feature_avg_tree_MAD': np.mean([mad_tree_parameter(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
+                          'feature_avg_tree_MAD': np.mean([mad_tree_parameter(curr_run_directory,parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
                           'feature_avg_parsimony_rf_dist': np.mean(parsimony_rf_distances),
                           'feature_mean_unique_topolgies_rf_dist': np.mean(parsimony_rf_distances>0),
                           'feature_max_parsimony_rf_dist': np.max(parsimony_rf_distances),
@@ -116,13 +115,13 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
 
 
 def main():
-    overall_data_path = f"{DATASETS_FOLDER}/full_raxml_data{CSV_SUFFIX}"
-    out_path = f"{ML_RESULTS_FOLDER}/features{CSV_SUFFIX}"
+    overall_data_path = f"/Users/noa/Workspace/raxml_deep_learning_results/current_raw_results/global_csv_enriched_agg.tsv"
+    out_path = f"/Users/noa/Workspace/raxml_deep_learning_results/current_ML_results/features{CSV_SUFFIX}"
     curr_run_directory = os.path.join(RESULTS_FOLDER, "features_extraction_test")
     existing_features_dir = os.path.join(RESULTS_FOLDER, "features_per_msa_dump")
     create_dir_if_not_exists(existing_features_dir)
     data = pd.read_csv(overall_data_path, sep=CSV_SEP)
-    msa_paths = list(np.unique(data["original_alignment_path"]))
+    msa_paths = list(np.unique(data["msa_path"]))
     if LOCAL_RUN:
         msa_paths = [msa_path.replace("/groups/pupko/noaeker/", "/Users/noa/Workspace/") for msa_path in msa_paths]
         msa_paths = [msa_path.replace("/groups/pupko/noaeker/", "/Users/noa/Workspace/") for msa_path in msa_paths]

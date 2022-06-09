@@ -1,0 +1,100 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+raw_data = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/current_raw_results/global_csv_enriched_new.tsv")
+
+raw_data <- raw_data %>% mutate(msa_path = str_replace(msa_path,"/groups/pupko/noaeker/",""))
+
+features_data = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/current_ML_results/features.tsv")
+features_data <- features_data %>% mutate(msa_path = str_replace(msa_path,"/Users/noa/Workspace/",""))
+```
+
+
+
+
+```{r}
+raw_data_default = raw_data %>% filter (type=="default") %>% select (msa_path,spr_cutoff, spr_radius, starting_tree_type, delta_ll_from_overall_msa_best_topology, starting_tree_ind) %>% rename(default_spr_radius = spr_radius, default_spr_cutoff = spr_cutoff, default_starting_tree_type = starting_tree_type, default_delta_ll = delta_ll_from_overall_msa_best_topology)
+
+raw_data_non_default = raw_data %>% filter (type=="default") %>% select (msa_path,spr_cutoff, spr_radius, starting_tree_type, delta_ll_from_overall_msa_best_topology,starting_tree_ind) 
+
+raw_data_non_default %>% inner_join(raw_data_default, on = c("msa_path" = "msa_path","spr_cutoff" = "default_spr_cutoff", "spr_radius" = "default_spr_radius", "starting_tree_type" = "default_starting_tree_type", "starting_tree_ind" = "starting_tree_ind" )) %>% filter (abs(delta_ll_from_overall_msa_best_topology-default_delta_ll)>3)
+
+```
+
+
+
+
+```{r}
+raw_data_with_features <- raw_data %>% mutate(normalized_time = elapsed_running_time/test_norm_const) %>% inner_join (features_data, by="msa_path") %>% mutate(is_global_max =delta_ll_from_overall_msa_best_topology==0)
+
+agg_data_non_default<- raw_data_with_features %>% filter (type!="default") %>% group_by(msa_path,spr_radius,spr_cutoff,starting_tree_type, n_seq, n_loci,feature_avg_parsimony_rf_dist, feature_constant_sites_pct, feature_gap_positions_pct) %>% summarize (mean_global = mean(delta_ll_from_overall_msa_best_topology==0), sum_global = sum(delta_ll_from_overall_msa_best_topology==0) , mean_time = mean(normalized_time) ) %>% ungroup()
+
+
+msas = agg_data_non_default %>% distinct (msa_path) %>% pull(msa_path)
+example_msa = pluck(msas,23)
+agg_data_non_default %>% filter(msa_path==example_msa) %>% ggplot(aes(y=mean_global, x = spr_radius, color = starting_tree_type )) + geom_point(size =1)+ geom_line()+ facet_grid(rows = vars(spr_cutoff))+expand_limits( y = 0)
+
+```
+
+
+
+```{r}
+library(InformationValue)
+
+msas = raw_data_with_features %>% distinct (msa_path) %>% pull(msa_path)
+test_sampled_msas = msas[sample(1:length(msas),3)]
+test<-  raw_data_with_features %>% filter (msa_path %in% test_sampled_msas)
+train<-  raw_data_with_features %>% filter (!(msa_path %in% test_sampled_msas))
+
+#sample <- sample(c(TRUE, FALSE), nrow(raw_data_with_features), replace=TRUE, prob=c(0.7,0.3))
+#train <- raw_data_with_features[sample, ]
+#test <- raw_data_with_features[!sample, ] 
+
+
+bin_glm<-  glm(is_global_max ~ n_seq + n_loci +feature_avg_parsimony_rf_dist+spr_radius+
+                 spr_radius*spr_cutoff+ spr_cutoff+starting_tree_type+feature_constant_sites_pct+feature_gap_positions_pct+ starting_tree_ll, data = train, family = "binomial")
+caret::varImp(bin_glm)
+
+nullmod <- glm(is_global_max ~1,data = train , family="binomial")
+r2 = 1-logLik(bin_glm)/logLik(nullmod)
+print(r2)
+summary(bin_glm)
+
+
+```
+
+```{r}
+test_predictions<- predict(bin_glm, test, type="response")
+
+optimal <- optimalCutoff(test$is_global_max ,test_predictions)[1]
+
+confusionMatrix(test$is_global_max ,test_predictions)
+
+sensitivity(test$is_global_max ,test_predictions)
+specificity(test$is_global_max ,test_predictions)
+misClassError(test$is_global_max ,test_predictions)
+plotROC(test$is_global_max ,test_predictions)
+```
+```{r}
+library(randomForest)
+iris.rf <- randomForest(is_global_max ~ n_seq + n_loci +feature_avg_parsimony_rf_dist+spr_radius+
+                 spr_radius*spr_cutoff+ spr_cutoff+starting_tree_type+feature_constant_sites_pct+feature_gap_positions_pct+ starting_tree_ll, data = train, 
+                        importance = TRUE,
+                        proximity = TRUE)
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

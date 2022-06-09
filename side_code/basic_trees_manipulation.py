@@ -94,8 +94,8 @@ def max_distance_between_leaves(tree):
     return max_dist
 
 
-def mad_tree_parameter(tree_object):
-        tree_path = os.path.join(RESULTS_FOLDER,"trees_mad")
+def mad_tree_parameter(curr_run_directory,tree_object):
+        tree_path = os.path.join(curr_run_directory,"trees_mad")
         with open( tree_path,'w') as MAD:
             MAD.write(tree_object.write(format=1))
         mad_command = "{mad_exe_path} -t -s {tree_path}".format(mad_exe_path=MAD_COMMAND_PREFIX,
