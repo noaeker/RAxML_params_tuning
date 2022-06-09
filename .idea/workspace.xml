@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="" />
+    <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/raw_data_generation/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/side_code/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/config.py" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,18 +18,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="136">
               <caret line="63" selection-start-line="63" selection-end-line="63" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/side_code/basic_trees_manipulation.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2112">
-              <caret line="96" column="22" selection-start-line="96" selection-start-column="4" selection-end-line="96" selection-end-column="22" />
-              <folding>
-                <element signature="e#2#72#0" expanded="true" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -70,8 +61,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/side_code/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="815">
-              <caret line="68" column="25" lean-forward="true" selection-start-line="68" selection-start-column="25" selection-end-line="68" selection-end-column="25" />
+            <state relative-caret-position="249">
+              <caret line="34" column="20" selection-start-line="34" selection-start-column="20" selection-end-line="34" selection-end-column="20" />
               <folding>
                 <element signature="e#0#24#0" expanded="true" />
               </folding>
@@ -112,8 +103,20 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="318">
-              <caret line="271" column="42" selection-start-line="271" selection-start-column="42" selection-end-line="271" selection-end-column="42" />
+            <state relative-caret-position="192">
+              <caret line="200" column="42" selection-start-line="200" selection-start-column="42" selection-end-line="200" selection-end-column="42" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/side_code/raxml.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="136">
+              <caret line="200" selection-start-line="200" selection-end-line="200" />
+              <folding>
+                <element signature="e#1#31#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -129,13 +132,11 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>get_predicted_outcome_per_test_msa</find>
       <find>queue</find>
       <find>full_test_data</find>
       <find>submit_linux_job</find>
       <find>shutil.</find>
       <find>shutil</find>
-      <find>move_current_tasks_from_pool_to_file</find>
       <find>logging.info(f&quot;Job {job_ind}</find>
       <find>train</find>
       <find>update_results_tasks_and_jobs</find>
@@ -152,13 +153,15 @@
       <find>update_tasks_and_results</find>
       <find>str_to_linspace</find>
       <find>Done with the current tasks bunch</find>
-      <find>current_tasks_pipeline</find>
       <find>mad</find>
       <find>mad_tree_parameter</find>
       <find>rf_metrics</find>
       <find>check_jobs_status</find>
       <find>extract_alignment_files_from_general_csv</find>
       <find>curr_iterartion_results_folder</find>
+      <find>max_n_tasks_per_job</find>
+      <find>current_tasks_pipeline</find>
+      <find>move_current_tasks_from_pool_to_file</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -206,7 +209,6 @@
         <option value="$PROJECT_DIR$/side_code/file_handling.py" />
         <option value="$PROJECT_DIR$/raw_data_aggregation_analysis/aggregate_current_results.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/enrich_raw_data.py" />
-        <option value="$PROJECT_DIR$/side_code/config.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/msa_runs.py" />
         <option value="$PROJECT_DIR$/side_code/MSA_manipulation.py" />
         <option value="$PROJECT_DIR$/side_code/basic_trees_manipulation.py" />
@@ -217,6 +219,7 @@
         <option value="$PROJECT_DIR$/ML pipeline/ML_pipeline_raw_results.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/tune_params.py" />
+        <option value="$PROJECT_DIR$/side_code/config.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
       </list>
     </option>
@@ -241,22 +244,7 @@
             <path>
               <item name="RAxML_params_tuning" type="b2602c69:ProjectViewProjectNode" />
               <item name="RAxML_params_tuning" type="462c0819:PsiDirectoryNode" />
-              <item name="ML pipeline" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="RAxML_params_tuning" type="b2602c69:ProjectViewProjectNode" />
-              <item name="RAxML_params_tuning" type="462c0819:PsiDirectoryNode" />
-              <item name="R_code" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="RAxML_params_tuning" type="b2602c69:ProjectViewProjectNode" />
-              <item name="RAxML_params_tuning" type="462c0819:PsiDirectoryNode" />
-              <item name="raw_data_aggregation_analysis" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="RAxML_params_tuning" type="b2602c69:ProjectViewProjectNode" />
-              <item name="RAxML_params_tuning" type="462c0819:PsiDirectoryNode" />
-              <item name="raw_data_generation" type="462c0819:PsiDirectoryNode" />
+              <item name="side_code" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -439,14 +427,14 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.49682876" weight="0.25735295" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.63002115" visible="true" weight="0.2632353" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.57857645" weight="0.3632353" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.63002115" weight="0.2632353" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" sideWeight="0.57787174" visible="true" weight="0.3632353" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="7" sideWeight="0.6913319" weight="0.27794117" />
       <window_info anchor="bottom" id="Terminal" order="8" weight="0.32833582" />
-      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.36997885" side_tool="true" visible="true" weight="0.2632353" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.42212826" side_tool="true" visible="true" weight="0.3632353" />
       <window_info anchor="bottom" id="Python Console" order="10" weight="0.11844078" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -561,90 +549,90 @@
           <line>214</line>
           <option name="timeStamp" value="87" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/side_code/code_submission.py</url>
           <line>13</line>
           <option name="timeStamp" value="119" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>250</line>
+          <line>252</line>
           <option name="timeStamp" value="134" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/side_code/basic_trees_manipulation.py</url>
           <line>97</line>
           <option name="timeStamp" value="148" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/enrich_raw_data.py</url>
           <line>9</line>
           <option name="timeStamp" value="153" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ML pipeline/features_extractor.py</url>
           <line>45</line>
           <option name="timeStamp" value="166" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/side_code/raxml.py</url>
           <line>25</line>
           <option name="timeStamp" value="174" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ML pipeline/data_enrichment_for_ML.py</url>
           <line>47</line>
           <option name="timeStamp" value="176" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
           <line>163</line>
           <option name="timeStamp" value="193" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ML pipeline/ML_pipeline_aggergated_data.py</url>
           <line>76</line>
           <option name="timeStamp" value="195" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ML pipeline/ML_pipeline_aggergated_data.py</url>
           <line>87</line>
           <option name="timeStamp" value="196" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/side_code/raxml.py</url>
-          <line>200</line>
-          <option name="timeStamp" value="213" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/enrich_raw_data.py</url>
           <line>71</line>
           <option name="timeStamp" value="221" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ML pipeline/features_extractor.py</url>
           <line>30</line>
           <option name="timeStamp" value="230" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ML pipeline/ML_pipeline_aggergated_data.py</url>
           <line>176</line>
           <option name="timeStamp" value="231" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_aggregation_analysis/aggregate_raw_data.py</url>
           <line>50</line>
           <option name="timeStamp" value="249" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ML pipeline/ML_pipeline_raw_results.py</url>
           <line>185</line>
           <option name="timeStamp" value="251" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+        <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ML pipeline/ML_pipeline_aggergated_data.py</url>
           <line>191</line>
           <option name="timeStamp" value="252" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
+          <line>199</line>
+          <option name="timeStamp" value="253" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -928,16 +916,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/side_code/raxml.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="58">
-          <caret line="202" column="34" selection-start-line="202" selection-start-column="34" selection-end-line="202" selection-end-column="34" />
-          <folding>
-            <element signature="e#1#31#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_aggregation_analysis/random_and_parsimony_sampling.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="22">
@@ -972,9 +950,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="100">
           <caret line="14" column="54" lean-forward="true" selection-start-line="14" selection-start-column="54" selection-end-line="14" selection-end-column="54" />
-          <folding>
-            <element signature="e#1#31#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -982,9 +957,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-857">
           <caret line="15" column="38" lean-forward="true" selection-start-line="15" selection-start-column="38" selection-end-line="15" selection-end-column="38" />
-          <folding>
-            <element signature="e#1#61#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -992,9 +964,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="522">
           <caret line="132" column="38" selection-start-line="132" selection-start-column="38" selection-end-line="132" selection-end-column="38" />
-          <folding>
-            <element signature="e#0#33#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1002,9 +971,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2112">
           <caret line="96" column="22" selection-start-line="96" selection-start-column="4" selection-end-line="96" selection-end-column="22" />
-          <folding>
-            <element signature="e#2#72#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1052,16 +1018,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/side_code/config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="815">
-          <caret line="68" column="25" lean-forward="true" selection-start-line="68" selection-start-column="25" selection-end-line="68" selection-end-column="25" />
-          <folding>
-            <element signature="e#0#24#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_generation/tune_params.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="136">
@@ -1079,10 +1035,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/side_code/raxml.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="136">
+          <caret line="200" selection-start-line="200" selection-end-line="200" />
+          <folding>
+            <element signature="e#1#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/side_code/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="249">
+          <caret line="34" column="20" selection-start-line="34" selection-start-column="20" selection-end-line="34" selection-end-column="20" />
+          <folding>
+            <element signature="e#0#24#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="318">
-          <caret line="271" column="42" selection-start-line="271" selection-start-column="42" selection-end-line="271" selection-end-column="42" />
+        <state relative-caret-position="192">
+          <caret line="200" column="42" selection-start-line="200" selection-start-column="42" selection-end-line="200" selection-end-column="42" />
         </state>
       </provider>
     </entry>
