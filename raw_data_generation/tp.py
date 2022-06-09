@@ -256,7 +256,7 @@ def main():
         # Perform pipeline on current MSA, making sure that all tasks in current_tasks_pool are performed.
         curr_iterartion_results_folder = os.path.join(all_jobs_results_folder,f"iter_{i}")
         os.mkdir(curr_iterartion_results_folder)
-        current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_results_path, global_csv_path, all_jobs_results_folder, total_tasks,
+        current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_results_path, global_csv_path, curr_iterartion_results_folder, total_tasks,
                                args)
         # Final procedures
         target_msas_list = pickle.load(open(file_paths_path, "rb"))  # Update new tasks.
@@ -269,7 +269,7 @@ def main():
             pass
         logging.info(f"iteration {i} done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         logging.info(f"So far done with {total_msas_done}/{total_msas_overall} of the MSAs ")
-
+        rmtree(curr_iterartion_results_folder)
 
     logging.info(f"Done with all MSAs")
 

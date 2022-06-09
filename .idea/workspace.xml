@@ -114,8 +114,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="275">
-              <caret line="232" column="89" selection-start-line="232" selection-start-column="89" selection-end-line="232" selection-end-column="89" />
+            <state relative-caret-position="318">
+              <caret line="271" column="45" selection-start-line="271" selection-start-column="45" selection-end-line="271" selection-end-column="45" />
             </state>
           </provider>
         </entry>
@@ -131,7 +131,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>process_all_msa_RAxML_runs</find>
       <find>get_predicted_outcome_per_test_msa</find>
       <find>queue</find>
       <find>full_test_data</find>
@@ -161,6 +160,7 @@
       <find>rf_metrics</find>
       <find>check_jobs_status</find>
       <find>extract_alignment_files_from_general_csv</find>
+      <find>curr_iterartion_results_folder</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -436,12 +436,12 @@
     <frame x="0" y="64" width="1440" height="772" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.21071176" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.21071176" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.49682876" weight="0.25735295" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.63002115" visible="true" weight="0.2632353" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.63002115" visible="true" weight="0.2632353" />
       <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.57857645" weight="0.3632353" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -1083,8 +1083,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="275">
-          <caret line="232" column="89" selection-start-line="232" selection-start-column="89" selection-end-line="232" selection-end-column="89" />
+        <state relative-caret-position="318">
+          <caret line="271" column="45" selection-start-line="271" selection-start-column="45" selection-end-line="271" selection-end-column="45" />
         </state>
       </provider>
     </entry>
