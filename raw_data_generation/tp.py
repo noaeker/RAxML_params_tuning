@@ -227,9 +227,10 @@ def main():
     with open(arguments_path, 'w') as JOB_ARGUMENTS:
         JOB_ARGUMENTS.write(f"Arguments are: {args}")
     logging.info('#Started running')
-    global_results_folder = os.path.join(RESULTS_FOLDER, f'global_shared_results_{args.existing_global_data_to_use if args.existing_global_data_to_use is not None else args.run_prefix}')
+    run_prefix = args.existing_global_data_to_use if args.existing_global_data_to_use is not None else args.run_prefix
+    global_results_folder = os.path.join(RESULTS_FOLDER, f'global_shared_results_{run_prefix}')
     global_results_path = os.path.join(global_results_folder, 'global_results_dict')
-    file_paths_path = os.path.join(global_results_folder, f"global_file_paths_{args.run_prefix}")
+    file_paths_path = os.path.join(global_results_folder, f"global_file_paths_{run_prefix}")
     trimmed_test_msa_path = os.path.join(global_results_folder, "TEST_MSA")
     global_csv_path = os.path.join(global_results_folder, f'global_csv{CSV_SUFFIX}')
     current_tasks_path = os.path.join(global_results_folder, 'current_tasks')
