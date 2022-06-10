@@ -67,6 +67,11 @@ def raxml_run_on_test_msa(args, tmp_starting_tree_path):
 def main():
     parser = job_parser()
     args = parser.parse_args()
+    already_started_indication_file = os.path.join(args.curr_job_folder,"started")
+    if os.path.exists(already_started_indication_file):
+        return
+    with open(os.path.join(args.curr_job_folder,"started"),"w") as STARTED:
+        STARTED.write("STARTED!")
     job_related_file_paths = get_job_related_files_paths(args.curr_job_folder, args.job_ind)
     job_local_tasks_path, job_local_done_dump_path, general_log_path, job_local_stop_running_path = \
         job_related_file_paths[

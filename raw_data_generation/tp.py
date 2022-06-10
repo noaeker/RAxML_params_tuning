@@ -195,9 +195,9 @@ def move_current_tasks_from_pool_to_file(file_paths_path, current_tasks_path, tr
     :return: Choose a bunch of MSAs, generate tasks from them, and update the target MSAs list.
     '''
     if os.path.exists(current_tasks_path):
-        logging.info("Using existing tasks in {}")
         n_tasks_to_be_performed = len(pickle.load(open(current_tasks_path, "rb")))
         if n_tasks_to_be_performed  > 0:  # if there are currently tasks which are still not performed.
+            logging.info(f"Using existing tasks in {current_tasks_path}")
             return n_tasks_to_be_performed
     random.seed(SEED)
     target_msas_list = pickle.load(open(file_paths_path, "rb"))
