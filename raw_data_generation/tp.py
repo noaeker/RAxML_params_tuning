@@ -163,16 +163,17 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
     #while sum([(not is_job_done(job_tracking_dict[job_ind]["job_log_folder"])) for job_ind in job_tracking_dict])>0: #wait until jobs are cancelled
     #    time.sleep(10)
     #logging.info("All jobs are done! About to remove all remaining folders")
-    while len(job_tracking_dict)>0:
-        for job_ind in list(job_tracking_dict.keys()): # remove all remaining folders
-            try:
-                if os.path.exists(job_tracking_dict[job_ind]["job_entire_folder"]):
-                    logging.info(f"Deleting {job_ind} folder")
-                    rmtree(job_tracking_dict[job_ind]["job_entire_folder"])
-                    del job_tracking_dict[job_ind]
-            except Exception:
-                pass
-        time.sleep(15)
+    #while len(job_tracking_dict)>0:
+    for job_ind in list(job_tracking_dict.keys()): # remove all remaining folders
+        try:
+            if os.path.exists(job_tracking_dict[job_ind]["job_entire_folder"]):
+                logging.info(f"Deleting {job_ind} folder")
+                rmtree(job_tracking_dict[job_ind]["job_entire_folder"])
+                del job_tracking_dict[job_ind]
+        except Exception:
+            logging.info(f"Couldn't delete folder {job_tracking_dict[job_ind]['job_entire_folder']}")
+            pass
+        #time.sleep(15)
 
 
 
@@ -195,10 +196,10 @@ def move_current_tasks_from_pool_to_file(file_paths_path, current_tasks_path, tr
     :return: Choose a bunch of MSAs, generate tasks from them, and update the target MSAs list.
     '''
     if os.path.exists(current_tasks_path):
-        n_tasks_to_be_performed = len(pickle.load(open(current_tasks_path, "rb")))
-        if n_tasks_to_be_performed  > 0:  # if there are currently tasks which are still not performed.
-            logging.info(f"Using existing tasks in {current_tasks_path}")
-            return n_tasks_to_be_performed
+        existing_tasks = (pickle.load(open(current_tasks_path, "rb")))
+        logging.info("There are {} tasks left that will be added to current iteration")
+    else:
+        existing_tasks = {}
     random.seed(SEED)
     target_msas_list = pickle.load(open(file_paths_path, "rb"))
     current_target_MSAs = target_msas_list[:args.n_MSAs_per_bunch]
@@ -210,6 +211,7 @@ def move_current_tasks_from_pool_to_file(file_paths_path, current_tasks_path, tr
                                                  n_random_tree_objects_per_msa=args.n_raxml_random_trees,
                                                  curr_run_directory=trees_run_directory, seed=SEED)
 
+    tasks_dict.update(existing_tasks)
     logging.info(f"Writing {len(tasks_dict)} tasks belonging to {args.n_MSAs_per_bunch} MSAs to current tasks file : {current_tasks_path}")
     pickle.dump(tasks_dict, open(current_tasks_path, "wb"))
     rmtree(trees_run_directory)

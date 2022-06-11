@@ -126,7 +126,12 @@ def main():
         msa_paths = [msa_path.replace("/groups/pupko/noaeker/", "/Users/noa/Workspace/") for msa_path in msa_paths]
         msa_paths = [msa_path.replace("/groups/pupko/noaeker/", "/Users/noa/Workspace/") for msa_path in msa_paths]
     results = []
-    groups = data.groupby(["msa_path",""])
+    for i, msa_path in enumerate(msa_paths):
+        create_or_clean_dir(curr_run_directory)
+        msa_features = extract_features(msa_path,curr_run_directory,existing_features_dir, i)
+        results.append(msa_features)
+    results_df = pd.DataFrame(results)
+    results_df.to_csv(out_path, sep=CSV_SEP)
 
 
 if __name__ == "__main__":
