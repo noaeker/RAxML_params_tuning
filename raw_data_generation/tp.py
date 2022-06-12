@@ -197,7 +197,7 @@ def move_current_tasks_from_pool_to_file(file_paths_path, current_tasks_path, tr
     '''
     if os.path.exists(current_tasks_path):
         existing_tasks = (pickle.load(open(current_tasks_path, "rb")))
-        logging.info("There are {} tasks left that will be added to current iteration")
+        logging.info(f"There are {len(existing_tasks)} tasks left that will be added to current iteration")
     else:
         existing_tasks = {}
     random.seed(SEED)
@@ -273,7 +273,10 @@ def main():
             pass
         logging.info(f"iteration {i} done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         logging.info(f"So far done with {total_msas_done}/{total_msas_overall} of the MSAs ")
-        rmtree(curr_iterartion_results_folder)
+        try:
+            rmtree(curr_iterartion_results_folder)
+        except:
+            logging.info(f"Could not delete folder {curr_iterartion_results_folder}")
 
     logging.info(f"Done with all MSAs")
 
