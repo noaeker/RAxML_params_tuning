@@ -29,7 +29,6 @@ def tree_metrics(curr_run_directory,starting_tree_str):
     res = {"tree_divergence": compute_tree_divergence(tree_object),
         "tree_MAD" : mad_tree_parameter(curr_run_directory,tree_object),
            "largest_branch_length": compute_largest_branch_length(tree_object),
-           "largest_distance_between_taxa": max_distance_between_leaves(tree_object),
            "largest_distance_between_taxa": max_distance_between_leaves(tree_object)
 
      }
@@ -42,6 +41,8 @@ def main():
     curr_run_directory = os.path.join(RESULTS_FOLDER, "features_extraction")
     existing_features_dir = os.path.join(RESULTS_FOLDER, "features_per_msa_dump")
     create_dir_if_not_exists(existing_features_dir)
+    existing_msa_features_path= ""
+    existing_tree_features_path = ""
     raw_data = pd.read_csv(raw_data_path, sep=CSV_SEP)
     raw_data = raw_data.sample(n=10)
     raw_data["local_msa_path"] = raw_data["msa_path"].apply(lambda x: x.replace("/groups/pupko/noaeker/", "/Users/noa/Workspace/"))

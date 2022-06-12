@@ -254,7 +254,7 @@ def main():
     with open(all_jobs_general_log_file, 'w'):  # empty log file
         pass
     logging.info('#Started running')
-    run_prefix = args.existing_global_data_to_use if args.existing_global_data_to_use is not None else args.run_prefix
+    run_prefix = args.existing_global_data_to_use if args.existing_global_data_to_use is True else args.run_prefix
     global_results_folder = os.path.join(RESULTS_FOLDER, f'global_shared_results_{run_prefix}')
     global_results_path = os.path.join(global_results_folder, 'global_results_dict')
     file_paths_path = os.path.join(global_results_folder, f"global_file_paths_{run_prefix}")
