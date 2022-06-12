@@ -24,110 +24,32 @@ def get_positions_stats(msa_path):
     return {"feature_constant_sites_pct":constant_sites_pct,"feature_avg_entropy": avg_entropy, "feature_gap_positions_pct":gap_positions_pct}
 
 
-def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
-    msa_features_path = os.path.join(existing_features_dir, msa_path.replace('/','_'))
-    create_dir_if_not_exists(msa_features_path)
-    msa_data = get_alignment_data(msa_path)
-    n_seq, n_loci = len(msa_data), len(msa_data[0].seq)
-    msa_path_no_extension = os.path.splitext(msa_path)[0]
-    if re.search('\w+D[\da-z]+', msa_path_no_extension.split(os.sep)[-2]) is not None:
-        msa_type = "DNA"
-    else:
-        msa_type = "AA"
-    all_features = {"n_seq": n_seq, "n_loci": n_loci, "msa_path": msa_path,
-                    "msa_name": get_msa_name(msa_path, GENERAL_MSA_DIR)}
-    general_raxml_folder = os.path.join(curr_run_directory, "general_raxml_features")
-    os.mkdir(general_raxml_folder)
-    features_path = os.path.join(msa_features_path,"tree_features")
-    raxml_statistics = extract_raxml_statistics_from_msa(msa_path=msa_path, msa_type = msa_type,curr_run_directory =curr_run_directory,output_name = "MSA_features")
-    all_features.update(raxml_statistics)
-    positions_stats_dict = get_positions_stats(msa_path = msa_path)
-    all_features.update(positions_stats_dict)
-    if os.path.exists(features_path):
-        trees_data = pickle.load(open(features_path,"rb"))
-        parsimony_trees_ll_on_data = trees_data["parsimony_trees_ll_on_data"]
-        parsimony_trees_path = trees_data ["parsimony_trees_path"]
-        random_trees_ll_on_data = trees_data["random_trees_ll_on_data"]
-        random_trees_path = trees_data ["random_trees_path"]
-        parsimony_rf_distances = trees_data["parsimony_rf_distances"]
-    else:
-        several_parsimony_and_random_folder = os.path.join(curr_run_directory, f"parsimony_and_random_statistics_{i}")
-        os.mkdir(several_parsimony_and_random_folder)
-        parsimony_trees_path = generate_n_tree_topologies(30, msa_path, several_parsimony_and_random_folder,
-                                                          seed=SEED, tree_type="parsimony", msa_type=msa_type)
+def tree_metrics(curr_run_directory,starting_tree_str):
+    tree_object = generate_tree_object_from_newick(starting_tree_str)
+    res = {"tree_divergence": compute_tree_divergence(tree_object),
+        "tree_MAD" : mad_tree_parameter(curr_run_directory,tree_object),
+           "largest_branch_length": compute_largest_branch_length(tree_object),
+           "largest_distance_between_taxa": max_distance_between_leaves(tree_object),
+           "largest_distance_between_taxa": max_distance_between_leaves(tree_object)
 
-        parsimony_trees_ll_on_data, parsimony_trees_path = raxml_optimize_trees_for_given_msa(msa_path,
-                                                                                              f"{i}_parsimony_eval",
-                                                                                              parsimony_trees_path,
-                                                                                              several_parsimony_and_random_folder,
-                                                                                              msa_type, opt_brlen=True
-                                                                                              )
-        local_parsimony_path = f'{msa_features_path}/parsimony'
-        shutil.copy(parsimony_trees_path,local_parsimony_path)
-
-        random_trees_path = generate_n_tree_topologies(30, msa_path, several_parsimony_and_random_folder,
-                                                       seed=SEED, tree_type="random", msa_type=msa_type)
-        random_trees_ll_on_data, random_trees_path = raxml_optimize_trees_for_given_msa(msa_path, f"{i}_random_eval",
-                                                                                        random_trees_path,
-                                                                                        several_parsimony_and_random_folder,
-                                                                                        msa_type, opt_brlen=True
-                                                                                        )
-
-        local_random_path = f'{msa_features_path}/random'
-        shutil.copy(random_trees_path, local_random_path)
-        parsimony_rf_distances = np.array(RF_distances(curr_run_directory, parsimony_trees_path))
-
-        trees_data = {"parsimony_trees_ll_on_data" : parsimony_trees_ll_on_data, "parsimony_trees_path": local_parsimony_path,"parsimony_rf_distances":parsimony_rf_distances,
-                                "random_trees_ll_on_data" :random_trees_ll_on_data,"random_trees_path" :local_random_path,
-
-                                }
-
-        pickle.dump(trees_data,open(features_path,'wb'))
-
-    parsimony_tree_objects = generate_multiple_tree_object_from_newick(parsimony_trees_path)
-    tree_features_dict = {'feature_avg_tree_divergence': np.mean([compute_tree_divergence(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
-                          'feature_var_tree_divergence': np.var(
-                              [compute_tree_divergence(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
-                          'feature_avg_largest_branch_length': np.mean([compute_largest_branch_length(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
-                          'feature_var_largest_branch_length': np.var(
-                              [compute_largest_branch_length(parsimony_tree) for parsimony_tree in
-                               parsimony_tree_objects]),
-                          'feature_avg_largest_distance_between_taxa': np.mean([max_distance_between_leaves(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
-                          'feature_avg_tree_MAD': np.mean([mad_tree_parameter(curr_run_directory,parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
-                          'feature_avg_parsimony_rf_dist': np.mean(parsimony_rf_distances),
-                          'feature_mean_unique_topolgies_rf_dist': np.mean(parsimony_rf_distances>0),
-                          'feature_max_parsimony_rf_dist': np.max(parsimony_rf_distances),
-                          'feature_best_parsimony_vs_best_random': (
-                                      max(parsimony_trees_ll_on_data) - max(random_trees_ll_on_data)),
-                          'feature_worse_parsimony_vs_best_random': (
-                                  min(parsimony_trees_ll_on_data) - max(random_trees_ll_on_data)),
-                          'feature_best_parsimony_vs_worse_random': (
-                                  max(parsimony_trees_ll_on_data) - min(random_trees_ll_on_data)),
-                          'feature_parsimony_ll_var_vs_random_ll_var': (
-                                  np.var(parsimony_trees_ll_on_data) / np.var(random_trees_ll_on_data)),
-                          'feature_mean_parsimony_scores' :max(parsimony_trees_ll_on_data)-np.mean(random_trees_ll_on_data)
-                          #'distances_vs_ll_corr': np.corrcoef(np.array(distances), np.array(ll_improvements))[0, 1],
-
-                          }
-
-    all_features.update(tree_features_dict)
-    return all_features
+     }
+    return res
 
 
 def main():
     raw_data_path = f"/Users/noa/Workspace/raxml_deep_learning_results/current_raw_results/global_csv_enriched_new.tsv"
     out_path = f"/Users/noa/Workspace/raxml_deep_learning_results/current_ML_results/features{CSV_SUFFIX}"
-    curr_run_directory = os.path.join(RESULTS_FOLDER, "features_extraction_test")
+    curr_run_directory = os.path.join(RESULTS_FOLDER, "features_extraction")
     existing_features_dir = os.path.join(RESULTS_FOLDER, "features_per_msa_dump")
     create_dir_if_not_exists(existing_features_dir)
-    data = pd.read_csv(raw_data_path, sep=CSV_SEP)
-    msa_paths = list(np.unique(data["msa_path"]))
-    if LOCAL_RUN:
-        msa_paths = [msa_path.replace("/groups/pupko/noaeker/", "/Users/noa/Workspace/") for msa_path in msa_paths]
-        msa_paths = [msa_path.replace("/groups/pupko/noaeker/", "/Users/noa/Workspace/") for msa_path in msa_paths]
-    results = []
-    grouped
-
+    raw_data = pd.read_csv(raw_data_path, sep=CSV_SEP)
+    raw_data = raw_data.sample(n=10)
+    raw_data["local_msa_path"] = raw_data["msa_path"].apply(lambda x: x.replace("/groups/pupko/noaeker/", "/Users/noa/Workspace/"))
+    #msas_features = pd.DataFrame.from_dict({msa: get_positions_stats(msa) for msa in np.unique(raw_data["local_msa_path"])})
+    trees_features_data = raw_data[["msa_path","starting_tree_ind","starting_tree_object"]].drop_duplicates().reset_index()
+    tree_features = {(row["msa_path"]+str(row["starting_tree_ind"])) : tree_metrics(curr_run_directory,row["starting_tree_object"]) for index,row in trees_features_data.iterrows()}
+    pickle.dump(tree_features, open(features_path, 'wb'))
+    print(tree_features)
 
 if __name__ == "__main__":
     main()

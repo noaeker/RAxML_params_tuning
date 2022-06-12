@@ -2,10 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/ML pipeline/features_extractor.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML pipeline/features_extractor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ML pipeline/features_extractor_new_version.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML pipeline/features_extractor_new_version.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/raw_data_generation/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/side_code/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/config.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -37,19 +36,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ML pipeline/features_extractor_new_version.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="166">
-              <caret line="118" column="85" lean-forward="true" selection-start-line="118" selection-start-column="85" selection-end-line="118" selection-end-column="85" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/side_code/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="230">
-              <caret line="24" column="14" lean-forward="true" selection-start-line="24" selection-start-column="14" selection-end-line="24" selection-end-column="14" />
+            <state relative-caret-position="255">
+              <caret line="25" column="31" lean-forward="true" selection-start-line="25" selection-start-column="31" selection-end-line="25" selection-end-column="31" />
               <folding>
                 <element signature="e#0#24#0" expanded="true" />
               </folding>
@@ -58,19 +48,28 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ML pipeline/features_extractor.py">
+        <entry file="file://$PROJECT_DIR$/ML pipeline/features_extractor_new_version.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="498">
-              <caret line="127" column="16" lean-forward="true" selection-start-line="127" selection-start-column="16" selection-end-line="127" selection-end-column="16" />
+            <state relative-caret-position="117">
+              <caret line="43" column="51" lean-forward="true" selection-start-line="43" selection-start-column="51" selection-end-line="43" selection-end-column="51" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ML pipeline/features_extractor.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="163">
+              <caret line="84" column="8" selection-start-line="84" selection-start-column="8" selection-end-line="84" selection-end-column="56" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="206">
-              <caret line="28" column="87" selection-start-line="28" selection-start-column="87" selection-end-line="28" selection-end-column="87" />
+            <state relative-caret-position="51">
+              <caret line="28" column="88" selection-start-line="28" selection-start-column="88" selection-end-line="28" selection-end-column="88" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
               </folding>
@@ -78,11 +77,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="292">
-              <caret line="218" column="34" selection-start-line="218" selection-start-column="34" selection-end-line="218" selection-end-column="34" />
+            <state relative-caret-position="-581">
+              <caret line="230" lean-forward="true" selection-start-line="230" selection-end-line="230" />
             </state>
           </provider>
         </entry>
@@ -125,8 +124,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>shutil</find>
-      <find>logging.info(f&quot;Job {job_ind}</find>
       <find>train</find>
       <find>update_results_tasks_and_jobs</find>
       <find>submit_single</find>
@@ -155,6 +152,8 @@
       <find>to current tasks file</find>
       <find>update_tasks_and_results</find>
       <find>pdate existing tasks from folder</find>
+      <find>that will be added to current iteration</find>
+      <find>Update existing tasks from folder</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -209,11 +208,11 @@
         <option value="$PROJECT_DIR$/raw_data_aggregation_analysis/aggregate_raw_data.py" />
         <option value="$PROJECT_DIR$/ML pipeline/ML_pipeline_raw_results.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/tune_params.py" />
+        <option value="$PROJECT_DIR$/side_code/config.py" />
+        <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
         <option value="$PROJECT_DIR$/ML pipeline/features_extractor.py" />
         <option value="$PROJECT_DIR$/ML pipeline/features_extractor_new_version.py" />
-        <option value="$PROJECT_DIR$/side_code/config.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
-        <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
       </list>
     </option>
   </component>
@@ -233,6 +232,16 @@
             <path>
               <item name="RAxML_params_tuning" type="b2602c69:ProjectViewProjectNode" />
               <item name="RAxML_params_tuning" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RAxML_params_tuning" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RAxML_params_tuning" type="462c0819:PsiDirectoryNode" />
+              <item name="R_code" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="RAxML_params_tuning" type="b2602c69:ProjectViewProjectNode" />
+              <item name="RAxML_params_tuning" type="462c0819:PsiDirectoryNode" />
+              <item name="raw_data_aggregation_analysis" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="RAxML_params_tuning" type="b2602c69:ProjectViewProjectNode" />
@@ -281,7 +290,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.tp">
+  <component name="RunManager" selected="Python.features_extractor_new_version">
     <configuration name="ML_pipeline" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="RAxML_params_tuning" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -324,27 +333,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="aggregate_current_results" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="RAxML_params_tuning" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/raw_data_aggregation_analysis" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/raw_data_aggregation_analysis/aggregate_raw_data.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="features_extractor" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="RAxML_params_tuning" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -358,6 +346,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ML pipeline/features_extractor.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="features_extractor_new_version" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="RAxML_params_tuning" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/ML pipeline" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ML pipeline/features_extractor_new_version.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -389,18 +398,18 @@
     </configuration>
     <list>
       <item itemvalue="Python.ML_pipeline" />
-      <item itemvalue="Python.aggregate_current_results" />
       <item itemvalue="Python.features_extractor" />
       <item itemvalue="Python.ML_pipeline_raw_results" />
       <item itemvalue="Python.tp" />
+      <item itemvalue="Python.features_extractor_new_version" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.features_extractor_new_version" />
         <item itemvalue="Python.tp" />
         <item itemvalue="Python.ML_pipeline_raw_results" />
         <item itemvalue="Python.ML_pipeline" />
         <item itemvalue="Python.features_extractor" />
-        <item itemvalue="Python.aggregate_current_results" />
       </list>
     </recent_temporary>
   </component>
@@ -421,19 +430,19 @@
     <frame x="0" y="64" width="1440" height="772" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.21071176" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.21071176" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.49682876" weight="0.25735295" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.6250881" visible="true" weight="0.30882353" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.57434815" weight="0.30294117" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.6222692" visible="true" weight="0.29852942" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.57152927" weight="0.3382353" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="7" sideWeight="0.6913319" weight="0.27794117" />
       <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49964765" weight="0.32794118" />
-      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.3749119" side_tool="true" visible="true" weight="0.30882353" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.3777308" side_tool="true" visible="true" weight="0.29852942" />
       <window_info anchor="bottom" id="Python Console" order="10" weight="0.11844078" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -638,6 +647,11 @@
           <line>200</line>
           <option name="timeStamp" value="261" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/ML pipeline/features_extractor_new_version.py</url>
+          <line>49</line>
+          <option name="timeStamp" value="264" />
+        </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
@@ -703,47 +717,47 @@
     </expressions>
     <expressions id="evaluateExpression">
       <expression>
-        <expression-string>[Path(f) for f in glob(str(directory)+&quot;/**&quot;, recursive=True) if Path(f).is_dir() and Path(f).name.startswith('iter')]</expression-string>
+        <expression-string>[row for index, row in trees_features_data.iterrows()][0][&quot;msa_path&quot;]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>job_raxml_runs_done_obj</expression-string>
+        <expression-string>[row for index, row in trees_features_data.iterrows()][0]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>global_results_dict</expression-string>
+        <expression-string>[row for index, row in trees_features_data.iterrows()]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>[(f) for f in glob(str(directory)+&quot;/**&quot;, recursive=True) if Path(f).is_file() and Path(f).name.startswith('local_raxml_done')]</expression-string>
+        <expression-string>[index for index, row in trees_features_data.iterrows()]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>[Path(f) for f in glob(str(directory)+&quot;/**&quot;, recursive=True) if Path(f).is_file() and Path(f).name.startswith('local_raxml_done')]</expression-string>
+        <expression-string>[index, row for index, row in trees_features_data.iterrows()]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>[Path(f) for f in glob(directory, recursive=True) if Path(f).is_file() and Path(f).name.startswith('local_raxml_done')]</expression-string>
+        <expression-string>trees_features_data.iterrows()[0]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>[Path(f) for f in glob(str(directory) + '/*', recursive=True) if Path(f).is_dir() ]</expression-string>
+        <expression-string>trees_features_data.iterrows().next</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>[Path(f) for f in glob(str(directory) + '/', recursive=True) if Path(f).is_dir() ]</expression-string>
+        <expression-string>trees_features_data.iterrows()</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>[Path(f) for f in glob(directory, recursive=True) if Path(f).is_dir() ]</expression-string>
+        <expression-string>(row[&quot;msa_path&quot;]+str(row[&quot;starting_tree_ind&quot;])) : tree_metrics(row[&quot;starting_tree_object&quot;]) for row in trees_features_data.iterrows()</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -1014,20 +1028,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ML pipeline/features_extractor.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="498">
-          <caret line="127" column="16" lean-forward="true" selection-start-line="127" selection-start-column="16" selection-end-line="127" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ML pipeline/features_extractor_new_version.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="166">
-          <caret line="118" column="85" lean-forward="true" selection-start-line="118" selection-start-column="85" selection-end-line="118" selection-end-column="85" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/side_code/combine_current_results.py">
       <provider selected="true" editor-type-id="text-editor">
         <state>
@@ -1049,30 +1049,44 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="206">
-          <caret line="28" column="87" selection-start-line="28" selection-start-column="87" selection-end-line="28" selection-end-column="87" />
-          <folding>
-            <element signature="e#0#15#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/side_code/config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="230">
-          <caret line="24" column="14" lean-forward="true" selection-start-line="24" selection-start-column="14" selection-end-line="24" selection-end-column="14" />
+        <state relative-caret-position="255">
+          <caret line="25" column="31" lean-forward="true" selection-start-line="25" selection-start-column="31" selection-end-line="25" selection-end-column="31" />
           <folding>
             <element signature="e#0#24#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/ML pipeline/features_extractor.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="163">
+          <caret line="84" column="8" selection-start-line="84" selection-start-column="8" selection-end-line="84" selection-end-column="56" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ML pipeline/features_extractor_new_version.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="117">
+          <caret line="43" column="51" lean-forward="true" selection-start-line="43" selection-start-column="51" selection-end-line="43" selection-end-column="51" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="292">
-          <caret line="218" column="34" selection-start-line="218" selection-start-column="34" selection-end-line="218" selection-end-column="34" />
+        <state relative-caret-position="-581">
+          <caret line="230" lean-forward="true" selection-start-line="230" selection-end-line="230" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="51">
+          <caret line="28" column="88" selection-start-line="28" selection-start-column="88" selection-end-line="28" selection-end-column="88" />
+          <folding>
+            <element signature="e#0#15#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
