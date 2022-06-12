@@ -115,23 +115,18 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
 
 
 def main():
-    overall_data_path = f"/Users/noa/Workspace/raxml_deep_learning_results/current_raw_results/global_csv_enriched_agg.tsv"
+    raw_data_path = f"/Users/noa/Workspace/raxml_deep_learning_results/current_raw_results/global_csv_enriched_new.tsv"
     out_path = f"/Users/noa/Workspace/raxml_deep_learning_results/current_ML_results/features{CSV_SUFFIX}"
     curr_run_directory = os.path.join(RESULTS_FOLDER, "features_extraction_test")
     existing_features_dir = os.path.join(RESULTS_FOLDER, "features_per_msa_dump")
     create_dir_if_not_exists(existing_features_dir)
-    data = pd.read_csv(overall_data_path, sep=CSV_SEP)
+    data = pd.read_csv(raw_data_path, sep=CSV_SEP)
     msa_paths = list(np.unique(data["msa_path"]))
     if LOCAL_RUN:
         msa_paths = [msa_path.replace("/groups/pupko/noaeker/", "/Users/noa/Workspace/") for msa_path in msa_paths]
         msa_paths = [msa_path.replace("/groups/pupko/noaeker/", "/Users/noa/Workspace/") for msa_path in msa_paths]
     results = []
-    for i, msa_path in enumerate(msa_paths):
-        create_or_clean_dir(curr_run_directory)
-        msa_features = extract_features(msa_path,curr_run_directory,existing_features_dir, i)
-        results.append(msa_features)
-    results_df = pd.DataFrame(results)
-    results_df.to_csv(out_path, sep=CSV_SEP)
+    grouped
 
 
 if __name__ == "__main__":
