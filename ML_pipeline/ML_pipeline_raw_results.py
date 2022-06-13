@@ -168,7 +168,7 @@ def split_to_train_and_test(full_data, data_feature_names, search_feature_names)
 
 
 def main():
-    epsilon = -1 * (10 ** -4)
+    epsilon = 0.1
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_path', action='store', type=str,
                         default=f"/Users/noa/Workspace/raxml_deep_learning_results/current_raw_results/global_csv_enriched_new.tsv")
@@ -178,7 +178,7 @@ def main():
     args = parser.parse_args()
     features = pd.read_csv(args.features_path, sep=CSV_SEP)
     data = pd.read_csv(args.data_path, sep=CSV_SEP)
-    data["is_global_max"] = data["delta_ll_from_overall_msa_best_topology"] == 0
+    data["is_global_max"] = data["delta_ll_from_overall_msa_best_topology"] < epsilon
     data["normalized_time"] = data["elapsed_running_time"] / data["test_norm_const"]
     features["msa_name"] = features["msa_path"].apply(lambda s: remove_env_path_prefix(s))
     data["msa_name"] = data["msa_path"].apply(lambda s: remove_env_path_prefix(s))
@@ -192,7 +192,7 @@ def main():
     create_dir_if_not_exists(ML_RESULTS_FOLDER)
     logging_level = logging.INFO
     logging.basicConfig(filename=all_jobs_general_log_file, level=logging_level)
-    msa_features = ['n_seq', 'n_loci'] + [col for col in full_data.columns if col.startswith("feature_")]
+    msa_features = [col for col in full_data.columns if col.startswith("feature_")]
     search_features = ['spr_radius', 'spr_cutoff', 'starting_tree_bool', "starting_tree_ll"]
     data_dict = split_to_train_and_test(full_data, msa_features, search_features)
     rf_mod_err, rf_mod_time = train_models(data_dict)
