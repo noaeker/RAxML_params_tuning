@@ -58,6 +58,8 @@ def generate_multiple_tree_object_from_newick(trees_path):
         return tree_objects
 
 
+
+
 def get_tree_string(tree_path):
     tree_object = Tree(newick=tree_path, format=1)
     return (tree_object.write(format=1))

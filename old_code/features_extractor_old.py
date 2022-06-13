@@ -53,6 +53,8 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
     else:
         several_parsimony_and_random_folder = os.path.join(curr_run_directory, f"parsimony_and_random_statistics_{i}")
         os.mkdir(several_parsimony_and_random_folder)
+        os.mkdir(several_parsimony_and_random_folder)
+        os.mkdir(several_parsimony_and_random_folder)
         parsimony_trees_path = generate_n_tree_topologies(30, msa_path, several_parsimony_and_random_folder,
                                                           seed=SEED, tree_type="parsimony", msa_type=msa_type)
 
