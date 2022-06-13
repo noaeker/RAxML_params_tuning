@@ -206,7 +206,7 @@ def raxml_search(curr_run_directory, msa_path, msa_type, prefix,params_config, s
     search_prefix = os.path.join(curr_run_directory, prefix)
     model = "GTR+G" if msa_type == "DNA" else "WAG+G"
     search_command = (
-        "{raxml_exe_path}  {threads_config} --force msa --force perf_threads --msa {msa_path} --model {model} {starting_trees_command}  {spr_radius_command} {spr_cutoff_command} --seed {seed} --prefix {prefix}  ").format(
+        "{raxml_exe_path}  {threads_config} --force msa --force perf_threads --msa {msa_path} --model {model} {starting_trees_command}  {spr_radius_command} {spr_cutoff_command} --seed {seed} --prefix {prefix} --redo").format(
         raxml_exe_path=RAXML_NG_EXE,
         threads_config=generate_raxml_ng_command_prefix(),
         msa_path=msa_path, starting_trees_command=starting_trees_command, seed=SEED,
@@ -237,7 +237,7 @@ def raxml_optimize_trees_for_given_msa(full_data_path, ll_on_data_prefix, tree_f
     brlen_command = "--opt-branches off --opt-model off " if not opt_brlen else ""
     model = "GTR+G" if msa_type == "DNA" else "WAG+G"
     compute_ll_run_command = (
-        "{raxml_exe_path} --force msa --force perf_threads --evaluate --msa {msa_path} --model {model} {brlen_command} --tree {tree_file} --seed {seed} --prefix {prefix}").format(
+        "{raxml_exe_path} --force msa --force perf_threads --evaluate --msa {msa_path} --model {model} {brlen_command} --tree {tree_file} --seed {seed} --prefix {prefix} --redo").format(
         raxml_exe_path=RAXML_NG_EXE, msa_path=full_data_path, tree_file=tree_file, seed=SEED,
         prefix=prefix ,brlen_command=brlen_command, model = model)
     optimized_trees_path = prefix + ".raxml.mlTrees"
@@ -269,7 +269,7 @@ def RF_distances(curr_run_directory, trees_path):
 def calculate_rf_dist(rf_file_path, curr_run_directory, prefix="rf"):
     rf_prefix = os.path.join(curr_run_directory, prefix)
     rf_command = (
-        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
+        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix} --redo").format(
         raxml_exe_path=RAXML_NG_EXE, rf_file_path=rf_file_path, prefix=rf_prefix)
     execute_command_and_write_to_log(rf_command)
     rf_log_file_path = rf_prefix + ".raxml.log"
