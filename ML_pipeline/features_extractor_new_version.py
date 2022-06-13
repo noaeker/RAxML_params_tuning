@@ -66,7 +66,10 @@ def tree_group_metrics(curr_run_directory, raw_data, msa_path, starting_tree_typ
 
 
 def get_local_path(path):
-    return path.replace("/groups/pupko/noaeker/", "/Users/noa/Workspace/")
+    if LOCAL_RUN:
+        return path.replace("/groups/pupko/noaeker/", "/Users/noa/Workspace/")
+    else:
+        return path
 
 def msa_features_pipeline(raw_data,existing_msa_features_path):
     if os.path.exists(existing_msa_features_path):
