@@ -12,8 +12,9 @@ from side_code.raxml import *
 from side_code.basic_trees_manipulation import *
 from side_code.MSA_manipulation import get_alignment_data, get_msa_name
 from side_code.file_handling import create_or_clean_dir, create_dir_if_not_exists
-from side_code.MSA_manipulation import get_alignment_data, alignment_list_to_df
+from side_code.MSA_manipulation import get_alignment_data, alignment_list_to_df, get_msa_type, get_msa_name
 from side_code.config import *
+from shutil import rmtree
 import pandas as pd
 import pickle
 import argparse
@@ -27,8 +28,8 @@ def get_msa_stats(msa_path):
         msa_type = "DNA"
     else:
         msa_type = "AA"
-    all_msa_features = {"feature_n_seq": n_seq, "feature_n_loci": n_loci, "feature_msa_path": msa_path,
-                    "feature_msa_name": get_msa_name(msa_path, GENERAL_MSA_DIR), "feature_msa_type": msa_type}
+    all_msa_features = {"feature_n_seq": n_seq, "feature_n_loci": n_loci, "msa_path": msa_path,
+                    "msa_name": get_msa_name(msa_path, GENERAL_MSA_DIR), "feature_msa_type": msa_type}
     alignment_data = get_alignment_data(msa_path)
     alignment_df = alignment_list_to_df(alignment_data)
     alignment_df_fixed = alignment_df.replace('-', np.nan)
@@ -45,8 +46,9 @@ def get_msa_stats(msa_path):
     return all_msa_features
 
 
-def tree_metrics(curr_run_directory, starting_tree_str):
-    tree_object = generate_tree_object_from_newick(starting_tree_str)
+def tree_metrics(curr_run_directory, tree_object):
+    tmp_folder = os.path.join(curr_run_directory,'tmp_working_dir_tree_metrics')
+    create_or_clean_dir(tmp_folder)
     res = {"feature_tree_divergence": compute_tree_divergence(tree_object),
            "feature_tree_MAD": mad_tree_parameter(curr_run_directory, tree_object),
            "feature_largest_branch_length": compute_largest_branch_length(tree_object),
@@ -58,16 +60,17 @@ def tree_metrics(curr_run_directory, starting_tree_str):
 
 def get_trees_file(curr_run_directory, raw_data, msa_path, starting_tree_type):
     tree_files_path = os.path.join(curr_run_directory, 'tmp_trees_file')
-    trees = raw_data[((raw_data["msa_path"] == msa_path) & (raw_data["starting_tree_type"] == starting_tree_type))][
-        "starting_tree_object"].tolist()
+    trees = raw_data[((raw_data["msa_path"] == msa_path) & (raw_data["starting_tree_type"] == starting_tree_type))]["starting_tree_object"].drop_duplicates().tolist()
     with open(tree_files_path, 'w') as TREES_PATH:
         TREES_PATH.writelines(trees)
     return tree_files_path
 
 
 def tree_group_metrics(curr_run_directory, raw_data, msa_path, starting_tree_type):
-    trees_file_path = get_trees_file(curr_run_directory, raw_data, msa_path, starting_tree_type)
-    rf_values = RF_distances(curr_run_directory, trees_file_path)
+    tmp_folder = os.path.join(curr_run_directory, 'tmp_working_dir_tree_group_metrics')
+    create_or_clean_dir(tmp_folder)
+    trees_file_path = get_trees_file(tmp_folder, raw_data, msa_path, starting_tree_type)
+    rf_values = RF_distances(tmp_folder, trees_file_path)
     res = {'feature_mean_rf_distance': np.mean(rf_values), 'feature_max_rf_distance' : np.max(rf_values)
            }
 
@@ -80,37 +83,45 @@ def get_local_path(path):
     else:
         return path
 
-def msa_features_pipeline(raw_data,existing_msa_features_path):
+def msa_features_pipeline(msa_path,existing_msa_features_path):
     if os.path.exists(existing_msa_features_path):
+        logging.info("Using existing MSA general features")
         existing_tree_features = pickle.load(open(existing_msa_features_path,"rb"))
         return existing_tree_features
-    msa_positions_features = pd.DataFrame.from_dict(
-        {msa: get_msa_stats(get_local_path(msa)) for msa in np.unique(raw_data["msa_path"])},orient ='index')
-    pickle.dump(msa_positions_features, open(existing_msa_features_path, 'wb'))
-    return msa_positions_features
+    logging.info("Calculating MSA general features from beggining")
+    msa_general_features = pd.DataFrame.from_dict(
+        {msa_path: get_msa_stats(get_local_path(msa_path))},orient ='index')
+    pickle.dump(msa_general_features, open(existing_msa_features_path, 'wb'))
+    return msa_general_features
 
-def tree_features_pipeline(curr_run_directory,raw_data,existing_tree_features_path):
+
+def tree_features_pipeline(msa_path,curr_run_directory, msa_raw_data, existing_tree_features_path):
+    tmp_folder = os.path.join(curr_run_directory, 'tmp_working_dir_tree_features_pipeline')
+    create_or_clean_dir(tmp_folder)
     if os.path.exists(existing_tree_features_path):
         existing_tree_features = pickle.load(open(existing_tree_features_path,"rb"))
         return existing_tree_features
-    trees_features_data = raw_data[
-        ["msa_path", "starting_tree_ind", "starting_tree_type","starting_tree_object"]].drop_duplicates().reset_index()
-    tree_features = pd.DataFrame.from_dict({
-        (row["msa_path"] , row["starting_tree_ind"],row["starting_tree_type"]): tree_metrics(curr_run_directory,
-                                                                              row["starting_tree_object"])
-        for index, row in trees_features_data.iterrows()}, orient= 'index')
+    trees_features_data = msa_raw_data[
+        ["starting_tree_ind", "starting_tree_type","starting_tree_object"]].drop_duplicates().reset_index()
+    tree_features_dict= {}
+    for index, row in trees_features_data.iterrows():
+        optimized_tree_object_ll,optimized_tree_object = EVAL_tree_object_ll(generate_tree_object_from_newick(row["starting_tree_object"]), tmp_folder, get_local_path(msa_path), get_msa_type( get_local_path(msa_path)), opt_brlen = True)
+        curr_tree_features = tree_metrics(tmp_folder,optimized_tree_object)
+        curr_tree_features.update({"feature_optimized_ll": optimized_tree_object_ll})
+        tree_features_dict[(row["starting_tree_ind"],row["starting_tree_type"])] = curr_tree_features
+    tree_features = pd.DataFrame.from_dict(tree_features_dict, orient= 'index')
     pickle.dump(tree_features, open(existing_tree_features_path, 'wb'))
     return tree_features
 
-def tree_group_features_pipeline(curr_run_directory,raw_data,existing_tree_group_features_path):
+def tree_group_features_pipeline(curr_run_directory, msa_raw_data, existing_tree_group_features_path):
     if os.path.exists(existing_tree_group_features_path):
         existing_tree_features = pickle.load(open(existing_tree_group_features_path,"rb"))
         return existing_tree_features
-    tree_groups_data = raw_data[["msa_path", "starting_tree_type"]].drop_duplicates().reset_index()
+    tree_groups_data = msa_raw_data[["msa_path", "starting_tree_type"]].drop_duplicates().reset_index()
     tree_group_features = pd.DataFrame.from_dict({
-        (row["msa_path"] ,row["starting_tree_type"]): tree_group_metrics(curr_run_directory, raw_data,
-                                                                                     row["msa_path"],
-                                                                                     row["starting_tree_type"]) for
+        (row["msa_path"] ,row["starting_tree_type"]): tree_group_metrics(curr_run_directory, msa_raw_data,
+                                                                         row["msa_path"],
+                                                                         row["starting_tree_type"]) for
         index, row in tree_groups_data.iterrows()}, orient = 'index')
     pickle.dump(tree_group_features, open(existing_tree_group_features_path, 'wb'))
     return tree_group_features
@@ -141,8 +152,29 @@ def enrich_raw_data(curr_run_directory,raw_data):
     '''
     enriched_datasets = []
     for msa in raw_data["msa_path"].unique():
+        logging.info(f"Working on MSA: {msa}")
+        msa_folder = os.path.join(curr_run_directory,get_msa_name(msa,GENERAL_MSA_DIR))
+        create_dir_if_not_exists(msa_folder)
+        existing_msa_features_path = os.path.join(msa_folder, "msa_features")
+        existing_tree_features_path = os.path.join(msa_folder, "tree_features")
+        existing_tree_group_features_path = os.path.join(msa_folder, "tree_group_features")
+        msa_final_dataset_path = os.path.join(msa_folder,"final_dataset")
+        if os.path.exists(msa_final_dataset_path):
+            logging.info("## Using existing data features for this MSA")
+            return pickle.load(open(msa_final_dataset_path,"rb"))
+        logging.info("## Calculating features from beggining for this MSA")
         msa_data = raw_data[raw_data["msa_path"] == msa].copy()
-        msa_enriched_data = process_all_msa_RAxML_runs(curr_run_directory, msa_data)
+        msa_enriched_data = process_all_msa_RAxML_runs(msa_folder, msa_data)
+        msa_features = msa_features_pipeline(msa, existing_msa_features_path)
+        logging.info(f"MSA features: {msa_features}")
+        msa_enriched_data = msa_enriched_data.merge(msa_features, right_index=True, left_on=["msa_path"])
+        tree_features = tree_features_pipeline(msa,msa_folder, msa_data, existing_tree_features_path)
+        msa_enriched_data = msa_enriched_data.merge(tree_features, right_index=True,
+                                  left_on=["starting_tree_ind", "starting_tree_type"])
+        tree_group_features = tree_group_features_pipeline(msa_folder, msa_data,
+                                                           existing_tree_group_features_path)
+        msa_enriched_data = msa_enriched_data.merge(tree_group_features, right_index=True, left_on=["msa_path", "starting_tree_type"])
+        pickle.dump(msa_enriched_data,open(msa_final_dataset_path,"wb"))
         enriched_datasets.append(msa_enriched_data)
     enriched_data = pd.concat(enriched_datasets)
     return enriched_data
@@ -162,11 +194,9 @@ def main():
     create_dir_if_not_exists(curr_run_directory)
     existing_features_dir = os.path.join(args.results_folder, "features_per_msa_dump")
     create_dir_if_not_exists(existing_features_dir)
-    existing_msa_features_path = os.path.join(existing_features_dir, "msa_features")
-    existing_tree_features_path = os.path.join(existing_features_dir, "tree_features")
-    existing_tree_group_features_path = os.path.join(existing_features_dir, "tree_group_features")
+    log_file_path = os.path.join(args.results_folder,"features.log")
+    logging.basicConfig(filename=log_file_path, level=logging.INFO)
     raw_data = pd.read_csv(args.raw_data_path, sep=CSV_SEP)
-    raw_data = enrich_raw_data(curr_run_directory,raw_data)
     counts = raw_data['msa_path'].value_counts()
     idx = counts[counts < args.min_n_observations].index
     raw_data = raw_data[~raw_data['msa_path'].isin(idx)]
@@ -175,13 +205,8 @@ def main():
         msa_names = list(np.unique(raw_data["msa_path"]))
         msas_sample = np.random.choice(msa_names, size=3, replace=False)
         raw_data = raw_data[raw_data["msa_path"].isin(msas_sample)]
-    msa_features = msa_features_pipeline(raw_data, existing_msa_features_path)
-    raw_data = raw_data.merge(msa_features, right_index= True, left_on = ["msa_path"])
-    tree_features = tree_features_pipeline(curr_run_directory,raw_data,existing_tree_features_path)
-    raw_data = raw_data.merge(tree_features, right_index=True, left_on=["msa_path", "starting_tree_ind","starting_tree_type"])
-    tree_group_features = tree_group_features_pipeline(curr_run_directory, raw_data, existing_tree_group_features_path)
-    raw_data = raw_data.merge(tree_group_features, right_index= True, left_on=["msa_path","starting_tree_type"])
-    raw_data.to_csv(args.features_out_path, sep = CSV_SEP)
+    raw_data_with_features = enrich_raw_data(curr_run_directory, raw_data)
+    raw_data_with_features.to_csv(args.features_out_path, sep=CSV_SEP)
 
 
 

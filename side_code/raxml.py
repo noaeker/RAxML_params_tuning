@@ -2,7 +2,7 @@
 from side_code.config import *
 from side_code.file_handling import create_or_clean_dir, delete_dir_content, unify_text_files
 from side_code.code_submission import execute_command_and_write_to_log
-from side_code.basic_trees_manipulation import get_tree_string
+from side_code.basic_trees_manipulation import get_tree_string, generate_tree_object_from_newick
 import os
 import time
 import re
@@ -252,7 +252,7 @@ def raxml_optimize_trees_for_given_msa(full_data_path, ll_on_data_prefix, tree_f
 def RF_distances(curr_run_directory, trees_path):
     rf_prefix = os.path.join(curr_run_directory, "SPR_neighbours")
     rf_command = (
-        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
+        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix} --redo").format(
         raxml_exe_path=RAXML_NG_EXE, rf_file_path=trees_path, prefix=rf_prefix)
     execute_command_and_write_to_log(rf_command)
     rf_log_file_path = rf_prefix + ".raxml.rfDistances"
@@ -288,18 +288,18 @@ def rf_distance(curr_run_directory, tree_str_a, tree_str_b):
 
 
 
-def EVAL_tree_objects_ll(tree_objects, curr_run_directory, msa_path, msa_type, opt_brlen = False):
+def EVAL_tree_object_ll(tree_object, curr_run_directory, msa_path, msa_type, opt_brlen = False):
     tmp_folder = os.path.join(curr_run_directory,"ll_evaluation_on_trees")
     create_or_clean_dir(tmp_folder)
-    trees_path = os.path.join(tmp_folder,"SPR_trees_evaluation")
+    trees_path = os.path.join(tmp_folder,"tree_object_evaluation")
     with open(trees_path, 'w') as BEST_TREE:
-        for obj in tree_objects:
-            newick = (obj.write(format=1))
+            newick = (tree_object.write(format=1))
             BEST_TREE.write(newick)
-    trees_ll,tree_objects = raxml_optimize_trees_for_given_msa(msa_path, "trees_eval", trees_path,
+    trees_ll,tree_path = raxml_optimize_trees_for_given_msa(msa_path, "trees_eval", trees_path,
                                        tmp_folder,  msa_type, opt_brlen=opt_brlen
                                        )
-    return trees_ll
+    tree_object = generate_tree_object_from_newick(tree_path)
+    return trees_ll, tree_object
 
 
 

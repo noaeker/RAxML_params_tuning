@@ -1,6 +1,6 @@
 
 from side_code.basic_trees_manipulation import Edge,generate_tree_object_from_newick
-from side_code.raxml import EVAL_tree_objects_ll
+from side_code.raxml import EVAL_tree_object_ll
 from side_code.config import *
 import numpy as np
 from ete3 import Tree
@@ -79,7 +79,7 @@ def get_random_spr_moves_vs_distances(starting_tree_path, n_iterations,curr_run_
             edges_list.append(edge)
     distances = []
     ll_improvements = []
-    starting_tree_ll = EVAL_tree_objects_ll([starting_tree], curr_run_directory, msa_path, msa_type)
+    starting_tree_ll = EVAL_tree_object_ll([starting_tree], curr_run_directory, msa_path, msa_type)
     i=0
     while len(distances)<n_iterations:
             np.random.seed(SEED+i)
@@ -90,7 +90,7 @@ def get_random_spr_moves_vs_distances(starting_tree_path, n_iterations,curr_run_
             if not ((prune_edge.node_a == rgft_edge.node_a) or (prune_edge.node_b == rgft_edge.node_b) or (
                     prune_edge.node_b == rgft_edge.node_a) or (prune_edge.node_a == rgft_edge.node_b)):
                 neighbour = generate_neighbour(starting_tree,move)
-                neighbour_ll = EVAL_tree_objects_ll([neighbour], curr_run_directory, msa_path, msa_type)
+                neighbour_ll = EVAL_tree_object_ll([neighbour], curr_run_directory, msa_path, msa_type)
                 ll_improvements.append(neighbour_ll-starting_tree_ll)
                 distances.append(curr_rearr_dist)
     print(distances)
