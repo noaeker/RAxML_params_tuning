@@ -18,8 +18,8 @@ def get_msa_stats(msa_path):
         msa_type = "DNA"
     else:
         msa_type = "AA"
-    all_msa_features = {"n_seq": n_seq, "n_loci": n_loci, "msa_path": msa_path,
-                    "msa_name": get_msa_name(msa_path, GENERAL_MSA_DIR), "msa_type": msa_type}
+    all_msa_features = {"feature_n_seq": n_seq, "feature_n_loci": n_loci, "feature_msa_path": msa_path,
+                    "feature_msa_name": get_msa_name(msa_path, GENERAL_MSA_DIR), "feature_msa_type": msa_type}
     alignment_data = get_alignment_data(msa_path)
     alignment_df = alignment_list_to_df(alignment_data)
     alignment_df_fixed = alignment_df.replace('-', np.nan)
@@ -38,10 +38,10 @@ def get_msa_stats(msa_path):
 
 def tree_metrics(curr_run_directory, starting_tree_str):
     tree_object = generate_tree_object_from_newick(starting_tree_str)
-    res = {"tree_divergence": compute_tree_divergence(tree_object),
-           "tree_MAD": mad_tree_parameter(curr_run_directory, tree_object),
-           "largest_branch_length": compute_largest_branch_length(tree_object),
-           "largest_distance_between_taxa": max_distance_between_leaves(tree_object)
+    res = {"feature_tree_divergence": compute_tree_divergence(tree_object),
+           "feature_tree_MAD": mad_tree_parameter(curr_run_directory, tree_object),
+           "feature_largest_branch_length": compute_largest_branch_length(tree_object),
+           "feature_largest_distance_between_taxa": max_distance_between_leaves(tree_object)
 
            }
     return res
@@ -59,7 +59,7 @@ def get_trees_file(curr_run_directory, raw_data, msa_path, starting_tree_type):
 def tree_group_metrics(curr_run_directory, raw_data, msa_path, starting_tree_type):
     trees_file_path = get_trees_file(curr_run_directory, raw_data, msa_path, starting_tree_type)
     rf_values = RF_distances(curr_run_directory, trees_file_path)
-    res = {'mean_rf_distance': np.mean(rf_values), 'max_rf_distance' : np.max(rf_values)
+    res = {'feature_mean_rf_distance': np.mean(rf_values), 'feature_max_rf_distance' : np.max(rf_values)
            }
 
     return res
