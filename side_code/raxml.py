@@ -1,6 +1,6 @@
 
 from side_code.config import *
-from side_code.file_handling import create_or_clean_dir, delete_dir_content
+from side_code.file_handling import create_or_clean_dir, delete_dir_content, unify_text_files
 from side_code.code_submission import execute_command_and_write_to_log
 from side_code.basic_trees_manipulation import get_tree_string
 import os
@@ -264,6 +264,27 @@ def RF_distances(curr_run_directory, trees_path):
             curr_tree, comp_tree, dist = int(lst[0]), int(lst[1]), int(lst[2])
             rf_distances.append(dist)
     return rf_distances
+
+
+def calculate_rf_dist(rf_file_path, curr_run_directory, prefix="rf"):
+    rf_prefix = os.path.join(curr_run_directory, prefix)
+    rf_command = (
+        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
+        raxml_exe_path=RAXML_NG_EXE, rf_file_path=rf_file_path, prefix=rf_prefix)
+    execute_command_and_write_to_log(rf_command)
+    rf_log_file_path = rf_prefix + ".raxml.log"
+    relative_rf_dist = extract_param_from_raxmlNG_log(rf_log_file_path, "rf_dist")
+    return relative_rf_dist
+
+
+def rf_distance(curr_run_directory, tree_str_a, tree_str_b):
+    rf_folder = os.path.join(curr_run_directory, f"rf_calculations")
+    create_or_clean_dir(rf_folder)
+    rf_output_path = os.path.join(rf_folder, "rf_calculations")
+    rf_first_phase_trees = unify_text_files([tree_str_a, tree_str_b], rf_output_path, str_given=True)
+    rf = calculate_rf_dist(rf_first_phase_trees, rf_folder,
+                           prefix="rf_calculations")
+    return rf
 
 
 

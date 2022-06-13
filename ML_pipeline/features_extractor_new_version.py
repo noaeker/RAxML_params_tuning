@@ -104,23 +104,57 @@ def tree_group_features_pipeline(curr_run_directory,raw_data,existing_tree_group
     return tree_group_features
 
 
+def process_all_msa_RAxML_runs(curr_run_directory, given_msa_data):
+    '''
+
+    :param curr_run_directory:
+    :param given_msa_data:
+    :return:
+    '''
+    best_msa_ll = max(given_msa_data["final_ll"])
+    given_msa_data["best_msa_ll"] = best_msa_ll
+    best_msa_tree_topology = max(given_msa_data[given_msa_data["final_ll"] == best_msa_ll]['final_tree_topology'])
+    given_msa_data["rf_from_overall_msa_best_topology"] = given_msa_data["final_tree_topology"].apply(
+        lambda x: rf_distance(curr_run_directory, x, best_msa_tree_topology))
+    given_msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
+        (given_msa_data["rf_from_overall_msa_best_topology"]) > 0,  best_msa_ll-given_msa_data["final_ll"], 0)
+    return given_msa_data
+
+def enrich_raw_data(curr_run_directory,raw_data):
+    '''
+
+    :param curr_run_directory:
+    :param raw_data:
+    :return:  Enrich raw_data to estimate best LL for each MSA
+    '''
+    enriched_datasets = []
+    for msa in raw_data["msa_path"].unique():
+        msa_data = raw_data[raw_data["msa_path"] == msa].copy()
+        msa_enriched_data = process_all_msa_RAxML_runs(curr_run_directory, msa_data)
+        enriched_datasets.append(msa_enriched_data)
+    enriched_data = pd.concat(enriched_datasets)
+    return enriched_data
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--raw_data_path', action='store', type=str,
-                        default=f"/Users/noa/Workspace/raxml_deep_learning_results/current_raw_results/global_csv_enriched_new.tsv")
+                        default=f"/Users/noa/Workspace/raxml_deep_learning_results/current_raw_results/global_csv_new.tsv")
     parser.add_argument('--features_out_path', action='store', type=str,
                         default=f"/Users/noa/Workspace/raxml_deep_learning_results/current_ML_results/features{CSV_SUFFIX}")
+    parser.add_argument('--results_folder', action='store', type=str,
+                        default=RESULTS_FOLDER)
     parser.add_argument('--min_n_observations', action='store', type=int, default = 1240)
-
     args = parser.parse_args()
-    curr_run_directory = os.path.join(RESULTS_FOLDER, "features_extraction_pipeline_files")
+    curr_run_directory = os.path.join(args.results_folder, "features_extraction_pipeline_files")
     create_dir_if_not_exists(curr_run_directory)
-    existing_features_dir = os.path.join(RESULTS_FOLDER, "features_per_msa_dump")
+    existing_features_dir = os.path.join(args.results_folder, "features_per_msa_dump")
     create_dir_if_not_exists(existing_features_dir)
     existing_msa_features_path = os.path.join(existing_features_dir, "msa_features")
     existing_tree_features_path = os.path.join(existing_features_dir, "tree_features")
     existing_tree_group_features_path = os.path.join(existing_features_dir, "tree_group_features")
     raw_data = pd.read_csv(args.raw_data_path, sep=CSV_SEP)
+    raw_data = enrich_raw_data(curr_run_directory,raw_data)
     counts = raw_data['msa_path'].value_counts()
     idx = counts[counts < args.min_n_observations].index
     raw_data = raw_data[~raw_data['msa_path'].isin(idx)]
