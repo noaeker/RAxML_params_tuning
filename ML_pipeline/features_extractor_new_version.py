@@ -1,3 +1,12 @@
+import sys
+
+if sys.platform == "linux" or sys.platform == "linux2":
+    PROJECT_ROOT_DIRECRTORY = "/groups/pupko/noaeker/RAxML_params_tuning"
+else:
+    PROJECT_ROOT_DIRECRTORY = "/Users/noa/Workspace/RAxML_params_tuning"
+sys.path.append(PROJECT_ROOT_DIRECRTORY)
+
+
 from side_code.SPR_moves import *
 from side_code.raxml import *
 from side_code.basic_trees_manipulation import *
