@@ -237,7 +237,7 @@ def raxml_optimize_trees_for_given_msa(full_data_path, ll_on_data_prefix, tree_f
     brlen_command = "--opt-branches off --opt-model off " if not opt_brlen else ""
     model = "GTR+G" if msa_type == "DNA" else "WAG+G"
     compute_ll_run_command = (
-        "{raxml_exe_path} --force msa --force perf_threads --evaluate --msa {msa_path} --model {model} {brlen_command} --tree {tree_file} --seed {seed} --prefix {prefix} --redo").format(
+        "{raxml_exe_path} --force msa --force perf_threads --threads 1 --workers auto --evaluate --msa {msa_path} --model {model} {brlen_command} --tree {tree_file} --seed {seed} --prefix {prefix} --redo").format(
         raxml_exe_path=RAXML_NG_EXE, msa_path=full_data_path, tree_file=tree_file, seed=SEED,
         prefix=prefix ,brlen_command=brlen_command, model = model)
     optimized_trees_path = prefix + ".raxml.mlTrees"
