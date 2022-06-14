@@ -5,12 +5,16 @@ import os
 import subprocess
 import sys
 import logging
+import time
 from subprocess import PIPE, STDOUT
 
-def is_job_done(job_log_folder):
+def is_job_done(job_log_folder, started_file, job_start_time):
     if LOCAL_RUN:
         return True
     else:
+        if not os.path.exists(started_file) and time.localtime()-job_start_time>60:
+            logging.info(f"Started file {started_file} does not appear, job will be terminated")
+            return True
         for file in os.listdir(job_log_folder):
             full_file_path = os.path.join(job_log_folder,file)
             if (file.endswith('.ER')):
@@ -20,7 +24,7 @@ def is_job_done(job_log_folder):
 
 def execute_command_and_write_to_log(command, print_to_log=False):
     if print_to_log:
-        logging.debug(f"About to run: {command}")
+        logging.info(f"About to run: {command}")
     subprocess.run(command, shell=True, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 
 def generate_argument_list(args):

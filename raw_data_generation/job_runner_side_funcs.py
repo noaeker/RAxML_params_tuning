@@ -58,7 +58,8 @@ def get_job_related_files_paths(curr_job_folder, job_ind):
             "job_local_stop_running_path": job_local_stop_running_path,
             "job_log_path": general_log_path,
             "job_log_folder": job_log_folder,
-            "job_entire_folder": curr_job_folder
+            "job_entire_folder": curr_job_folder,
+            "job_started_file":os.path.join(curr_job_folder,"started")
             }
 
 

@@ -156,7 +156,7 @@ def train_models(data_dict):
 
 def split_to_train_and_test(full_data, data_feature_names, search_feature_names):
     train_data, test_data, validation_data = train_test_validation_splits(
-        full_data, test_pct=0.3, val_pct=0)
+        full_data, test_pct=0.2, val_pct=0)
     X_train = train_data[data_feature_names + search_feature_names]
     y_train_err = train_data["is_global_max"]
     y_train_time = train_data["normalized_time"]
@@ -167,22 +167,40 @@ def split_to_train_and_test(full_data, data_feature_names, search_feature_names)
             "y_test_err": y_test_err, "y_test_time": y_test_time, "full_test_data": test_data}
 
 
+def edit_data(data, epsilon):
+    data["is_global_max"] = data["delta_ll_from_overall_msa_best_topology"] < epsilon
+    data["relative_time"] = data["elapsed_running_time"] / data["test_norm_const"]
+    data["msa_name"] = data["msa_path"].apply(lambda s: remove_env_path_prefix(s))
+    data["starting_tree_bool"] = data["starting_tree_type"] == "pars"
+    data["feature_starting_tree_ll_normalized"] = \
+        data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
+            "starting_tree_ll"]
+    data["feature_starting_tree_ll_optimized_normalized"] = \
+        data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
+            "feature_optimized_ll"]
+    data["feature_tree_divergence_normalized"] = \
+        data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
+            "feature_tree_divergence"]
+    data["feature_tree_MAD_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["feature_tree_MAD"]
+    data["feature_largest_branch_length_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())[
+        "feature_largest_branch_length"]
+    data["feature_largest_branch_length_normalized"] = \
+    data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())[
+        "feature_largest_branch_length"]
+    data["feature_largest_distance_between_taxa_normalized"] = \
+        data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())[
+            "feature_largest_distance_between_taxa"]
+    data["normalized_time"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["relative_time"]
+
 def main():
-    epsilon = 0.1
+    epsilon = 1
     parser = argparse.ArgumentParser()
     parser.add_argument('--features_path', action='store', type=str,
                         default=f"/Users/noa/Workspace/raxml_deep_learning_results/c_30_70/features.tsv")
 
     args = parser.parse_args()
     data = pd.read_csv(args.features_path, sep=CSV_SEP)
-    data["is_global_max"] = data["delta_ll_from_overall_msa_best_topology"] < epsilon
-    data["normalized_time"] = data["elapsed_running_time"] / data["test_norm_const"]
-    data["msa_name"] = data["msa_path"].apply(lambda s: remove_env_path_prefix(s))
-    data["msa_name"] = data["msa_path"].apply(lambda s: remove_env_path_prefix(s))
-    data["starting_tree_bool"] = data["starting_tree_type"] == "pars"
-    data["starting_tree_ll"] = \
-    data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())["starting_tree_ll"]
-    data["normalized_time"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["normalized_time"]
+    edit_data(data, epsilon)
     # full_data = full_data.replace([np.inf, -np.inf,np.nan], -1)
     all_jobs_general_log_file = os.path.join(ML_RESULTS_FOLDER, "ML_log_file.log")
     create_dir_if_not_exists(ML_RESULTS_FOLDER)

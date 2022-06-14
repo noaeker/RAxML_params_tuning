@@ -8,7 +8,7 @@ sys.path.append(PROJECT_ROOT_DIRECRTORY)
 
 from msa_runs import generate_all_raxml_runs_per_msa
 from side_code.config import *
-from side_code.code_submission import submit_linux_job, submit_local_job, generate_argument_list,generate_argument_str
+from side_code.code_submission import submit_linux_job, submit_local_job, generate_argument_list,generate_argument_str, execute_command_and_write_to_log
 from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, extract_alignment_files_from_dirs, extract_alignment_files_from_general_csv
 from side_code.code_submission import is_job_done
 from side_code.MSA_manipulation import remove_MSAs_with_not_enough_seq_and_locis, trim_MSA, get_alignment_data
@@ -42,8 +42,8 @@ def generate_results_folder(curr_run_prefix):
 def submit_single_job(all_jobs_results_folder, job_ind, curr_job_tasks_list, test_msa_path, current_tasks_path, args):
     curr_job_folder = os.path.join(all_jobs_results_folder, "job_" + str(job_ind))
     create_or_clean_dir(curr_job_folder)
-    curr_job_related_files_paths = get_job_related_files_paths(curr_job_folder, job_ind)
-    curr_job_tasks_path = curr_job_related_files_paths["job_local_tasks_path"]
+    curr_job_related_details = get_job_related_files_paths(curr_job_folder, job_ind)
+    curr_job_tasks_path = curr_job_related_details["job_local_tasks_path"]
     pickle.dump(curr_job_tasks_list, open(curr_job_tasks_path, "wb"))
     curr_job_log_path = os.path.join(curr_job_folder, str(job_ind) + "_tmp_log")
     run_command = f' python {MAIN_CODE_PATH} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --test_msa {test_msa_path} --current_tasks_path {current_tasks_path} {generate_argument_str(args)} '
@@ -55,7 +55,9 @@ def submit_single_job(all_jobs_results_folder, job_ind, curr_job_tasks_list, tes
         submit_local_job(MAIN_CODE_PATH,
                          ["--job_ind", str(job_ind), "--curr_job_folder", curr_job_folder, "--test_msa", test_msa_path,"--current_tasks_path", current_tasks_path
                           ] + generate_argument_list(args))
-    return curr_job_related_files_paths
+    curr_job_related_details["job_start_time"] = time.localtime()
+    curr_job_related_details["job_name"] = job_name
+    return curr_job_related_details
 
 
 def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
@@ -96,20 +98,30 @@ def update_tasks_and_results(job_raxml_runs_done_obj,global_results_path,global_
 
 def  check_jobs_status(job_tracking_dict, global_results_path, current_tasks_path, global_results_csv_path, update_anyway = False):
     for job_ind in list(job_tracking_dict.keys()):
-        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"]) or update_anyway:  # if job is done, remove it from dictionary
+        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"],started_file=job_tracking_dict[job_ind]["job_started_file"], job_start_time="job_start_time") or update_anyway:  # if job is done, remove it from dictionary
             logging.info(
                 f"Job {job_ind} is done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
+            if not LOCAL_RUN:
+                logging.info(f"Deleting job {job_ind} to make sure it is removed")
+                delete_current_job_cmd = f"qstat | grep {job_tracking_dict[job_ind]['job_name']} | xargs qdel"
+            execute_command_and_write_to_log(delete_current_job_cmd, print_to_log= True)
             if os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]) and os.path.getsize(
                     job_tracking_dict[job_ind]["job_local_done_dump"]) > 0:
+                logging.info("RAxML runs done object exists and will be updated to global tasks and results!")
                 job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"], "rb"))
                 update_tasks_and_results(job_raxml_runs_done_obj, global_results_path, global_results_csv_path,
                                          current_tasks_path)
             if os.path.exists(job_tracking_dict[job_ind]["job_entire_folder"]):
                 logging.info(f"Deleting job {job_ind} folder")
-                rmtree(job_tracking_dict[job_ind]["job_entire_folder"])  # delete job folder
+                try:
+                    rmtree(job_tracking_dict[job_ind]["job_entire_folder"])
+                except:
+                    logging.info(f"Could not delete folder {job_tracking_dict[job_ind]['job_entire_folder']}")
+                            # delete job folder
             del job_tracking_dict[job_ind]
+            logging.info(f"job {job_ind} deleted from job tracking dict")
 
-            # remove job tracking dict is job is done
+
 
 
 
@@ -145,7 +157,8 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
     while len(pickle.load(open(current_tasks_path, "rb"))) > 0:  # Make sure all current tasks are performed
         number_of_available_jobs_to_send = args.max_n_parallel_jobs - len(job_tracking_dict)
         if number_of_available_jobs_to_send > 0:  # Available new jobs.
-            logging.debug(f"There are {number_of_available_jobs_to_send} available")
+            logging.info(f"## Currently running jobs are: \n{job_tracking_dict.keys()}")
+            logging.info(f"There are {number_of_available_jobs_to_send} available jobs to send")
             tasks_per_job = assign_tasks_over_available_jobs(current_tasks_path,
                                                              number_of_available_jobs_to_send,max_n_tasks_per_job)  # Partitioning of tasks over jobs
             for i, job_task in enumerate(tasks_per_job):
@@ -159,18 +172,15 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
         check_jobs_status(job_tracking_dict, global_results_path, current_tasks_path, global_results_csv_path)
         time.sleep(WAITING_TIME_UPDATE)
     logging.info("Done with the current tasks bunch")
-    for job_ind in job_tracking_dict:
-        stop_running_path = job_tracking_dict[job_ind]["job_local_stop_running_path"]
-        with open(stop_running_path,'w') as STOP_RUNNING:
-            STOP_RUNNING.write("Stop running message")
-    #while sum([(not is_job_done(job_tracking_dict[job_ind]["job_log_folder"])) for job_ind in job_tracking_dict])>0: #wait until jobs are cancelled
-    #    time.sleep(10)
-    #logging.info("All jobs are done! About to remove all remaining folders")
-    #while len(job_tracking_dict)>0:
+    logging.info(f"Current job_tracking_dict keys are {job_tracking_dict.keys()}" )
     for job_ind in list(job_tracking_dict.keys()): # remove all remaining folders
+        logging.info(f"Deleting job {job_ind} to make sure it is removed")
+        if not LOCAL_RUN:
+            delete_current_job_cmd = f"qstat | grep {job_tracking_dict[job_ind]['job_name']} | xargs qdel"
+            execute_command_and_write_to_log(delete_current_job_cmd, print_to_log=True)
         try:
             if os.path.exists(job_tracking_dict[job_ind]["job_entire_folder"]):
-                logging.info(f"Deleting {job_ind} folder")
+                logging.info(f"Deleting {job_ind} folder since all tasks are done")
                 rmtree(job_tracking_dict[job_ind]["job_entire_folder"])
                 del job_tracking_dict[job_ind]
         except Exception:
@@ -299,6 +309,7 @@ def main():
         logging.info(f"iteration {i} done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         logging.info(f"So far done with {total_msas_done}/{total_msas_overall} of the MSAs ")
         try:
+
             rmtree(curr_iterartion_results_folder)
         except:
             logging.info(f"Could not delete folder {curr_iterartion_results_folder}")

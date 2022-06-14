@@ -23,13 +23,8 @@ import argparse
 def get_msa_stats(msa_path):
     msa_data = get_alignment_data(msa_path)
     n_seq, n_loci = len(msa_data), len(msa_data[0].seq)
-    msa_path_no_extension = os.path.splitext(msa_path)[0]
-    if re.search('\w+D[\da-z]+', msa_path_no_extension.split(os.sep)[-2]) is not None:
-        msa_type = "DNA"
-    else:
-        msa_type = "AA"
     all_msa_features = {"feature_n_seq": n_seq, "feature_n_loci": n_loci, "msa_path": msa_path,
-                    "msa_name": get_msa_name(msa_path, GENERAL_MSA_DIR), "feature_msa_type": msa_type}
+                    "msa_name": get_msa_name(msa_path, GENERAL_MSA_DIR), "feature_msa_type": get_msa_type(msa_path)}
     alignment_data = get_alignment_data(msa_path)
     alignment_df = alignment_list_to_df(alignment_data)
     alignment_df_fixed = alignment_df.replace('-', np.nan)
