@@ -2,13 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/ML_pipeline/ML_pipeline_aggregated_results.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ML_pipeline/ML_pipeline_raw_results.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML_pipeline/ML_pipeline_raw_results.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ML_pipeline/features_extractor_new_version.py" beforeDir="false" afterPath="$PROJECT_DIR$/ML_pipeline/features_extractor_new_version.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/R_code/analayze_raw_results.Rmd" beforeDir="false" afterPath="$PROJECT_DIR$/R_code/analayze_raw_results.Rmd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/R_code/analayze_raw_results.nb.html" beforeDir="false" afterPath="$PROJECT_DIR$/R_code/analayze_raw_results.nb.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/raw_data_generation/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/raw_data_generation/tune_params.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tune_params.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/side_code/code_submission.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/code_submission.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/side_code/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/config.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -22,7 +23,7 @@
         <entry file="file://$PROJECT_DIR$/raw_data_generation/tune_params.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="182">
-              <caret line="69" column="82" lean-forward="true" selection-start-line="69" selection-start-column="38" selection-end-line="69" selection-end-column="82" />
+              <caret line="69" column="82" selection-start-line="69" selection-start-column="38" selection-end-line="69" selection-end-column="82" />
             </state>
           </provider>
         </entry>
@@ -30,17 +31,17 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="108">
-              <caret line="176" column="35" lean-forward="true" selection-start-line="176" selection-start-column="35" selection-end-line="176" selection-end-column="35" />
+            <state relative-caret-position="188">
+              <caret line="165" column="56" lean-forward="true" selection-start-line="165" selection-start-column="56" selection-end-line="165" selection-end-column="56" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1342">
-              <caret line="61" column="30" selection-start-line="61" selection-start-column="12" selection-end-line="61" selection-end-column="30" />
+            <state relative-caret-position="166">
+              <caret line="36" column="50" selection-start-line="36" selection-start-column="50" selection-end-line="36" selection-end-column="50" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
               </folding>
@@ -48,23 +49,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/side_code/code_submission.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="263">
-              <caret line="14" column="82" selection-start-line="14" selection-start-column="82" selection-end-line="14" selection-end-column="82" />
-              <folding>
-                <element signature="e#1#61#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ML_pipeline/features_extractor_new_version.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1078">
-              <caret line="49" column="49" selection-start-line="49" selection-start-column="12" selection-end-line="49" selection-end-column="49" />
+            <state relative-caret-position="131">
+              <caret line="8" column="14" selection-start-line="8" selection-start-column="14" selection-end-line="8" selection-end-column="14" />
             </state>
           </provider>
         </entry>
@@ -72,11 +61,29 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ML_pipeline/ML_pipeline_raw_results.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="23">
-              <caret line="195" column="14" lean-forward="true" selection-start-line="195" selection-start-column="14" selection-end-line="195" selection-end-column="14" />
+            <state relative-caret-position="-1141">
+              <caret line="144" column="51" selection-start-line="144" selection-start-column="37" selection-end-line="144" selection-end-column="60" />
               <folding>
                 <element signature="e#0#30#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ML_pipeline/ML_pipeline_aggregated_results.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="318">
+              <caret line="190" column="80" selection-start-line="190" selection-start-column="80" selection-end-line="190" selection-end-column="80" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ML_pipeline/features_extractor_new_version.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-1928">
+              <caret line="68" column="36" lean-forward="true" selection-start-line="68" selection-start-column="12" selection-end-line="68" selection-end-column="36" />
             </state>
           </provider>
         </entry>
@@ -122,9 +129,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>extract_alignment_files_from_general_csv</find>
-      <find>curr_iterartion_results_folder</find>
-      <find>max_n_tasks_per_job</find>
       <find>current_tasks_pipeline</find>
       <find>move_current_tasks_from_pool_to_file</find>
       <find>Using existing tasks i</find>
@@ -152,6 +156,9 @@
       <find>Currently running jobs are</find>
       <find>submit_linux_job</find>
       <find>diverfe</find>
+      <find>is_job_d</find>
+      <find>timeout</find>
+      <find>check_jobs_status</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -160,7 +167,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/main_code/ML_pipeline.py" />
         <option value="$PROJECT_DIR$/main_code/data_enrichment_for_ML.py" />
         <option value="$PROJECT_DIR$/main_code/random_and_parsimony_sampling.py" />
         <option value="$PROJECT_DIR$/main_code/default_sampling.py" />
@@ -205,12 +211,13 @@
         <option value="$PROJECT_DIR$/old_code/enrich_raw_data.py" />
         <option value="$PROJECT_DIR$/side_code/raxml.py" />
         <option value="$PROJECT_DIR$/ML_pipeline/features_extractor_new_version.py" />
-        <option value="$PROJECT_DIR$/ML_pipeline/ML_pipeline_raw_results.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/tune_params.py" />
-        <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
         <option value="$PROJECT_DIR$/side_code/config.py" />
-        <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
+        <option value="$PROJECT_DIR$/ML_pipeline/ML_pipeline_raw_results.py" />
+        <option value="$PROJECT_DIR$/ML_pipeline/ML_pipeline_aggregated_results.py" />
         <option value="$PROJECT_DIR$/side_code/code_submission.py" />
+        <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
+        <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
       </list>
     </option>
   </component>
@@ -271,7 +278,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/ML pipeline" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/ML_pipeline" />
     <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
   </component>
   <component name="RecentsManager">
@@ -283,6 +290,7 @@
       <recent name="$PROJECT_DIR$/local_data_analysis" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/ML_pipeline" />
       <recent name="$PROJECT_DIR$/ML pipeline" />
       <recent name="$PROJECT_DIR$" />
     </key>
@@ -299,7 +307,28 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.tp">
+  <component name="RunManager" selected="Python.ML_pipeline_aggregated_results">
+    <configuration name="ML_pipeline_aggregated_results" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="RAxML_params_tuning" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/ML_pipeline" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ML_pipeline/ML_pipeline_aggregated_results.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="ML_pipeline_raw_results (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="RAxML_params_tuning" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -313,27 +342,6 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ML_pipeline/ML_pipeline_raw_results.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="ML_pipeline_raw_results" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="RAxML_params_tuning" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/ML pipeline" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ML pipeline/ML_pipeline_raw_results.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -406,19 +414,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.ML_pipeline_raw_results" />
       <item itemvalue="Python.tp" />
       <item itemvalue="Python.features_extractor_new_version" />
       <item itemvalue="Python.features_extractor_new_version (1)" />
       <item itemvalue="Python.ML_pipeline_raw_results (1)" />
+      <item itemvalue="Python.ML_pipeline_aggregated_results" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.tp" />
+        <item itemvalue="Python.ML_pipeline_aggregated_results" />
         <item itemvalue="Python.ML_pipeline_raw_results (1)" />
+        <item itemvalue="Python.tp" />
         <item itemvalue="Python.features_extractor_new_version (1)" />
         <item itemvalue="Python.features_extractor_new_version" />
-        <item itemvalue="Python.ML_pipeline_raw_results" />
       </list>
     </recent_temporary>
   </component>
@@ -439,19 +447,19 @@
     <frame x="2" y="95" width="1440" height="772" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24876674" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24876674" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.49541932" weight="0.25735295" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.61381257" visible="true" weight="0.1985294" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.5637773" weight="0.31176472" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.6124031" weight="0.26617646" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.56166315" visible="true" weight="0.21029411" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="7" sideWeight="0.6913319" weight="0.27794117" />
       <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49964765" weight="0.32794118" />
-      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.38618746" side_tool="true" visible="true" weight="0.1985294" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.43833685" side_tool="true" visible="true" weight="0.21029411" />
       <window_info anchor="bottom" id="Python Console" order="10" weight="0.11844078" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -573,7 +581,7 @@
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>289</line>
+          <line>291</line>
           <option name="timeStamp" value="134" />
         </line-breakpoint>
         <line-breakpoint suspend="THREAD" type="python-line">
@@ -648,7 +656,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/raw_data_generation/tp.py</url>
-          <line>210</line>
+          <line>212</line>
           <option name="timeStamp" value="261" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -682,14 +690,19 @@
           <option name="timeStamp" value="277" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/ML_pipeline/ML_pipeline_raw_results.py</url>
-          <line>170</line>
-          <option name="timeStamp" value="279" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/side_code/code_submission.py</url>
           <line>1</line>
           <option name="timeStamp" value="280" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/ML_pipeline/ML_pipeline_raw_results.py</url>
+          <line>141</line>
+          <option name="timeStamp" value="281" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/ML_pipeline/ML_pipeline_aggregated_results.py</url>
+          <line>187</line>
+          <option name="timeStamp" value="283" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -756,6 +769,31 @@
     </expressions>
     <expressions id="evaluateExpression">
       <expression>
+        <expression-string>data</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>data.groupby(['msa_path','spr_radius', 'spr_cutoff', 'starting_tree_bool']).mean().reset_index()</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>data_dict[&quot;y_test_err&quot;]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>y_test_err_predicted</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>np.sum(y_test_err_predicted)</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
         <expression-string>data[&quot;delta_ll_from_overall_msa_best_topology&quot;]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
@@ -775,35 +813,9 @@
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
-      <expression>
-        <expression-string>tree_files_path</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>rf_values</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>RF_distances</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>l\</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>l</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/side_code/help_functions.py" />
     <entry file="file://$PROJECT_DIR$/R_code/analayze_raxml_tuning.Rmd">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="66">
@@ -1091,20 +1103,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ML_pipeline/ML_pipeline_raw_results.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="23">
-          <caret line="195" column="14" lean-forward="true" selection-start-line="195" selection-start-column="14" selection-end-line="195" selection-end-column="14" />
-          <folding>
-            <element signature="e#0#30#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_generation/tune_params.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="182">
-          <caret line="69" column="82" lean-forward="true" selection-start-line="69" selection-start-column="38" selection-end-line="69" selection-end-column="82" />
+          <caret line="69" column="82" selection-start-line="69" selection-start-column="38" selection-end-line="69" selection-end-column="82" />
         </state>
       </provider>
     </entry>
@@ -1118,36 +1120,50 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
+    <entry file="file://$PROJECT_DIR$/ML_pipeline/features_extractor_new_version.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="108">
-          <caret line="176" column="35" lean-forward="true" selection-start-line="176" selection-start-column="35" selection-end-line="176" selection-end-column="35" />
+        <state relative-caret-position="-1928">
+          <caret line="68" column="36" lean-forward="true" selection-start-line="68" selection-start-column="12" selection-end-line="68" selection-end-column="36" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
+    <entry file="file://$PROJECT_DIR$/ML_pipeline/ML_pipeline_raw_results.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1342">
-          <caret line="61" column="30" selection-start-line="61" selection-start-column="12" selection-end-line="61" selection-end-column="30" />
+        <state relative-caret-position="-1141">
+          <caret line="144" column="51" selection-start-line="144" selection-start-column="37" selection-end-line="144" selection-end-column="60" />
           <folding>
-            <element signature="e#0#15#0" expanded="true" />
+            <element signature="e#0#30#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ML_pipeline/features_extractor_new_version.py">
+    <entry file="file://$PROJECT_DIR$/ML_pipeline/ML_pipeline_aggregated_results.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1078">
-          <caret line="49" column="49" selection-start-line="49" selection-start-column="12" selection-end-line="49" selection-end-column="49" />
+        <state relative-caret-position="318">
+          <caret line="190" column="80" selection-start-line="190" selection-start-column="80" selection-end-line="190" selection-end-column="80" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="188">
+          <caret line="165" column="56" lean-forward="true" selection-start-line="165" selection-start-column="56" selection-end-line="165" selection-end-column="56" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/side_code/code_submission.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="263">
-          <caret line="14" column="82" selection-start-line="14" selection-start-column="82" selection-end-line="14" selection-end-column="82" />
+        <state relative-caret-position="131">
+          <caret line="8" column="14" selection-start-line="8" selection-start-column="14" selection-end-line="8" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="166">
+          <caret line="36" column="50" selection-start-line="36" selection-start-column="50" selection-end-line="36" selection-end-column="50" />
           <folding>
-            <element signature="e#1#61#0" expanded="true" />
+            <element signature="e#0#15#0" expanded="true" />
           </folding>
         </state>
       </provider>

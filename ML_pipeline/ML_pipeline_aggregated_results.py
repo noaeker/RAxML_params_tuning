@@ -137,12 +137,12 @@ def grid_search_time_and_rf(rf_mod_err, rf_mod_time, data_dict, epsilon, show_pl
 
 def train_models(data_dict):
     logging.info("About to calculate RF for modelling error")
-    rf_mod_err = classifier(data_dict["X_train"], data_dict["y_train_err"],
+    rf_mod_err = regressor(data_dict["X_train"], data_dict["y_train_err"],
                             path=os.path.join(ML_RESULTS_FOLDER, "Err_rf_new"))
     err_var_impt = variable_importance(data_dict["X_train"], rf_mod_err)
     logging.info(f"Error RF variable importance: \n {err_var_impt}")
     y_test_err_predicted = rf_mod_err.predict(data_dict["X_test"])
-    err_test_metrics = model_metrics(data_dict["y_test_err"], y_test_err_predicted, is_classification=True)
+    err_test_metrics = model_metrics(data_dict["y_test_err"], y_test_err_predicted, is_classification=False)
     logging.info(f"Error RF metrics: \n {err_test_metrics}")
     rf_mod_time = regressor(data_dict["X_train"], data_dict["y_train_time"],
                             path=os.path.join(ML_RESULTS_FOLDER, "time_rf_new"))
@@ -156,13 +156,13 @@ def train_models(data_dict):
 
 def split_to_train_and_test(full_data, data_feature_names, search_feature_names):
     train_data, test_data, validation_data = train_test_validation_splits(
-        full_data, test_pct=0.3, val_pct=0)
+        full_data, test_pct=0.2, val_pct=0)
     X_train = train_data[data_feature_names + search_feature_names]
     y_train_err = train_data["is_global_max"]
-    y_train_time = train_data["normalized_time"]
+    y_train_time = train_data["relative_time"]
     X_test = test_data[data_feature_names + search_feature_names]
     y_test_err = test_data["is_global_max"]
-    y_test_time = test_data["normalized_time"]
+    y_test_time = test_data["relative_time"]
     return {"X_train": X_train, "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test": X_test,
             "y_test_err": y_test_err, "y_test_time": y_test_time, "full_test_data": test_data}
 
@@ -172,27 +172,7 @@ def edit_data(data, epsilon):
     data["relative_time"] = data["elapsed_running_time"] / data["test_norm_const"]
     data["msa_name"] = data["msa_path"].apply(lambda s: remove_env_path_prefix(s))
     data["starting_tree_bool"] = data["starting_tree_type"] == "pars"
-    data["feature_starting_tree_ll_normalized"] = \
-        data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
-            "starting_tree_ll"]
-    data["feature_starting_tree_ll_optimized_normalized"] = \
-        data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
-            "feature_optimized_ll"]
     data["feature_tree_divergence_sclaed"] = data["feature_tree_divergence"]/ data["feature_n_seq"]
-    data["feature_mean_rf_distance_scaled"] = data["feature_mean_rf_distance"]/ data["feature_n_seq"]
-    data["feature_tree_divergence_normalized"] = \
-        data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
-            "feature_tree_divergence"]
-    data["feature_tree_MAD_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["feature_tree_MAD"]
-    data["feature_largest_branch_length_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())[
-        "feature_largest_branch_length"]
-    data["feature_largest_branch_length_normalized"] = \
-    data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())[
-        "feature_largest_branch_length"]
-    data["feature_largest_distance_between_taxa_normalized"] = \
-        data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())[
-            "feature_largest_distance_between_taxa"]
-    data["normalized_time"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["relative_time"]
 
 def main():
     epsilon = 0
@@ -203,6 +183,7 @@ def main():
     args = parser.parse_args()
     data = pd.read_csv(args.features_path, sep=CSV_SEP)
     edit_data(data, epsilon)
+    data = data.groupby(['msa_name','msa_path','spr_radius', 'spr_cutoff', 'starting_tree_bool']).mean().reset_index()
     # full_data = full_data.replace([np.inf, -np.inf,np.nan], -1)
     all_jobs_general_log_file = os.path.join(ML_RESULTS_FOLDER, "ML_log_file.log")
     create_dir_if_not_exists(ML_RESULTS_FOLDER)
@@ -210,6 +191,7 @@ def main():
     logging.basicConfig(filename=all_jobs_general_log_file, level=logging_level)
     msa_features = [col for col in data.columns if col.startswith("feature_") and col not in ["feature_msa_path", "feature_msa_name","feature_msa_type"]]
     search_features = ['spr_radius', 'spr_cutoff', 'starting_tree_bool', "starting_tree_ll"]
+
     data_dict = split_to_train_and_test(data, msa_features, search_features)
     rf_mod_err, rf_mod_time = train_models(data_dict)
 

@@ -96,9 +96,9 @@ def update_tasks_and_results(job_raxml_runs_done_obj,global_results_path,global_
     logging.debug(f"Tasks dict size is now {len(tasks_dict)}")
     pickle.dump(tasks_dict, open(current_tasks_path, "wb"))
 
-def  check_jobs_status(job_tracking_dict, global_results_path, current_tasks_path, global_results_csv_path, update_anyway = False):
+def  check_jobs_status(job_tracking_dict, global_results_path, current_tasks_path, global_results_csv_path,timeout, update_anyway = False):
     for job_ind in list(job_tracking_dict.keys()):
-        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"],started_file=job_tracking_dict[job_ind]["job_started_file"], job_start_time="job_start_time") or update_anyway:  # if job is done, remove it from dictionary
+        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"],started_file=job_tracking_dict[job_ind]["job_started_file"], job_start_time="job_start_time", max_time= timeout) or update_anyway:  # if job is done, remove it from dictionary
             logging.info(
                 f"Job {job_ind} is done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
             if not LOCAL_RUN:
@@ -140,6 +140,8 @@ def assign_tasks_over_available_jobs(current_tasks_path, number_of_jobs_to_send,
 def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_results_path, global_results_csv_path, all_jobs_results_folder, total_tasks,
                            args):
     '''
+    '''
+    '''
 
     :param current_run_results_folder:
     :param msa_ind:
@@ -169,7 +171,7 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks_path, global_res
                 job_tracking_dict[job_ind] = curr_job_related_files_paths
             number_of_new_job_sent = len(tasks_per_job)
             job_first_index += number_of_new_job_sent
-        check_jobs_status(job_tracking_dict, global_results_path, current_tasks_path, global_results_csv_path)
+        check_jobs_status(job_tracking_dict, global_results_path, current_tasks_path, global_results_csv_path, timeout= args.timeout)
         time.sleep(WAITING_TIME_UPDATE)
     logging.info("Done with the current tasks bunch")
     logging.info(f"Current job_tracking_dict keys are {job_tracking_dict.keys()}" )

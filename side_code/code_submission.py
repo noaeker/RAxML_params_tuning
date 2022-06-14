@@ -8,11 +8,11 @@ import logging
 import time
 from subprocess import PIPE, STDOUT
 
-def is_job_done(job_log_folder, started_file, job_start_time):
+def is_job_done(job_log_folder, started_file, job_start_time, max_time):
     if LOCAL_RUN:
         return True
     else:
-        if not os.path.exists(started_file) and time.localtime()-job_start_time>60:
+        if not os.path.exists(started_file) or time.localtime()-job_start_time>max_time:
             logging.info(f"Started file {started_file} does not appear, job will be terminated")
             return True
         for file in os.listdir(job_log_folder):
