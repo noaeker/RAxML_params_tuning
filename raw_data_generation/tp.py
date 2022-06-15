@@ -87,7 +87,8 @@ def update_tasks_and_results(job_raxml_runs_done_obj,current_results,current_tas
     logging.info(f"Current results dict size is now {len(current_results)}")
     # update tasks dictionary
     for task_ind in job_raxml_runs_done_obj:
-        del current_tasks[task_ind]
+        if task_ind in current_tasks:
+            del current_tasks[task_ind]
 
 
 def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout, update_anyway = False):
