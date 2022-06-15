@@ -55,7 +55,7 @@ def submit_single_job(all_jobs_results_folder, job_ind, curr_job_tasks_list, tes
         submit_local_job(MAIN_CODE_PATH,
                          ["--job_ind", str(job_ind), "--curr_job_folder", curr_job_folder, "--test_msa", test_msa_path,
                           ] + generate_argument_list(args))
-    curr_job_related_details["job_start_time"] = time.localtime()
+    curr_job_related_details["job_start_time"] = time.time()
     curr_job_related_details["job_name"] = job_name
     return curr_job_related_details
 
