@@ -92,7 +92,7 @@ def update_tasks_and_results(job_raxml_runs_done_obj,current_results,current_tas
 
 def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout, update_anyway = False):
     for job_ind in list(job_tracking_dict.keys()):
-        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"], started_file=job_tracking_dict[job_ind]["job_started_file"], job_start_time="job_start_time", timeout= timeout) or update_anyway:  # if job is done, remove it from dictionary
+        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"], started_file=job_tracking_dict[job_ind]["job_started_file"], job_start_time=job_tracking_dict[job_ind]["job_start_time"], timeout= timeout) or update_anyway:  # if job is done, remove it from dictionary
             logging.info(
                 f"Job {job_ind} is done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
             if not LOCAL_RUN:
