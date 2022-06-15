@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
+<<<<<<< HEAD
+    <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="" />
+=======
     <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/raw_data_generation/tp.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/tp.py" afterDir="false" />
     </list>
+>>>>>>> c2a04cf2d661e4ae31524a50b007dae8d7b738ec
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,8 +28,18 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
           <provider selected="true" editor-type-id="text-editor">
+<<<<<<< Updated upstream
             <state relative-caret-position="174">
               <caret line="161" column="87" selection-start-line="161" selection-start-column="87" selection-end-line="161" selection-end-column="87" />
+=======
+<<<<<<< HEAD
+            <state relative-caret-position="20">
+              <caret line="41" column="4" selection-start-line="41" selection-start-column="4" selection-end-line="41" selection-end-column="4" />
+=======
+            <state relative-caret-position="138">
+              <caret line="94" column="189" selection-start-line="94" selection-start-column="189" selection-end-line="94" selection-end-column="189" />
+>>>>>>> c2a04cf2d661e4ae31524a50b007dae8d7b738ec
+>>>>>>> Stashed changes
             </state>
           </provider>
         </entry>
@@ -1164,8 +1178,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_generation/tp.py">
       <provider selected="true" editor-type-id="text-editor">
+<<<<<<< Updated upstream
         <state relative-caret-position="174">
           <caret line="161" column="87" selection-start-line="161" selection-start-column="87" selection-end-line="161" selection-end-column="87" />
+=======
+<<<<<<< HEAD
+        <state relative-caret-position="20">
+          <caret line="41" column="4" selection-start-line="41" selection-start-column="4" selection-end-line="41" selection-end-column="4" />
+=======
+        <state relative-caret-position="138">
+          <caret line="94" column="189" selection-start-line="94" selection-start-column="189" selection-end-line="94" selection-end-column="189" />
+>>>>>>> c2a04cf2d661e4ae31524a50b007dae8d7b738ec
+>>>>>>> Stashed changes
         </state>
       </provider>
     </entry>
