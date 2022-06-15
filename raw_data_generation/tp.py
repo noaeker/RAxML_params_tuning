@@ -90,32 +90,35 @@ def update_tasks_and_results(job_raxml_runs_done_obj,current_results,current_tas
         if task_ind in current_tasks:
             del current_tasks[task_ind]
 
+def terminate_current_job(job_ind, job_tracking_dict):
+    logging.info(
+        f"Job {job_ind} is done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
+    if not LOCAL_RUN:
+        logging.info(f"Deleting job {job_ind} to make sure it is removed")
+        delete_current_job_cmd = f"qstat | grep {job_tracking_dict[job_ind]['job_name']} | xargs qdel"
+        execute_command_and_write_to_log(delete_current_job_cmd, print_to_log=True)
+    if os.path.exists(job_tracking_dict[job_ind]["job_entire_folder"]):
+        logging.info(f"Deleting job {job_ind} folder")
+        try:
+            rmtree(job_tracking_dict[job_ind]["job_entire_folder"])
+        except:
+            logging.info(f"Could not delete folder {job_tracking_dict[job_ind]['job_entire_folder']}")
+            # delete job folder
+    del job_tracking_dict[job_ind]
+    logging.info(f"job {job_ind} deleted from job tracking dict")
+
 
 def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout, update_anyway = False):
     for job_ind in list(job_tracking_dict.keys()):
-        job_start_time = job_tracking_dict[job_ind]["job_start_time"]
-        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"], started_file=job_tracking_dict[job_ind]["job_started_file"], job_start_time=job_start_time, timeout= timeout) or update_anyway:  # if job is done, remove it from dictionary
-            logging.info(
-                f"Job {job_ind} is done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
-            if not LOCAL_RUN:
-                logging.info(f"Deleting job {job_ind} to make sure it is removed")
-                delete_current_job_cmd = f"qstat | grep {job_tracking_dict[job_ind]['job_name']} | xargs qdel"
-                execute_command_and_write_to_log(delete_current_job_cmd, print_to_log= True)
-            if os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]) and os.path.getsize(
-                    job_tracking_dict[job_ind]["job_local_done_dump"]) > 0:
-                logging.info("RAxML runs done object exists and will be updated to current tasks and results!")
-                job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"], "rb"))
-                update_tasks_and_results(job_raxml_runs_done_obj, current_results,
-                                         current_tasks)
-            if os.path.exists(job_tracking_dict[job_ind]["job_entire_folder"]):
-                logging.info(f"Deleting job {job_ind} folder")
-                try:
-                    rmtree(job_tracking_dict[job_ind]["job_entire_folder"])
-                except:
-                    logging.info(f"Could not delete folder {job_tracking_dict[job_ind]['job_entire_folder']}")
-                            # delete job folder
-            del job_tracking_dict[job_ind]
-            logging.info(f"job {job_ind} deleted from job tracking dict")
+        if os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]) and os.path.getsize(
+                job_tracking_dict[job_ind]["job_local_done_dump"]) > 0:
+            job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"], "rb"))
+            update_tasks_and_results(job_raxml_runs_done_obj, current_results,
+                                     current_tasks)
+        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"], started_file=job_tracking_dict[job_ind]["job_started_file"], job_start_time=job_tracking_dict[job_ind]["job_start_time"], timeout= timeout):
+            terminate_current_job(job_ind, job_tracking_dict)
+    # if job is done, remove it from dictionary
+
 
 
 
