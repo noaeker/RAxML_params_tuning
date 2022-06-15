@@ -39,7 +39,7 @@ def generate_results_folder(curr_run_prefix):
     return curr_run_prefix
 
 
-def submit_single_job(all_jobs_results_folder, job_ind, curr_job_tasks_list, test_msa_path, current_tasks_path, args):
+def submit_single_job(all_jobs_results_folder, job_ind, curr_job_tasks_list, test_msa_path,args):
     curr_job_folder = os.path.join(all_jobs_results_folder, "job_" + str(job_ind))
     create_or_clean_dir(curr_job_folder)
     curr_job_related_details = get_job_related_files_paths(curr_job_folder, job_ind)
@@ -159,7 +159,7 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results
                 job_ind = job_first_index + i
                 logging.info(f"Submitted job number {job_ind}, which will perform {len(job_task)} tasks")
                 curr_job_related_files_paths = submit_single_job(all_jobs_results_folder, job_ind, job_task,
-                                                                 trimmed_test_msa_path, current_tasks, args)
+                                                                 trimmed_test_msa_path,args)
                 job_tracking_dict[job_ind] = curr_job_related_files_paths
             number_of_new_job_sent = len(tasks_per_job)
             job_first_index += number_of_new_job_sent
