@@ -13,7 +13,7 @@ def is_job_done(job_log_folder, started_file, job_start_time, timeout):
         return True
     else:
         if not os.path.exists(started_file) and (time.time()-job_start_time)>timeout:
-            logging.info(f"Started file {started_file} does not appear after {time.localtime()-job_start_time} seconds, job will be terminated")
+            logging.info(f"Started file {started_file} does not appear after {time.time()-job_start_time} seconds, job will be terminated")
             return True
         for file in os.listdir(job_log_folder):
             full_file_path = os.path.join(job_log_folder,file)
