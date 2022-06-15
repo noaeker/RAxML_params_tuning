@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2c1bdb7f-0638-4717-af46-713557adccf3" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/side_code/code_submission.py" beforeDir="false" afterPath="$PROJECT_DIR$/side_code/code_submission.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" beforeDir="false" afterPath="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -31,10 +31,22 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/side_code/file_handling.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="439">
+              <caret line="105" column="44" selection-start-line="105" selection-start-column="4" selection-end-line="105" selection-end-column="44" />
+              <folding>
+                <element signature="e#0#30#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="176">
-              <caret line="8" column="81" selection-start-line="8" selection-start-column="81" selection-end-line="8" selection-end-column="81" />
+            <state relative-caret-position="161">
+              <caret line="36" column="50" selection-start-line="36" selection-start-column="50" selection-end-line="36" selection-end-column="50" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
               </folding>
@@ -54,10 +66,10 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/side_code/code_submission.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="187">
+            <state relative-caret-position="198">
               <caret line="14" column="47" selection-start-line="14" selection-start-column="47" selection-end-line="14" selection-end-column="47" />
               <folding>
                 <element signature="e#1#61#0" expanded="true" />
@@ -69,8 +81,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/side_code/config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="370">
-              <caret line="23" column="25" selection-start-line="23" selection-start-column="25" selection-end-line="23" selection-end-column="25" />
+            <state relative-caret-position="144">
+              <caret line="27" column="12" selection-start-line="27" selection-start-column="12" selection-end-line="27" selection-end-column="12" />
               <folding>
                 <element signature="e#0#24#0" expanded="true" />
               </folding>
@@ -95,15 +107,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="268">
               <caret line="112" column="27" selection-start-line="112" selection-start-column="27" selection-end-line="112" selection-end-column="27" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/opt/anaconda3/lib/python3.8/site-packages/sklearn/utils/validation.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="131">
-              <caret line="62" selection-start-line="62" selection-end-line="62" />
             </state>
           </provider>
         </entry>
@@ -146,7 +149,6 @@
       <find>Currently running jobs are</find>
       <find>submit_linux_job</find>
       <find>diverfe</find>
-      <find>timeout</find>
       <find>split_to_train_and_test</find>
       <find>check_jobs_status</find>
       <find>update_tasks_and_results</find>
@@ -157,6 +159,7 @@
       <find>target_msas_list</find>
       <find>currently</find>
       <find>is_job_d</find>
+      <find>timeout</find>
       <find>is_job_done</find>
     </findStrings>
   </component>
@@ -212,11 +215,11 @@
         <option value="$PROJECT_DIR$/ML_pipeline/features_extractor_new_version.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/tune_params.py" />
         <option value="$PROJECT_DIR$/ML_pipeline/ML_pipeline_raw_results.py" />
-        <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
         <option value="$PROJECT_DIR$/ML_pipeline/ML_pipeline_aggregated_results.py" />
         <option value="$PROJECT_DIR$/side_code/config.py" />
         <option value="$PROJECT_DIR$/raw_data_generation/tp.py" />
         <option value="$PROJECT_DIR$/side_code/code_submission.py" />
+        <option value="$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py" />
       </list>
     </option>
   </component>
@@ -942,16 +945,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/side_code/file_handling.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2222">
-          <caret line="105" column="44" selection-start-line="105" selection-start-column="4" selection-end-line="105" selection-end-column="44" />
-          <folding>
-            <element signature="e#0#30#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_aggregation_analysis/aggregate_raw_data.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="396">
@@ -1106,16 +1099,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/side_code/config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="370">
-          <caret line="23" column="25" selection-start-line="23" selection-start-column="25" selection-end-line="23" selection-end-column="25" />
-          <folding>
-            <element signature="e#0#24#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ML_pipeline/ML_pipeline_raw_results.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="286">
@@ -1133,22 +1116,42 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="176">
-          <caret line="8" column="81" selection-start-line="8" selection-start-column="81" selection-end-line="8" selection-end-column="81" />
-          <folding>
-            <element signature="e#0#15#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/raw_data_aggregation_analysis/job_runner_side_funcs.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="22">
           <caret line="17" column="65" selection-start-line="17" selection-start-column="65" selection-end-line="17" selection-end-column="65" />
           <folding>
             <element signature="e#0#30#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/side_code/code_submission.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="198">
+          <caret line="14" column="47" selection-start-line="14" selection-start-column="47" selection-end-line="14" selection-end-column="47" />
+          <folding>
+            <element signature="e#1#61#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/side_code/file_handling.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="439">
+          <caret line="105" column="44" selection-start-line="105" selection-start-column="4" selection-end-line="105" selection-end-column="44" />
+          <folding>
+            <element signature="e#0#30#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/side_code/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="144">
+          <caret line="27" column="12" selection-start-line="27" selection-start-column="12" selection-end-line="27" selection-end-column="12" />
+          <folding>
+            <element signature="e#0#24#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1160,12 +1163,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/side_code/code_submission.py">
+    <entry file="file://$PROJECT_DIR$/raw_data_generation/job_runner_side_funcs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="187">
-          <caret line="14" column="47" selection-start-line="14" selection-start-column="47" selection-end-line="14" selection-end-column="47" />
+        <state relative-caret-position="161">
+          <caret line="36" column="50" selection-start-line="36" selection-start-column="50" selection-end-line="36" selection-end-column="50" />
           <folding>
-            <element signature="e#1#61#0" expanded="true" />
+            <element signature="e#0#15#0" expanded="true" />
           </folding>
         </state>
       </provider>
