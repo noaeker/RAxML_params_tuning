@@ -61,8 +61,8 @@ def submit_linux_job(job_name, job_folder,job_log_path, run_command, cpus, job_i
     with open(cmds_path, 'w') as cmds_f:
         cmds_f.write(job_line)
     command = f'{PBS_FILE_GENERATOR_CODE} {cmds_path} {job_log_path} --cpu {cpus} --q {queue}'
-    logging.debug(f'About to submit a pbs file to {queue} queue based on cmds:{cmds_path}')
-    os.system(command)
+    logging.info(f'About to submit a pbs file to {queue} queue based on cmds:{cmds_path}')
+    subprocess.call(command, shell= True)
 
 
 def submit_local_job(executable, argument_list):
