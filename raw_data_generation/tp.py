@@ -82,9 +82,9 @@ def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
     return file_path_list
 
 def update_tasks_and_results(job_raxml_runs_done_obj,current_results,current_tasks):
-    logging.info(f"Job done size is {len(job_raxml_runs_done_obj)}")
+    logging.debug(f"Job done size is {len(job_raxml_runs_done_obj)}")
     current_results.update(job_raxml_runs_done_obj)  # update new results
-    logging.info(f"Current results dict size is now {len(current_results)}")
+    logging.debug(f"Current results dict size is now {len(current_results)}")
     # update tasks dictionary
     for task_ind in job_raxml_runs_done_obj:
         if task_ind in current_tasks:
