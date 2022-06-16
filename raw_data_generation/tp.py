@@ -295,8 +295,8 @@ def main():
         target_msas_list = remaining_MSAs
         pickle.dump(target_msas_list , open(file_paths_path, "wb")) # Done with current filess
         total_msas_done += args.n_MSAs_per_bunch
-        #with open(all_jobs_general_log_file,'w'): #empty log file
-        #    pass
+        with open(all_jobs_general_log_file,'w'): #empty log file
+            pass
         logging.info(f"###### iteration {i} done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         logging.info(f"###### So far done with {total_msas_done}/{total_msas_overall} of the MSAs ")
         try:
