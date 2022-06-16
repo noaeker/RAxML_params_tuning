@@ -112,9 +112,13 @@ def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout
     for job_ind in list(job_tracking_dict.keys()):
         if os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]) and os.path.getsize(
                 job_tracking_dict[job_ind]["job_local_done_dump"]) > 0:
-            job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"], "rb"))
-            update_tasks_and_results(job_raxml_runs_done_obj, current_results,
-                                     current_tasks)
+            try:
+                job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"], "rb"))
+                update_tasks_and_results(job_raxml_runs_done_obj, current_results,
+                                         current_tasks)
+            except Exception as e:
+                logging.debug(f"Couldn't update file, e = {e}")
+
         if is_job_done(job_tracking_dict[job_ind]["job_log_folder"], started_file=job_tracking_dict[job_ind]["job_started_file"], job_start_time=job_tracking_dict[job_ind]["job_start_time"], timeout= timeout):
             terminate_current_job(job_ind, job_tracking_dict)
     # if job is done, remove it from dictionary
