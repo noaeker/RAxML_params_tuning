@@ -118,7 +118,9 @@ def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout
                     logging.info(f"Job done size {len(job_raxml_runs_done_obj)}")
                     update_tasks_and_results(job_raxml_runs_done_obj, current_results,
                                              current_tasks)
-                    logging.info(f"Current results size is {len(job_raxml_runs_done_obj)}")
+                    logging.info(f"Current results dict size is {len(current_results)}")
+                    logging.info(f"Current tasks dict size is {len(current_tasks)}")
+                    logging.info(f"Sanity check: total is {len(current_results)+len(current_tasks)}")
                     terminate_current_job(job_ind, job_tracking_dict)  # fully terminate current job
                 except Exception as e:
                     logging.info(f"Couldn't update file although job is done, e = {e}")
