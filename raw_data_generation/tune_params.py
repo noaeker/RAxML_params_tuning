@@ -92,11 +92,11 @@ def main():
     tmp_starting_tree_path = os.path.join(args.curr_job_folder, "tmp_tree")
     total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
     logging.info(f"Total test time is: {total_test_time}")
-    for i, task_ind in (enumerate(job_tasks_dict)):
+    for i, task_key in (enumerate(job_tasks_dict)):
         if os.path.exists(job_local_stop_running_path):  # break out of the loop if all tasks are done
             break
         logging.info(f"Performing task number {i + 1}/{len(job_tasks_dict)},, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
-        raxml_run = job_tasks_dict[task_ind]
+        raxml_run = job_tasks_dict[task_key]
         with open(tmp_starting_tree_path, 'w') as TMP_STARTING_TREE_PATH:
             TMP_STARTING_TREE_PATH.write(raxml_run.starting_tree_object.write(format=1))
 
@@ -104,7 +104,7 @@ def main():
         results["test_norm_const"] = total_test_time
         logging.debug(f"Current task results: {results}")
         raxml_run.set_run_results(results)
-        job_done_dict[task_ind] = raxml_run
+        job_done_dict[task_key] = raxml_run
         pickle.dump(job_done_dict, open(job_local_done_dump_path, "wb"))
     logging.info("Done with current job")
 
