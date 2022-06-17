@@ -95,9 +95,10 @@ def terminate_current_job(job_ind, job_tracking_dict):
     logging.info(
         f"Job {job_ind} is done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
     if not LOCAL_RUN:
-        logging.info(f"Deleting job {job_ind} to make sure it is removed")
-        delete_current_job_cmd = f"qstat | grep {job_tracking_dict[job_ind]['job_name']} | xargs qdel"
-        execute_command_and_write_to_log(delete_current_job_cmd, print_to_log=True)
+        pass
+        #logging.info(f"Deleting job {job_ind} to make sure it is removed")
+        #delete_current_job_cmd = f"qstat | grep {job_tracking_dict[job_ind]['job_name']} | xargs qdel"
+        #execute_command_and_write_to_log(delete_current_job_cmd, print_to_log=True)
     if os.path.exists(job_tracking_dict[job_ind]["job_entire_folder"]):
         logging.info(f"Deleting job {job_ind} folder")
         #try:
