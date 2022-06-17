@@ -143,7 +143,9 @@ def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout
 def assign_tasks_over_available_jobs(current_tasks, number_of_jobs_to_send,max_n_tasks_per_job): # load tasks file
     if len(current_tasks) == 0:
         return []
-    tasks = np.array(list(current_tasks.keys())[:max_n_tasks_per_job*number_of_jobs_to_send])
+    tasks_keys = list(current_tasks.keys())
+    np.random.shuffle(tasks_keys)
+    tasks = np.array(tasks_keys[:max_n_tasks_per_job*number_of_jobs_to_send])
     np.random.shuffle(tasks)
     tasks_chunk_keys = np.array_split(tasks, min(number_of_jobs_to_send, len(current_tasks)))
     tasks_chunks = [{key: current_tasks[key] for key in key_chunks} for key_chunks in tasks_chunk_keys]
