@@ -81,7 +81,7 @@ def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
         f"Sampling {len(file_path_list)} random MSAs")
     return file_path_list
 
-def update_tasks_and_results(job_raxml_runs_done_obj,current_results,current_tasks):
+def update_tasks_and_results(job_raxml_runs_done_obj,current_results,current_tasks, ):
     logging.debug(f"Job done size is {len(job_raxml_runs_done_obj)}")
     current_results.update(job_raxml_runs_done_obj)  # update new results
     logging.debug(f"Current results dict size is now {len(current_results)}")
@@ -89,6 +89,7 @@ def update_tasks_and_results(job_raxml_runs_done_obj,current_results,current_tas
     for task_ind in job_raxml_runs_done_obj:
         if task_ind in current_tasks:
             del current_tasks[task_ind]
+
 
 def terminate_current_job(job_ind, job_tracking_dict):
     logging.info(
@@ -108,19 +109,29 @@ def terminate_current_job(job_ind, job_tracking_dict):
     logging.info(f"job {job_ind} deleted from job tracking dict")
 
 
-def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout, update_anyway = False):
+def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout):
     for job_ind in list(job_tracking_dict.keys()):
-        if os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]) and os.path.getsize(
-                job_tracking_dict[job_ind]["job_local_done_dump"]) > 0:
+        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"], started_file=job_tracking_dict[job_ind]["job_started_file"], job_start_time=job_tracking_dict[job_ind]["job_start_time"], timeout= timeout):
             try:
                 job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"], "rb"))
+                logging.info(f"Job done size {len(job_raxml_runs_done_obj)}")
                 update_tasks_and_results(job_raxml_runs_done_obj, current_results,
                                          current_tasks)
+                logging.info(f"Current results size is {len(job_raxml_runs_done_obj)}")
             except Exception as e:
-                logging.debug(f"Couldn't update file, e = {e}")
+                logging.info(f"Couldn't update file although job is done, e = {e}")
+            terminate_current_job(job_ind, job_tracking_dict) #fully terminate current job
+        else: #else, try to update it's results
+            if os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]) and os.path.getsize(
+                    job_tracking_dict[job_ind]["job_local_done_dump"]) > 0:
+                try:
+                    job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"], "rb"))
+                    update_tasks_and_results(job_raxml_runs_done_obj, current_results,
+                                             current_tasks)
+                except Exception as e:
+                    logging.debug(f"Couldn't update file, e = {e}")
 
-        if is_job_done(job_tracking_dict[job_ind]["job_log_folder"], started_file=job_tracking_dict[job_ind]["job_started_file"], job_start_time=job_tracking_dict[job_ind]["job_start_time"], timeout= timeout):
-            terminate_current_job(job_ind, job_tracking_dict)
+
     # if job is done, remove it from dictionary
 
 
@@ -162,6 +173,7 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results
         number_of_available_jobs_to_send = args.max_n_parallel_jobs - len(job_tracking_dict)
         if number_of_available_jobs_to_send > 0:  # Available new jobs.
             logging.info(f"## Currently {len(job_tracking_dict)} jobs are running  ,  {number_of_available_jobs_to_send} available jobs are about to be sent!")
+            logging.info(f"Remaining tasks to be performed: {len(current_tasks)}")
             tasks_per_job = assign_tasks_over_available_jobs(current_tasks,
                                                              number_of_available_jobs_to_send,max_n_tasks_per_job)  # Partitioning of tasks over jobs
             for i, job_task in enumerate(tasks_per_job):
