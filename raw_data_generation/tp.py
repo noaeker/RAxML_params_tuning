@@ -100,10 +100,10 @@ def terminate_current_job(job_ind, job_tracking_dict):
         execute_command_and_write_to_log(delete_current_job_cmd, print_to_log=True)
     if os.path.exists(job_tracking_dict[job_ind]["job_entire_folder"]):
         logging.info(f"Deleting job {job_ind} folder")
-        try:
-            rmtree(job_tracking_dict[job_ind]["job_entire_folder"])
-        except:
-            logging.info(f"Could not delete folder {job_tracking_dict[job_ind]['job_entire_folder']}")
+        #try:
+        #    rmtree(job_tracking_dict[job_ind]["job_entire_folder"])
+        #except:
+        #    logging.info(f"Could not delete folder {job_tracking_dict[job_ind]['job_entire_folder']}")
             # delete job folder
     del job_tracking_dict[job_ind]
     logging.info(f"job {job_ind} deleted from job tracking dict")
@@ -112,15 +112,16 @@ def terminate_current_job(job_ind, job_tracking_dict):
 def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout):
     for job_ind in list(job_tracking_dict.keys()):
         if is_job_done(job_tracking_dict[job_ind]["job_log_folder"], started_file=job_tracking_dict[job_ind]["job_started_file"], job_start_time=job_tracking_dict[job_ind]["job_start_time"], timeout= timeout):
-            try:
-                job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"], "rb"))
-                logging.info(f"Job done size {len(job_raxml_runs_done_obj)}")
-                update_tasks_and_results(job_raxml_runs_done_obj, current_results,
-                                         current_tasks)
-                logging.info(f"Current results size is {len(job_raxml_runs_done_obj)}")
-            except Exception as e:
-                logging.info(f"Couldn't update file although job is done, e = {e}")
-            terminate_current_job(job_ind, job_tracking_dict) #fully terminate current job
+            if os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]):
+                try:
+                    job_raxml_runs_done_obj = pickle.load(open(job_tracking_dict[job_ind]["job_local_done_dump"], "rb"))
+                    logging.info(f"Job done size {len(job_raxml_runs_done_obj)}")
+                    update_tasks_and_results(job_raxml_runs_done_obj, current_results,
+                                             current_tasks)
+                    logging.info(f"Current results size is {len(job_raxml_runs_done_obj)}")
+                    terminate_current_job(job_ind, job_tracking_dict)  # fully terminate current job
+                except Exception as e:
+                    logging.info(f"Couldn't update file although job is done, e = {e}")
         else: #else, try to update it's results
             if os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]) and os.path.getsize(
                     job_tracking_dict[job_ind]["job_local_done_dump"]) > 0:
