@@ -173,7 +173,7 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results
     '''
     job_tracking_dict = {}
     job_first_index = 0
-    max_n_tasks_per_job = ceil(len(current_tasks)/args.max_n_parallel_jobs)
+    max_n_tasks_per_job = args.max_n_tasks_per_job if args.max_n_tasks_per_job>0 else ceil(len(current_tasks)/args.max_n_parallel_jobs)
     logging.info(f"Maximal number of tasks per job is {max_n_tasks_per_job}")
     while len(current_tasks) > 0:  # Make sure all current tasks are performed
         number_of_available_jobs_to_send = args.max_n_parallel_jobs - len(job_tracking_dict)
@@ -192,7 +192,7 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results
             number_of_new_job_sent = len(tasks_per_job)
             job_first_index += number_of_new_job_sent
         check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout= args.timeout)
-        time.sleep(WAITING_TIME_UPDATE)
+        time.sleep(args.waiting_time_between_iterations)
     logging.info("Done with the current tasks bunch")
     logging.info(f"Current job_tracking_dict keys are {job_tracking_dict.keys()}" )
     for job_ind in list(job_tracking_dict.keys()): # remove all remaining folders

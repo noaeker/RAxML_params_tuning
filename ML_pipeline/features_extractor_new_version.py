@@ -44,9 +44,19 @@ def get_msa_stats(msa_path):
 def tree_metrics(curr_run_directory, tree_object):
     tmp_folder = os.path.join(curr_run_directory,'tmp_working_dir_tree_metrics')
     create_or_clean_dir(tmp_folder)
-    res = {"feature_tree_divergence": compute_tree_divergence(tree_object),
+    BL_metrics = tree_branch_length_metrics(tree_object)
+
+    res = {
+        ""
+        "feature_mean_branch_length": np.mean(BL_metrics["BL_list"]),
+           "feature_mean_internal_branch_length": np.mean(BL_metrics["internal_BL_list"]),
+           "feature_mean_leaf_branch_length": np.mean(BL_metrics["leaf_BL_list"]),
            "feature_tree_MAD": mad_tree_parameter(curr_run_directory, tree_object),
-           "feature_largest_branch_length": compute_largest_branch_length(tree_object),
+           "feature_largest_branch_length": np.max(BL_metrics["BL_list"]),
+           "feature_minimal_branch_length": np.max(BL_metrics["BL_list"]),
+           "feature_median_branch_length": np.median(BL_metrics["BL_list"]),
+            "feature_25_pct_branch_length": np.percentile(BL_metrics["BL_list"],25),
+            "feature_75_pct_branch_length": np.percentile(BL_metrics["BL_list"], 75),
            "feature_largest_distance_between_taxa": max_distance_between_leaves(tree_object)
 
            }
@@ -100,9 +110,9 @@ def tree_features_pipeline(msa_path,curr_run_directory, msa_raw_data, existing_t
         ["starting_tree_ind", "starting_tree_type","starting_tree_object"]].drop_duplicates().reset_index()
     tree_features_dict= {}
     for index, row in trees_features_data.iterrows():
-        optimized_tree_object_ll,optimized_tree_object = EVAL_tree_object_ll(generate_tree_object_from_newick(row["starting_tree_object"]), tmp_folder, get_local_path(msa_path), get_msa_type( get_local_path(msa_path)), opt_brlen = True)
+        optimized_tree_object_ll,optimized_tree_object_alpha,optimized_tree_object = EVAL_tree_object_ll(generate_tree_object_from_newick(row["starting_tree_object"]), tmp_folder, get_local_path(msa_path), get_msa_type( get_local_path(msa_path)), opt_brlen = True)
         curr_tree_features = tree_metrics(tmp_folder,optimized_tree_object)
-        curr_tree_features.update({"feature_optimized_ll": optimized_tree_object_ll})
+        curr_tree_features.update({"feature_optimized_ll": optimized_tree_object_ll, 'feature_optimized_tree_object_alpha': optimized_tree_object_alpha})
         tree_features_dict[(row["starting_tree_ind"],row["starting_tree_type"])] = curr_tree_features
     tree_features = pd.DataFrame.from_dict(tree_features_dict, orient= 'index')
     pickle.dump(tree_features, open(existing_tree_features_path, 'wb'))

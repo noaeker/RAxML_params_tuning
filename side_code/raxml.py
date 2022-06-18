@@ -245,8 +245,9 @@ def raxml_optimize_trees_for_given_msa(full_data_path, ll_on_data_prefix, tree_f
     raxml_log_file = prefix + ".raxml.log"
     execute_command_and_write_to_log(compute_ll_run_command)
     trees_ll_on_data = extract_param_from_raxmlNG_log(raxml_log_file, "ll")
+    tree_alpha = extract_param_from_raxmlNG_log(raxml_log_file, "alpha")
     optimized_trees_final_path = optimized_trees_path if os.path.exists(optimized_trees_path) else best_tree_path
-    return trees_ll_on_data,optimized_trees_final_path
+    return trees_ll_on_data, tree_alpha,optimized_trees_final_path
 
 
 def RF_distances(curr_run_directory, trees_path):
@@ -295,11 +296,11 @@ def EVAL_tree_object_ll(tree_object, curr_run_directory, msa_path, msa_type, opt
     with open(trees_path, 'w') as BEST_TREE:
             newick = (tree_object.write(format=1))
             BEST_TREE.write(newick)
-    trees_ll,tree_path = raxml_optimize_trees_for_given_msa(msa_path, "trees_eval", trees_path,
+    trees_ll, tree_alpha,tree_path = raxml_optimize_trees_for_given_msa(msa_path, "trees_eval", trees_path,
                                        tmp_folder,  msa_type, opt_brlen=opt_brlen
                                        )
     tree_object = generate_tree_object_from_newick(tree_path)
-    return trees_ll, tree_object
+    return trees_ll,tree_alpha, tree_object
 
 
 

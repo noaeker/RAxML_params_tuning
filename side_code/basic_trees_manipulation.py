@@ -64,12 +64,18 @@ def get_tree_string(tree_path):
     return (tree_object.write(format=1))
 
 
-def compute_tree_divergence(tree):
-    total_dist = 0
+def tree_branch_length_metrics(tree):
+    internal_branch_lengths = []
+    leaft_branch_lengths = []
+    branch_lengths = []
     for node in tree.iter_descendants():
         # Do some analysis on node
-        total_dist = total_dist + node.dist
-    return total_dist
+        branch_lengths.append(node.dist)
+        if node.is_leaf():
+            leaft_branch_lengths.append(node.dist)
+        else:
+            internal_branch_lengths.append(node.dist)
+    return {"BL_list": branch_lengths, "internal_BL_list": internal_branch_lengths, "leaf_BL_dist": leaft_branch_lengths}
 
 
 def assign_brlen_to_tree_object(tree_object, brlen_list):

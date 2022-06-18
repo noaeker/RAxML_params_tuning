@@ -87,9 +87,9 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
         pickle.dump(trees_data,open(features_path,'wb'))
 
     parsimony_tree_objects = generate_multiple_tree_object_from_newick(parsimony_trees_path)
-    tree_features_dict = {'feature_avg_tree_divergence': np.mean([compute_tree_divergence(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
+    tree_features_dict = {'feature_avg_tree_divergence': np.mean([tree_branch_length_metrics(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
                           'feature_var_tree_divergence': np.var(
-                              [compute_tree_divergence(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
+                              [tree_branch_length_metrics(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
                           'feature_avg_largest_branch_length': np.mean([compute_largest_branch_length(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
                           'feature_var_largest_branch_length': np.var(
                               [compute_largest_branch_length(parsimony_tree) for parsimony_tree in
