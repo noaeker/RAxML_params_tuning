@@ -12,6 +12,7 @@ import os
 import argparse
 import lightgbm
 from sklearn.metrics import classification_report
+from sksurv.ensemble import RandomSurvivalForest
 
 
 # Mean absolute error (MAE)
@@ -153,6 +154,17 @@ def train_models(data_dict):
     logging.info(f"Time_test_metrics: \n {time_test_metrics}")
     return rf_mod_err, rf_mod_time
 
+def train_surv_models(data_dict):
+    rsf = RandomSurvivalForest(n_estimators=10,
+                               min_samples_split=10,
+                               min_samples_leaf=15,
+                               max_features="sqrt",
+                               n_jobs=-1,
+                               random_state=1)
+    rsf_fit = rsf.fit(data_dict["X_train"], data_dict["y_train_surv"])
+    pickle.dump(rsf_fit,open("rsf_fit","wb"))
+    print(rsf.score(data_dict["X_test"], data_dict["y_test_surv"]))
+
 
 def split_to_train_and_test(full_data, data_feature_names, search_feature_names):
     train_data, test_data, validation_data = train_test_validation_splits(
@@ -163,12 +175,12 @@ def split_to_train_and_test(full_data, data_feature_names, search_feature_names)
     X_test = test_data[data_feature_names + search_feature_names]
     y_test_err = test_data["is_global_max"]
     y_test_time = test_data["normalized_time"]
-    return {"X_train": X_train, "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test": X_test,
-            "y_test_err": y_test_err, "y_test_time": y_test_time, "full_test_data": test_data}
+    return {"X_train": X_train,  "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test": X_test,
+            "y_train_surv": train_data[["is_global_max", "relative_time"]].to_records(index =  False),"y_test_err": y_test_err, "y_test_time": y_test_time, "y_test_surv": pd.melt(test_data[["is_global_max", "relative_time"]]).to_records(index = False), "full_test_data": test_data}
 
 
 def edit_data(data, epsilon):
-    data["is_global_max"] = data["delta_ll_from_overall_msa_best_topology"] <= epsilon
+    data["is_global_max"] = (data["delta_ll_from_overall_msa_best_topology"] <= epsilon)
     data["relative_time"] = data["elapsed_running_time"] / data["test_norm_const"]
     data["msa_name"] = data["msa_path"].apply(lambda s: remove_env_path_prefix(s))
     data["starting_tree_bool"] = data["starting_tree_type"] == "pars"
@@ -212,6 +224,7 @@ def main():
     search_features = ['spr_radius', 'spr_cutoff', 'starting_tree_bool', "starting_tree_ll"]
     data_dict = split_to_train_and_test(data, msa_features, search_features)
     rf_mod_err, rf_mod_time = train_models(data_dict)
+    #rf_surv = train_surv_models (data_dict)
 
     # plot_full_data_metrics(full_data, epsilon)
     # grid_search_time_and_rf(rf_mod_err, rf_mod_time, data_dict, epsilon)

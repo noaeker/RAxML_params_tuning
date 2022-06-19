@@ -197,8 +197,6 @@ def main():
     args = parser.parse_args()
     curr_run_directory = os.path.join(args.results_folder, "features_extraction_pipeline_files")
     create_dir_if_not_exists(curr_run_directory)
-    existing_features_dir = os.path.join(args.results_folder, "features_per_msa_dump")
-    create_dir_if_not_exists(existing_features_dir)
     log_file_path = os.path.join(args.results_folder,"features.log")
     logging.basicConfig(filename=log_file_path, level=logging.INFO)
     raw_data = pd.read_csv(args.raw_data_path, sep=CSV_SEP)

@@ -75,7 +75,7 @@ def tree_branch_length_metrics(tree):
             leaft_branch_lengths.append(node.dist)
         else:
             internal_branch_lengths.append(node.dist)
-    return {"BL_list": branch_lengths, "internal_BL_list": internal_branch_lengths, "leaf_BL_dist": leaft_branch_lengths}
+    return {"BL_list": branch_lengths, "internal_BL_list": internal_branch_lengths, "leaf_BL_list": leaft_branch_lengths}
 
 
 def assign_brlen_to_tree_object(tree_object, brlen_list):
