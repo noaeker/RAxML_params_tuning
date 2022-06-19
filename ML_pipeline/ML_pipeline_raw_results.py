@@ -13,6 +13,7 @@ import argparse
 import lightgbm
 from sklearn.metrics import classification_report
 from sksurv.ensemble import RandomSurvivalForest
+from sksurv.tree import SurvivalTree
 
 
 # Mean absolute error (MAE)
@@ -155,15 +156,18 @@ def train_models(data_dict):
     return rf_mod_err, rf_mod_time
 
 def train_surv_models(data_dict):
-    rsf = RandomSurvivalForest(n_estimators=10,
-                               min_samples_split=10,
-                               min_samples_leaf=15,
-                               max_features="sqrt",
-                               n_jobs=-1,
-                               random_state=1)
-    rsf_fit = rsf.fit(data_dict["X_train"], data_dict["y_train_surv"])
-    pickle.dump(rsf_fit,open("rsf_fit","wb"))
-    print(rsf.score(data_dict["X_test"], data_dict["y_test_surv"]))
+    # rsf = RandomSurvivalForest(n_estimators=10,
+    #                            min_samples_split=10,
+    #                            min_samples_leaf=15,
+    #                            max_features="sqrt",
+    #                            n_jobs=-1,
+    #                            random_state=1)
+    if os.path.exists("rsf_fit"):
+        estimator = pickle.load(open("rsf_fit","rb"))
+    else:
+        estimator = SurvivalTree(max_depth = 10).fit(data_dict["X_train"], data_dict["y_train_surv"])
+        pickle.dump(estimator , open("rsf_fit", "wb"))
+    print(estimator.score(data_dict["X_test"], data_dict["y_test_surv"]))
 
 
 def split_to_train_and_test(full_data, data_feature_names, search_feature_names):
@@ -176,25 +180,25 @@ def split_to_train_and_test(full_data, data_feature_names, search_feature_names)
     y_test_err = test_data["is_global_max"]
     y_test_time = test_data["normalized_time"]
     return {"X_train": X_train,  "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test": X_test,
-            "y_train_surv": train_data[["is_global_max", "relative_time"]].to_records(index =  False),"y_test_err": y_test_err, "y_test_time": y_test_time, "y_test_surv": pd.melt(test_data[["is_global_max", "relative_time"]]).to_records(index = False), "full_test_data": test_data}
+            "y_train_surv": train_data[["is_global_max", "relative_time"]].to_records(index =  False),"y_test_err": y_test_err, "y_test_time": y_test_time, "y_test_surv": test_data[["is_global_max", "relative_time"]].to_records(index = False), "full_test_data": test_data}
 
 
 def edit_data(data, epsilon):
-    data["is_global_max"] = (data["delta_ll_from_overall_msa_best_topology"] <= epsilon)
+    data["is_global_max"] = data["delta_ll_from_overall_msa_best_topology"] <= epsilon
     data["relative_time"] = data["elapsed_running_time"] / data["test_norm_const"]
     data["msa_name"] = data["msa_path"].apply(lambda s: remove_env_path_prefix(s))
     data["starting_tree_bool"] = data["starting_tree_type"] == "pars"
+    u = data["starting_tree_bool"] .unique()
     data["feature_starting_tree_ll_normalized"] = \
         data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
             "starting_tree_ll"]
     data["feature_starting_tree_ll_optimized_normalized"] = \
         data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
             "feature_optimized_ll"]
-    data["feature_tree_divergence_sclaed"] = data["feature_tree_divergence"]/ data["feature_n_seq"]
     data["feature_mean_rf_distance_scaled"] = data["feature_mean_rf_distance"]/ data["feature_n_seq"]
-    data["feature_tree_divergence_normalized"] = \
-        data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
-            "feature_tree_divergence"]
+#    data["feature_tree_divergence_normalized"] = \
+#        data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
+#            "feature_tree_divergence"]
     data["feature_tree_MAD_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["feature_tree_MAD"]
     data["feature_largest_branch_length_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())[
         "feature_largest_branch_length"]

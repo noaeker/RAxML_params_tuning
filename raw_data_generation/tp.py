@@ -188,7 +188,7 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results
                 curr_job_related_files_paths = submit_single_job(all_jobs_results_folder, job_ind, job_task,
                                                                  trimmed_test_msa_path,args)
                 job_tracking_dict[job_ind] = curr_job_related_files_paths
-                time.sleep(3) # wait 3 seconds between job sendings
+                time.sleep(args.waiting_time_between_job_submissions) # wait 3 seconds between job sendings
             number_of_new_job_sent = len(tasks_per_job)
             job_first_index += number_of_new_job_sent
         check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout= args.timeout)

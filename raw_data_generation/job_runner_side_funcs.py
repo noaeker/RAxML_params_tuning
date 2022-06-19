@@ -36,7 +36,8 @@ def main_parser():
     parser.add_argument('--use_files_from_csv', action='store_true')
     parser.add_argument('--timeout',type=int, default = 1000)
     parser.add_argument('--max_n_tasks_per_job',type=int, default=-1)
-    parser.add_argument('--aiting_time_between_iterations',type=int, default = WAITING_TIME_UPDATE)
+    parser.add_argument('--waiting_time_between_iterations',type=int, default = WAITING_TIME_UPDATE)
+    parser.add_argument('--waiting_time_between_job_submissions', type=int, default=4)
     return parser
 
 

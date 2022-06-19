@@ -81,13 +81,13 @@ def train_models(data_dict):
 
 def split_to_train_and_test(full_data, data_feature_names, search_feature_names):
     train_data, test_data, validation_data = train_test_validation_splits(
-        full_data, test_pct=0.1, val_pct=0)
+        full_data, test_pct=0.3, val_pct=0)
     X_train = train_data[data_feature_names + search_feature_names]
     y_train_err = train_data["is_global_max"]
-    y_train_time = train_data["normalized_time"]
+    y_train_time = train_data["relative_time"]
     X_test = test_data[data_feature_names + search_feature_names]
     y_test_err = test_data["is_global_max"]
-    y_test_time = test_data["normalized_time"]
+    y_test_time = test_data["relative_time"]
     return {"X_train": X_train, "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test": X_test,
             "y_test_err": y_test_err, "y_test_time": y_test_time, "full_test_data": test_data}
 
@@ -97,18 +97,17 @@ def edit_data(data, epsilon):
     data["relative_time"] = data["elapsed_running_time"] / data["test_norm_const"]
     data["msa_name"] = data["msa_path"].apply(lambda s: remove_env_path_prefix(s))
     data["starting_tree_bool"] = data["starting_tree_type"] == "pars"
-    data["feature_tree_divergence_sclaed"] = data["feature_tree_divergence"]/ data["feature_n_seq"]
+#    data["feature_tree_divergence_sclaed"] = data["feature_tree_divergence"]/ data["feature_n_seq"]
 
 
 def edit_aggregated_data(data):
-    data["normalized_time"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["relative_time"]
-    idx = data.groupby(['msa_path'])['is_global_max'].transform(max) == data['is_global_max']
-    data = data[idx]
+    #idx = data.groupby(['msa_path'])['is_global_max'].transform(max) == data['is_global_max']
+    #data = data[idx]
     return data
     #data["normalized_global_max"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["is_global_max"]
 
 def main():
-    epsilon = 1
+    epsilon = 0.1
     parser = argparse.ArgumentParser()
     parser.add_argument('--features_path', action='store', type=str,
                         default=f"/Users/noa/Workspace/raxml_deep_learning_results/c_30_70/features.tsv")
@@ -116,7 +115,7 @@ def main():
     args = parser.parse_args()
     data = pd.read_csv(args.features_path, sep=CSV_SEP)
     edit_data(data, epsilon)
-    data = data.groupby(['msa_name','msa_path','spr_radius', 'spr_cutoff', 'starting_tree_bool']).mean().reset_index()
+    data = data.groupby(['msa_name','msa_path', 'starting_tree_bool','spr_radius']).mean().reset_index()
     data = edit_aggregated_data(data)
     # full_data = full_data.replace([np.inf, -np.inf,np.nan], -1)
     all_jobs_general_log_file = os.path.join(ML_RESULTS_FOLDER, "ML_log_file.log")

@@ -15,6 +15,7 @@ from side_code.file_handling import create_or_clean_dir, create_dir_if_not_exist
 from side_code.MSA_manipulation import get_alignment_data, alignment_list_to_df, get_msa_type, get_msa_name
 from side_code.config import *
 from shutil import rmtree
+from ModelTeller.compute_features import prepare_features_df
 import pandas as pd
 import pickle
 import argparse
@@ -129,6 +130,20 @@ def tree_group_features_pipeline(curr_run_directory, msa_raw_data, existing_tree
                                                                          row["starting_tree_type"]) for
         index, row in tree_groups_data.iterrows()}, orient = 'index')
     pickle.dump(tree_group_features, open(existing_tree_group_features_path, 'wb'))
+    return tree_group_features
+
+
+def modelteller_features_pipeline(curr_run_directory, msa_raw_data, existing_modelteller_features_path):
+    if os.path.exists(existing_modelteller_features_path):
+        existing_modelteller_features = pickle.load(open(existing_modelteller_features_path,"rb"))
+        return existing_modelteller_features
+    tree_groups_data = msa_raw_data[["msa_path", "starting_tree_obj"]].drop_duplicates().reset_index()
+    tree_group_features = pd.DataFrame.from_dict({
+        (row["msa_path"] ,row["starting_tree_type"]): tree_group_metrics(curr_run_directory, msa_raw_data,
+                                                                         row["msa_path"],
+                                                                         row["starting_tree_type"]) for
+        index, row in tree_groups_data.iterrows()}, orient = 'index')
+    pickle.dump(tree_group_features, open(existing_modelteller_features_path, 'wb'))
     return tree_group_features
 
 
