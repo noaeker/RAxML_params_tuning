@@ -188,26 +188,19 @@ def edit_data(data, epsilon):
     data["relative_time"] = data["elapsed_running_time"] / data["test_norm_const"]
     data["msa_name"] = data["msa_path"].apply(lambda s: remove_env_path_prefix(s))
     data["starting_tree_bool"] = data["starting_tree_type"] == "pars"
-    u = data["starting_tree_bool"] .unique()
-    data["feature_starting_tree_ll_normalized"] = \
-        data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
-            "starting_tree_ll"]
-    data["feature_starting_tree_ll_optimized_normalized"] = \
-        data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
-            "feature_optimized_ll"]
-    data["feature_mean_rf_distance_scaled"] = data["feature_mean_rf_distance"]/ data["feature_n_seq"]
-#    data["feature_tree_divergence_normalized"] = \
-#        data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
-#            "feature_tree_divergence"]
-    data["feature_tree_MAD_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["feature_tree_MAD"]
-    data["feature_largest_branch_length_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())[
-        "feature_largest_branch_length"]
-    data["feature_largest_branch_length_normalized"] = \
-    data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())[
-        "feature_largest_branch_length"]
-    data["feature_largest_distance_between_taxa_normalized"] = \
-        data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())[
-            "feature_largest_distance_between_taxa"]
+    data["feature_diff_vs_best_tree"] = data.groupby(['msa_path','starting_tree_type']).transform(lambda x: (x-x.max()))["feature_optimized_ll"]
+    data["feature_brlen_opt_effect"] = data["feature_optimized_ll"]- data["starting_tree_ll"]
+    #data["feature_msa_mean_diff_vs_best_tree"] = data.groupby(['msa_path']).transform(lambda x: x.mean())["feature_diff_vs_best_tree"]
+    # data["feature_starting_tree_ll_normalized"] = \
+    #     data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
+    #         "starting_tree_ll"]
+    # data["feature_starting_tree_ll_optimized_normalized"] = \
+    #     data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
+    #         "feature_optimized_ll"]
+    # data["feature_mean_rf_distance_scaled"] = data["feature_mean_rf_distance"]/ data["feature_n_seq"]
+    # data["feature_tree_MAD_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["feature_tree_MAD"]
+    # data["feature_largest_branch_length_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())[
+    #     "feature_largest_branch_length"]
     data["normalized_time"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["relative_time"]
 
 def main():

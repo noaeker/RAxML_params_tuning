@@ -94,7 +94,7 @@ def extract_features(msa_path, curr_run_directory,existing_features_dir, i):
                           'feature_var_largest_branch_length': np.var(
                               [compute_largest_branch_length(parsimony_tree) for parsimony_tree in
                                parsimony_tree_objects]),
-                          'feature_avg_largest_distance_between_taxa': np.mean([max_distance_between_leaves(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
+                          'feature_avg_largest_distance_between_taxa': np.mean([get_distances_between_leaves(parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
                           'feature_avg_tree_MAD': np.mean([mad_tree_parameter(curr_run_directory,parsimony_tree) for parsimony_tree in parsimony_tree_objects]),
                           'feature_avg_parsimony_rf_dist': np.mean(parsimony_rf_distances),
                           'feature_mean_unique_topolgies_rf_dist': np.mean(parsimony_rf_distances>0),

@@ -91,14 +91,13 @@ def compute_largest_branch_length(tree):
     return max([node.dist for node in tree.iter_descendants()])
 
 
-def max_distance_between_leaves(tree):
-    max_dist = -1
+def get_distances_between_leaves(tree):
+    distances = []
     for leaf_a in tree.iter_leaves():
         for leaf_b in tree.iter_leaves():
             dist = tree.get_distance(leaf_a, leaf_b)
-            if dist> max_dist:
-                max_dist = dist
-    return max_dist
+            distances.append(dist)
+    return distances
 
 
 def mad_tree_parameter(curr_run_directory,tree_object):
