@@ -193,21 +193,22 @@ def enrich_raw_data(curr_run_directory, raw_data):
         msa_final_dataset_path = os.path.join(msa_folder, "final_dataset")
         if os.path.exists(msa_final_dataset_path):
             logging.info("## Using existing data features for this MSA")
-            return pickle.load(open(msa_final_dataset_path, "rb"))
-        logging.info("## Calculating features from beggining for this MSA")
-        msa_data = raw_data[raw_data["msa_path"] == msa].copy()
-        msa_enriched_data = process_all_msa_RAxML_runs(msa_folder, msa_data)
-        msa_features = msa_features_pipeline(msa, existing_msa_features_path)
-        logging.info(f"MSA features: {msa_features}")
-        msa_enriched_data = msa_enriched_data.merge(msa_features, right_index=True, left_on=["msa_path"])
-        tree_features = tree_features_pipeline(msa, msa_folder, msa_data, existing_tree_features_path)
-        msa_enriched_data = msa_enriched_data.merge(tree_features, right_index=True,
-                                                    left_on=["starting_tree_ind", "starting_tree_type"])
-        tree_group_features = tree_group_features_pipeline(msa_folder, msa_data,
-                                                           existing_tree_group_features_path)
-        msa_enriched_data = msa_enriched_data.merge(tree_group_features, right_index=True,
-                                                    left_on=["msa_path", "starting_tree_type"])
-        pickle.dump(msa_enriched_data, open(msa_final_dataset_path, "wb"))
+            msa_enriched_data = pickle.load(open(msa_final_dataset_path, "rb"))
+        else:
+            logging.info("## Calculating features from beggining for this MSA")
+            msa_data = raw_data[raw_data["msa_path"] == msa].copy()
+            msa_enriched_data = process_all_msa_RAxML_runs(msa_folder, msa_data)
+            msa_features = msa_features_pipeline(msa, existing_msa_features_path)
+            logging.info(f"MSA features: {msa_features}")
+            msa_enriched_data = msa_enriched_data.merge(msa_features, right_index=True, left_on=["msa_path"])
+            tree_features = tree_features_pipeline(msa, msa_folder, msa_data, existing_tree_features_path)
+            msa_enriched_data = msa_enriched_data.merge(tree_features, right_index=True,
+                                                        left_on=["starting_tree_ind", "starting_tree_type"])
+            tree_group_features = tree_group_features_pipeline(msa_folder, msa_data,
+                                                               existing_tree_group_features_path)
+            msa_enriched_data = msa_enriched_data.merge(tree_group_features, right_index=True,
+                                                        left_on=["msa_path", "starting_tree_type"])
+            pickle.dump(msa_enriched_data, open(msa_final_dataset_path, "wb"))
         enriched_datasets.append(msa_enriched_data)
     enriched_data = pd.concat(enriched_datasets)
     return enriched_data
