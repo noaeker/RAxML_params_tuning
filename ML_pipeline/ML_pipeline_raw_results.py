@@ -78,11 +78,22 @@ def error_classifier(X_train, y_train, path="gbm_error"):
 def time_regressor(X_train, y_train, path="gbm_time"):
     if os.path.exists(path):
         return pickle.load(open(path, "rb"))
-    gbm_reg = lightgbm.LGBMRegressor()
-    gbm_reg.fit(X_train, y_train)
+    param_grid = {
+        'bootstrap': [True],
+        'max_depth': [80, 90, 100, 110],
+        'max_features': [2, 3],
+        'min_samples_leaf': [3, 4, 5],
+        'min_samples_split': [8, 10, 12],
+        'n_estimators': [100, 200, 300, 1000]
+    }
+    rf_time = RandomForestRegressor()
+    grid_search = GridSearchCV(estimator=rf_time, param_grid=param_grid,
+                               cv=3, n_jobs=-1, verbose=2)
+    grid_search.fit(X_train, y_train.ravel())
+    best_regressor = grid_search.best_estimator_
     # Calculate the absolute errors
-    pickle.dump(gbm_reg, open(path, "wb"))
-    return gbm_reg
+    pickle.dump(best_regressor, open(path, "wb"))
+    return best_regressor
 
 
 def take_top_n_most_promising_trees(enriched_test_data):
