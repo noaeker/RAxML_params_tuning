@@ -12,7 +12,7 @@ import os
 import argparse
 import lightgbm
 from sklearn.metrics import classification_report
-from sksurv.ensemble import RandomSurvivalForest
+from sklearn.model_selection import GridSearchCV
 from sksurv.tree import SurvivalTree
 
 
@@ -49,125 +49,93 @@ def variable_importance(X_train, rf_model):
     return importances
 
 
-def classifier(X_train, y_train, path):
-    gbm_cl = lightgbm.LGBMClassifier()
-    gbm_cl.fit(X_train, y_train)
-    return gbm_cl
+def error_classifier(X_train, y_train, path="gbm_error"):
+    if os.path.exists(path):
+        return pickle.load(open(path, "rb"))
+
+    param_grid = {
+        'bootstrap': [True],
+        'max_depth': [80, 90, 100, 110],
+        'max_features': [2, 3],
+        'min_samples_leaf': [3, 4, 5],
+        'min_samples_split': [8, 10, 12],
+        'n_estimators': [100, 200, 300, 1000]
+    }
+    rf = RandomForestClassifier()
+    grid_search = GridSearchCV(estimator=rf, param_grid=param_grid,
+                               cv=3, n_jobs=-1, verbose=2)
+    grid_search.fit(X_train, y_train.ravel())
+    best_classifier = grid_search.best_estimator_
+
+    # gbm_classifier = lightgbm.LGBMClassifier()
+    # GS_res_gbm = GridSearchCV(gbm_classifier, lgbm_grid_param_space).fit(X_train, y_train.ravel())
+    # clf_gbm = GS_res_gbm.best_estimator_
+    # gbm_classifier.fit(X_train, y_train)
+    pickle.dump(best_classifier, open(path, "wb"))
+    return best_classifier
 
 
-def regressor(X_train, y_train, path):
+def time_regressor(X_train, y_train, path="gbm_time"):
+    if os.path.exists(path):
+        return pickle.load(open(path, "rb"))
     gbm_reg = lightgbm.LGBMRegressor()
     gbm_reg.fit(X_train, y_train)
     # Calculate the absolute errors
+    pickle.dump(gbm_reg, open(path, "wb"))
     return gbm_reg
 
 
-def plot_full_data_metrics(full_data, epsilon):
-    first_msa = list(full_data["msa_name"].unique())[2]
-    full_data = full_data[full_data["msa_name"] == first_msa]
-
-    allowed_actual_error_data = full_data[(full_data["pct_global"] > epsilon)]
-    allowed_actual_error_data["total_starting_points"] = allowed_actual_error_data["n_parsimony"] + \
-                                                         allowed_actual_error_data["n_random"]
-    actual_best_time_per_msa = pd.merge(allowed_actual_error_data,
-                                        allowed_actual_error_data.groupby("msa_name").agg(
-                                            best_actual_running_time=(
-                                                'running_time_vs_default', max)).reset_index(),
-                                        left_on=["msa_name", "running_time_vs_default"],
-                                        right_on=["msa_name", "best_actual_running_time"])
-    actual_best_time_per_msa = actual_best_time_per_msa[actual_best_time_per_msa["best_actual_running_time"] > 1]
-    # sns.set(font_scale=1.5)
-    # plt.show()
-    # sns.set(font_scale=1.5)
-    # ax = sns.histplot(x = actual_best_time_per_msa["best_actual_running_time"])
-    # ax.set(xlabel = '')
-    # ax.set(ylabel='')
-    # plt.show()
-
-
-def grid_search_time_and_rf(rf_mod_err, rf_mod_time, data_dict, epsilon, show_plots=True):
-    test_data = data_dict["full_test_data"][
-        ["msa_name", "spr_radius", "spr_cutoff", "n_parsimony", "n_random", "running_time_vs_default",
-         "default_mean_Err_normalized", "n_seq", "n_loci"
-         ]].copy()
-    test_data["predicted_errors"] = rf_mod_err.predict(data_dict["X_test"])
-    test_data["predicted_times"] = rf_mod_time.predict(data_dict["X_test"])
-    test_data["actual_errors"] = data_dict["y_test_err"]
-    test_data["actual_times"] = data_dict["y_test_time"]
-    if show_plots:
-        ax = sns.scatterplot(x=test_data["actual_errors"],
-                             y=test_data["predicted_errors"])
-        plt.show()
-    allowed_predicted_error_data = test_data[(test_data["predicted_errors"] > epsilon)]
-    allowed_actual_error_data = test_data[(test_data["actual_errors"] > epsilon)]
-    predicted_best_time_per_msa = pd.merge(allowed_predicted_error_data,
-                                           allowed_predicted_error_data.groupby("msa_name").agg(
-                                               best_predicted_running_time=(
-                                                   'predicted_times', max)).reset_index(),
-                                           left_on=["msa_name", "predicted_times"],
-                                           right_on=["msa_name", "best_predicted_running_time"])
-    actual_best_time_per_msa = pd.merge(allowed_actual_error_data,
-                                        allowed_actual_error_data.groupby("msa_name").agg(
-                                            best_actual_running_time=(
-                                                'actual_times', max)).reset_index(),
-                                        left_on=["msa_name", "actual_times"],
-                                        right_on=["msa_name", "best_actual_running_time"])
-
-    predicted_best_time_per_msa = predicted_best_time_per_msa.groupby("msa_name").first().reset_index()
-    actual_best_time_per_msa = actual_best_time_per_msa.groupby("msa_name").first().reset_index()
-    if show_plots:
-        ax = sns.scatterplot(
-            x=predicted_best_time_per_msa[predicted_best_time_per_msa["actual_errors"] > -0.0001]["actual_errors"],
-            y=predicted_best_time_per_msa[predicted_best_time_per_msa["actual_errors"] > -0.0001]["predicted_errors"])
-        plt.show()
-    valid_predicted_results = predicted_best_time_per_msa[
-        (predicted_best_time_per_msa["actual_errors"] > epsilon) & (predicted_best_time_per_msa["actual_times"] >= 1)][
-        ["actual_times"]]
-
-    valid_predicted_results["Type"] = "Obtained via ML"  # plt.show()
-    valid_actual_results = actual_best_time_per_msa[
-        (actual_best_time_per_msa["actual_errors"] > epsilon) & (actual_best_time_per_msa["actual_times"] >= 1)][
-        ["actual_times"]]
-    valid_actual_results["Type"] = "Potential"
-    if show_plots:
-        actual_vs_predicted = pd.concat([valid_predicted_results, valid_actual_results])
-        sns.set(font_scale=1.5)
-        ax = sns.histplot(x="actual_times", hue="Type", data=actual_vs_predicted)
-        ax.set(xlabel='', ylabel='')
-        plt.show()
+def take_top_n_most_promising_trees(enriched_test_data):
+    results_per_msa = []
+    for msa_path in enriched_test_data["msa_path"].unique():
+        curr_msa_data_per_tree = enriched_test_data[enriched_test_data["msa_path"] == msa_path][
+            ["msa_path", "starting_tree_ind", "spr_radius", "spr_cutoff", "starting_tree_type",
+             "predicted_failure_probabilities",
+             "predicted_status", "is_global_max", "predicted_time", "relative_time"]]
+        curr_msa_data_per_tree.sort_values(
+            by=['starting_tree_ind', 'predicted_failure_probabilities', 'predicted_time'],
+            inplace=True)
+        best_configuration_per_starting_tree = curr_msa_data_per_tree.groupby('starting_tree_ind').head(1)
+        required_success_probability = 0.99
+        for n_trees in range(1, 41):
+            current_tree_used = best_configuration_per_starting_tree.head(n_trees)
+            current_failure_prob_list = list(current_tree_used['predicted_failure_probabilities'])
+            current_success_prob_overall = 1 - np.prod(current_failure_prob_list)
+            current_option = current_tree_used.groupby(["msa_path"]).agg(
+                total_time_predicted=('predicted_time', np.sum), total_actual_time=('relative_time', np.sum),
+                status=('is_global_max', np.max)).reset_index()
+            if current_success_prob_overall >= required_success_probability:
+                break
+        current_option["n_trees_used"] = n_trees
+        results_per_msa.append(current_option)
+    final_performance_df = pd.concat(results_per_msa)
+    final_performance_df.to_csv(f"{READY_RAW_DATA}/c_30_70/final_performance.tsv", sep=CSV_SEP)
+    return final_performance_df
 
 
-def train_models(data_dict):
+def train_models(data_dict, error_model_path, time_model_path):
     logging.info("About to calculate RF for modelling error")
-    rf_mod_err = classifier(data_dict["X_train"], data_dict["y_train_err"],
-                            path=os.path.join(ML_RESULTS_FOLDER, "Err_rf_new"))
-    err_var_impt = variable_importance(data_dict["X_train"], rf_mod_err)
+    error_model = error_classifier(data_dict["X_train"], data_dict["y_train_err"],error_model_path)
+    err_var_impt = variable_importance(data_dict["X_train"], error_model)
     logging.info(f"Error RF variable importance: \n {err_var_impt}")
-    y_test_err_predicted = rf_mod_err.predict(data_dict["X_test"])
-    err_test_metrics = model_metrics(data_dict["y_test_err"], y_test_err_predicted, is_classification=True)
+    predicted_success = error_model.predict(data_dict["X_test"])
+    predicted_failure_probabilities = error_model.predict_proba(data_dict["X_test"])[:, 0]
+    err_test_metrics = model_metrics(data_dict["y_test_err"], predicted_success, is_classification=True)
     logging.info(f"Error RF metrics: \n {err_test_metrics}")
-    rf_mod_time = regressor(data_dict["X_train"], data_dict["y_train_time"],
-                            path=os.path.join(ML_RESULTS_FOLDER, "time_rf_new"))
-    time_var_impt = variable_importance(data_dict["X_train"], rf_mod_time)
+    time_model = time_regressor(data_dict["X_train"], data_dict["y_train_time"],time_model_path)
+    time_var_impt = variable_importance(data_dict["X_train"], time_model)
     logging.info(f"Time RF variable importance: \n {time_var_impt}")
-    y_test_time_predicted = rf_mod_time.predict(data_dict["X_test"])
-    time_test_metrics = model_metrics(data_dict["y_test_time"], y_test_time_predicted, is_classification=False)
+    predicted_time = time_model.predict(data_dict["X_test"])
+    time_test_metrics = model_metrics(data_dict["y_test_time"], predicted_time, is_classification=False)
     logging.info(f"Time_test_metrics: \n {time_test_metrics}")
-    return rf_mod_err, rf_mod_time
 
-def train_surv_models(data_dict):
-    # rsf = RandomSurvivalForest(n_estimators=10,
-    #                            min_samples_split=10,
-    #                            min_samples_leaf=15,
-    #                            max_features="sqrt",
-    #                            n_jobs=-1,
-    #                            random_state=1)
-    if os.path.exists("rsf_fit"):
-        estimator = pickle.load(open("rsf_fit","rb"))
-    else:
-        estimator = SurvivalTree(max_depth = 10).fit(data_dict["X_train"], data_dict["y_train_surv"])
-        pickle.dump(estimator , open("rsf_fit", "wb"))
-    print(estimator.score(data_dict["X_test"], data_dict["y_test_surv"]))
+    enriched_test_data = data_dict["full_test_data"].copy()
+    enriched_test_data["predicted_failure_probabilities"] = predicted_failure_probabilities
+    enriched_test_data["predicted_status"] = predicted_success
+    enriched_test_data["predicted_time"] = predicted_time
+    final_performance_df = take_top_n_most_promising_trees(enriched_test_data)
+
+    return error_model, time_model, final_performance_df
 
 
 def split_to_train_and_test(full_data, data_feature_names, search_feature_names):
@@ -175,56 +143,119 @@ def split_to_train_and_test(full_data, data_feature_names, search_feature_names)
         full_data, test_pct=0.3, val_pct=0)
     X_train = train_data[data_feature_names + search_feature_names]
     y_train_err = train_data["is_global_max"]
-    y_train_time = train_data["normalized_time"]
+    y_train_time = train_data["relative_time"]
     X_test = test_data[data_feature_names + search_feature_names]
     y_test_err = test_data["is_global_max"]
-    y_test_time = test_data["normalized_time"]
-    return {"X_train": X_train,  "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test": X_test,
-            "y_train_surv": train_data[["is_global_max", "relative_time"]].to_records(index =  False),"y_test_err": y_test_err, "y_test_time": y_test_time, "y_test_surv": test_data[["is_global_max", "relative_time"]].to_records(index = False), "full_test_data": test_data}
+    y_test_time = test_data["relative_time"]
+    return {"X_train": X_train, "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test": X_test,
+            "y_train_surv": train_data[["is_global_max", "relative_time"]].to_records(index=False),
+            "y_test_err": y_test_err, "y_test_time": y_test_time,
+            "y_test_surv": test_data[["is_global_max", "relative_time"]].to_records(index=False),
+            "full_test_data": test_data}
 
 
 def edit_data(data, epsilon):
-    data["is_global_max"] = data["delta_ll_from_overall_msa_best_topology"] <= epsilon
+    data["is_global_max"] = (data["delta_ll_from_overall_msa_best_topology"] <= epsilon).astype('int')
+    # data["is_global_max"] = data.groupby('msa_path').transform(lambda x: x<= x.quantile(0.1))["delta_ll_from_overall_msa_best_topology"]
     data["relative_time"] = data["elapsed_running_time"] / data["test_norm_const"]
     data["msa_name"] = data["msa_path"].apply(lambda s: remove_env_path_prefix(s))
     data["starting_tree_bool"] = data["starting_tree_type"] == "pars"
-    data["feature_diff_vs_best_tree"] = data.groupby(['msa_path','starting_tree_type']).transform(lambda x: (x-x.max()))["feature_optimized_ll"]
-    data["feature_brlen_opt_effect"] = data["feature_optimized_ll"]- data["starting_tree_ll"]
-    #data["feature_msa_mean_diff_vs_best_tree"] = data.groupby(['msa_path']).transform(lambda x: x.mean())["feature_diff_vs_best_tree"]
+    data["feature_diff_vs_best_tree"] = \
+        data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.max()))["feature_optimized_ll"]
+    data["feature_brlen_opt_effect"] = data["feature_optimized_ll"] - data["starting_tree_ll"]
+    # data["feature_msa_mean_diff_vs_best_tree"] = data.groupby(['msa_path']).transform(lambda x: x.mean())["feature_diff_vs_best_tree"]
     # data["feature_starting_tree_ll_normalized"] = \
     #     data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
     #         "starting_tree_ll"]
     # data["feature_starting_tree_ll_optimized_normalized"] = \
     #     data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
     #         "feature_optimized_ll"]
-    # data["feature_mean_rf_distance_scaled"] = data["feature_mean_rf_distance"]/ data["feature_n_seq"]
+    data["feature_mean_rf_distance_scaled"] = data["feature_mean_rf_distance"] / data["feature_n_seq"]
     # data["feature_tree_MAD_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["feature_tree_MAD"]
     # data["feature_largest_branch_length_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())[
     #     "feature_largest_branch_length"]
     data["normalized_time"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["relative_time"]
 
+
+def get_average_results_on_default_configurations_per_msa(default_data, n_sample_points, seed
+                                                          ):
+    default_results = pd.DataFrame()
+    for i in range(n_sample_points):
+        seed = seed + 1
+        sampled_data_parsimony = default_data[default_data["starting_tree_type"] == "pars"].groupby(
+            by=["msa_path"]).sample(n=10, random_state=seed)
+        sampled_data_random = default_data[default_data["starting_tree_type"] == "rand"].groupby(
+            by=["msa_path"]).sample(n=10, random_state=seed)
+        sampled_data = pd.concat([sampled_data_parsimony, sampled_data_random])
+        run_metrics = sampled_data.groupby(
+            by=["msa_path", "best_msa_ll"]).agg(
+            {"delta_ll_from_overall_msa_best_topology": ['min'], "is_global_max": ['max'], 'relative_time': ['sum']})
+        run_metrics.columns = ["curr_sample_Err", "curr_sample_is_global_max", "curr_sample_total_time"]
+        run_metrics.reset_index(inplace=True)
+        if default_results.empty:
+            default_results = run_metrics.copy()
+        else:
+            default_results = pd.concat([default_results, run_metrics])
+    return default_results
+
+
 def main():
-    epsilon = 0
+    epsilon = 0.1
     parser = argparse.ArgumentParser()
     parser.add_argument('--features_path', action='store', type=str,
-                        default=f"/Users/noa/Workspace/raxml_deep_learning_results/c_30_70/features.tsv")
+                        default=f"{READY_RAW_DATA}/c_30_70/features.tsv")
+    parser.add_argument('--ML_edited_features_path', action='store', type=str,
+                        default=f"{READY_RAW_DATA}/c_30_70/ML_edited_features.tsv")
+    parser.add_argument('--default_path', action='store', type=str,
+                        default=f"{READY_RAW_DATA}/c_30_70/default_sampling{CSV_SUFFIX}")
+    parser.add_argument('--final_performance_path', action='store', type=str,
+                        default=f"{READY_RAW_DATA}/c_30_70/final_performance.tsv")
+    parser.add_argument('--error_model_path', action='store', type=str,
+                        default=f"{READY_RAW_DATA}/c_30_70/error.model")
+    parser.add_argument('--time_model_path', action='store', type=str,
+                        default=f"{READY_RAW_DATA}/c_30_70/time.model")
+    parser.add_argument('--final_comparison_path', action='store', type=str,
+                        default=f"{READY_RAW_DATA}/c_30_70/final_performance_comp.tsv")
+    parser.add_argument('--log_file', action='store', type=str,
+                        default=f"{READY_RAW_DATA}/c_30_70/ML_log_file.log")
+    parser.add_argument('--n_sample_points', action='store', type=int,
+                        default=500)
 
     args = parser.parse_args()
     data = pd.read_csv(args.features_path, sep=CSV_SEP)
     edit_data(data, epsilon)
+    data.to_csv(args.ML_edited_features_path, sep=CSV_SEP)
     # full_data = full_data.replace([np.inf, -np.inf,np.nan], -1)
-    all_jobs_general_log_file = os.path.join(ML_RESULTS_FOLDER, "ML_log_file.log")
-    create_dir_if_not_exists(ML_RESULTS_FOLDER)
     logging_level = logging.INFO
-    logging.basicConfig(filename=all_jobs_general_log_file, level=logging_level)
-    msa_features = [col for col in data.columns if col.startswith("feature_") and col not in ["feature_msa_path", "feature_msa_name","feature_msa_type"]]
-    search_features = ['spr_radius', 'spr_cutoff', 'starting_tree_bool', "starting_tree_ll"]
-    data_dict = split_to_train_and_test(data, msa_features, search_features)
-    rf_mod_err, rf_mod_time = train_models(data_dict)
-    #rf_surv = train_surv_models (data_dict)
+    logging.basicConfig(filename=args.log_file, level=logging_level)
+    if os.path.exists(args.final_performance_path):
+        logging.info(f"Using our existing performance in {args.final_performance_path}")
+        final_performance_df = pd.read_csv(args.final_performance_path, sep=CSV_SEP)
+    else:
+        logging.info("Estimating time and error models from beggining")
+        msa_features = [col for col in data.columns if
+                        col.startswith("feature_") and col not in ["feature_msa_path", "feature_msa_name",
+                                                                   "feature_msa_type"]]
+        search_features = ['spr_radius', 'spr_cutoff', 'starting_tree_bool', "starting_tree_ll"]
+        data_dict = split_to_train_and_test(data, msa_features, search_features)
+        rf_mod_err, rf_mod_time, final_performance_df = train_models(data_dict,
+                                                                     args.error_model_path, args.time_model_path)
+    if not os.path.exists(args.default_path):
+        logging.info(f"Using existing default data in {args.default_path}")
+        default_data = data[data["type"] == "default"]
+        default_data_performance = get_average_results_on_default_configurations_per_msa(default_data,
+                                                                                         n_sample_points=args.n_sample_points,
+                                                                                         seed=SEED
+                                                                                         )
+    else:
+        logging.info("Generating default data from beggining")
+        default_data_performance = pd.read_csv(args.default_path, sep=CSV_SEP)
+    aggregated_default_results = default_data_performance.groupby(by=["msa_path"]).agg(
+        default_mean_is_global_max=('curr_sample_is_global_max', np.mean),
+        default_mean_time=("curr_sample_total_time", np.mean)).reset_index()
 
-    # plot_full_data_metrics(full_data, epsilon)
-    # grid_search_time_and_rf(rf_mod_err, rf_mod_time, data_dict, epsilon)
+    comp = final_performance_df.merge(aggregated_default_results, on="msa_path")
+    comp.to_csv(args.final_comparison_path, sep=CSV_SEP)
 
 
 if __name__ == "__main__":

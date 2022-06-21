@@ -81,7 +81,7 @@ def train_models(data_dict):
 
 def split_to_train_and_test(full_data, data_feature_names, search_feature_names):
     train_data, test_data, validation_data = train_test_validation_splits(
-        full_data, test_pct=0.3, val_pct=0)
+        full_data, test_pct=0.1, val_pct=0)
     X_train = train_data[data_feature_names + search_feature_names]
     y_train_err = train_data["is_global_max"]
     y_train_time = train_data["relative_time"]

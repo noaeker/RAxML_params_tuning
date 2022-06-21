@@ -95,8 +95,9 @@ def get_distances_between_leaves(tree):
     distances = []
     for leaf_a in tree.iter_leaves():
         for leaf_b in tree.iter_leaves():
-            dist = tree.get_distance(leaf_a, leaf_b)
-            distances.append(dist)
+            if leaf_a!=leaf_b:
+                dist = tree.get_distance(leaf_a, leaf_b)
+                distances.append(dist)
     return distances
 
 
