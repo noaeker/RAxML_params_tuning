@@ -57,7 +57,7 @@ def variable_importance(X_train, rf_model):
     return importances
 
 
-def error_classifier(X_train, y_train, path="gbm_error"):
+def error_classifier(X_train, y_train, n_jobs, path="gbm_error"):
     if os.path.exists(path):
         return pickle.load(open(path, "rb"))
 
@@ -71,7 +71,7 @@ def error_classifier(X_train, y_train, path="gbm_error"):
     }
     rf = RandomForestClassifier()
     grid_search = GridSearchCV(estimator=rf, param_grid=param_grid,
-                               cv=3, n_jobs=-1, verbose=2)
+                               cv=3, n_jobs=n_jobs,pre_dispatch= '1*n_jobs', verbose=2)
     grid_search.fit(X_train, y_train.ravel())
     best_classifier = grid_search.best_estimator_
 
@@ -83,7 +83,7 @@ def error_classifier(X_train, y_train, path="gbm_error"):
     return best_classifier
 
 
-def time_regressor(X_train, y_train, path="gbm_time"):
+def time_regressor(X_train, y_train,n_jobs, path="gbm_time"):
     if os.path.exists(path):
         return pickle.load(open(path, "rb"))
     param_grid = {
@@ -96,7 +96,7 @@ def time_regressor(X_train, y_train, path="gbm_time"):
     }
     rf_time = RandomForestRegressor()
     grid_search = GridSearchCV(estimator=rf_time, param_grid=param_grid,
-                               cv=3, n_jobs=-1, verbose=2)
+                               cv=3, n_jobs=n_jobs,pre_dispatch= '1*n_jobs', verbose=2)
     grid_search.fit(X_train, y_train.ravel())
     best_regressor = grid_search.best_estimator_
     # Calculate the absolute errors
@@ -131,16 +131,16 @@ def take_top_n_most_promising_trees(enriched_test_data):
     return final_performance_df
 
 
-def train_models(data_dict, error_model_path, time_model_path):
+def train_models(data_dict,n_jobs, error_model_path, time_model_path):
     logging.info("About to calculate RF for modelling error")
-    error_model = error_classifier(data_dict["X_train"], data_dict["y_train_err"],error_model_path)
+    error_model = error_classifier(data_dict["X_train"], data_dict["y_train_err"],n_jobs,error_model_path)
     err_var_impt = variable_importance(data_dict["X_train"], error_model)
     logging.info(f"Error RF variable importance: \n {err_var_impt}")
     predicted_success = error_model.predict(data_dict["X_test"])
     predicted_failure_probabilities = error_model.predict_proba(data_dict["X_test"])[:, 0]
     err_test_metrics = model_metrics(data_dict["y_test_err"], predicted_success, is_classification=True)
     logging.info(f"Error RF metrics: \n {err_test_metrics}")
-    time_model = time_regressor(data_dict["X_train"], data_dict["y_train_time"],time_model_path)
+    time_model = time_regressor(data_dict["X_train"], data_dict["y_train_time"],n_jobs,time_model_path)
     time_var_impt = variable_importance(data_dict["X_train"], time_model)
     logging.info(f"Time RF variable importance: \n {time_var_impt}")
     predicted_time = time_model.predict(data_dict["X_test"])
@@ -223,6 +223,8 @@ def main():
     parser.add_argument('--baseline_folder',action='store', type=str,default=f"{READY_RAW_DATA}/c_30_70")
     parser.add_argument('--n_sample_points', action='store', type=int,
                         default=500)
+    parser.add_argument('--n_jobs', action='store', type=int,
+                        default=1)
     args = parser.parse_args()
     features_path = f"{args.baseline_folder}/features{CSV_SUFFIX}"
     ML_edited_features_path = f"{args.baseline_folder}/ML_edited_features{CSV_SUFFIX}"
@@ -232,6 +234,7 @@ def main():
     time_model_path = f"{args.baseline_folder}/time.model"
     final_comparison_path = f"{args.baseline_folder}/final_performance_comp{CSV_SUFFIX}"
     log_file = f"{args.baseline_folder}/ML_log_file.log"
+
 
 
     data = pd.read_csv(features_path, sep=CSV_SEP)
@@ -250,7 +253,7 @@ def main():
                                                                    "feature_msa_type"]]
         search_features = ['spr_radius', 'spr_cutoff', 'starting_tree_bool', "starting_tree_ll"]
         data_dict = split_to_train_and_test(data, msa_features, search_features)
-        rf_mod_err, rf_mod_time, final_performance_df = train_models(data_dict,
+        rf_mod_err, rf_mod_time, final_performance_df = train_models(data_dict, args.n_jobs,
                                                                      error_model_path, time_model_path)
     final_performance_df.to_csv(final_performance_path, sep = CSV_SEP)
     if not os.path.exists(default_path):
