@@ -21,7 +21,7 @@ import argparse
 import lightgbm
 from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV
-from sksurv.tree import SurvivalTree
+
 
 
 # Mean absolute error (MAE)
