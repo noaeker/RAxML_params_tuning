@@ -58,6 +58,7 @@ if not LOCAL_RUN:
     RATE4SITE_COMMAND_PREFIX = "/groups/pupko/noaeker/programs/other_programs/rate4site/rate4site"
     TMP_RESULTS_FOLDER = f"{RESULTS_FOLDER}/single_gene_MSAs"
     CSV_MSAs_FOLDER = "/groups/pupko/noaeker/data/ABC_DR"
+    READY_RAW_DATA = f"{RESULTS_FOLDER}/global_shared_results_c_30_70"
 
 elif LOCAL_RUN:
     IQTREE_EXE = "/Users/noa/Programs/iqtree-2.1.3-MacOSX/bin/iqtree2"
