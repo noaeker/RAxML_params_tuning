@@ -1,3 +1,11 @@
+import sys
+
+if sys.platform == "linux" or sys.platform == "linux2":
+    PROJECT_ROOT_DIRECRTORY = "/groups/pupko/noaeker/RAxML_params_tuning"
+else:
+    PROJECT_ROOT_DIRECRTORY = "/Users/noa/Workspace/RAxML_params_tuning"
+sys.path.append(PROJECT_ROOT_DIRECRTORY)
+
 from side_code.config import *
 from side_code.file_handling import create_dir_if_not_exists
 from side_code.MSA_manipulation import remove_env_path_prefix
