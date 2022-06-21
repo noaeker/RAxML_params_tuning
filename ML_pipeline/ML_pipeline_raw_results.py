@@ -128,7 +128,6 @@ def take_top_n_most_promising_trees(enriched_test_data):
         current_option["n_trees_used"] = n_trees
         results_per_msa.append(current_option)
     final_performance_df = pd.concat(results_per_msa)
-    final_performance_df.to_csv(f"{READY_RAW_DATA}/c_30_70/final_performance.tsv", sep=CSV_SEP)
     return final_performance_df
 
 
@@ -253,6 +252,7 @@ def main():
         data_dict = split_to_train_and_test(data, msa_features, search_features)
         rf_mod_err, rf_mod_time, final_performance_df = train_models(data_dict,
                                                                      error_model_path, time_model_path)
+    final_performance_df.to_csv(final_performance_path, sep = CSV_SEP)
     if not os.path.exists(default_path):
         logging.info(f"Using existing default data in {default_path}")
         default_data = data[data["type"] == "default"]
