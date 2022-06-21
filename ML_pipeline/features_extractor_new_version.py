@@ -183,8 +183,10 @@ def enrich_raw_data(curr_run_directory, raw_data):
     :return:  Enrich raw_data to estimate best LL for each MSA
     '''
     enriched_datasets = []
-    for msa in raw_data["msa_path"].unique():
-        logging.info(f"Working on MSA: {msa}")
+    MSAs = raw_data["msa_path"].unique()
+    logging.info(f"Number of MSAs to work on: {len(MSAs)}")
+    for i,msa in enumerate(MSAs):
+        logging.info(f"Working on MSA number {i} in : {msa}")
         msa_folder = os.path.join(curr_run_directory, get_msa_name(msa, GENERAL_MSA_DIR))
         create_dir_if_not_exists(msa_folder)
         existing_msa_features_path = os.path.join(msa_folder, "msa_features")
@@ -211,6 +213,7 @@ def enrich_raw_data(curr_run_directory, raw_data):
             pickle.dump(msa_enriched_data, open(msa_final_dataset_path, "wb"))
         enriched_datasets.append(msa_enriched_data)
     enriched_data = pd.concat(enriched_datasets)
+    logging.info(f"Number of unique MSAs in final result is {len(enriched_data['msa_path'].unique())}")
     return enriched_data
 
 
@@ -238,6 +241,7 @@ def main():
         msas_sample = np.random.choice(msa_names, size=3, replace=False)
         raw_data = raw_data[raw_data["msa_path"].isin(msas_sample)]
     raw_data_with_features = enrich_raw_data(curr_run_directory, raw_data)
+    logging.info(f'Writing enriched data to {args.features_out_path}')
     raw_data_with_features.to_csv(args.features_out_path, sep=CSV_SEP)
 
 
