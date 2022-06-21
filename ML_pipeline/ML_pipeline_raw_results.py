@@ -213,35 +213,29 @@ def get_average_results_on_default_configurations_per_msa(default_data, n_sample
 def main():
     epsilon = 0.1
     parser = argparse.ArgumentParser()
-    parser.add_argument('--features_path', action='store', type=str,
-                        default=f"{READY_RAW_DATA}/c_30_70/features.tsv")
-    parser.add_argument('--ML_edited_features_path', action='store', type=str,
-                        default=f"{READY_RAW_DATA}/c_30_70/ML_edited_features.tsv")
-    parser.add_argument('--default_path', action='store', type=str,
-                        default=f"{READY_RAW_DATA}/c_30_70/default_sampling{CSV_SUFFIX}")
-    parser.add_argument('--final_performance_path', action='store', type=str,
-                        default=f"{READY_RAW_DATA}/c_30_70/final_performance.tsv")
-    parser.add_argument('--error_model_path', action='store', type=str,
-                        default=f"{READY_RAW_DATA}/c_30_70/error.model")
-    parser.add_argument('--time_model_path', action='store', type=str,
-                        default=f"{READY_RAW_DATA}/c_30_70/time.model")
-    parser.add_argument('--final_comparison_path', action='store', type=str,
-                        default=f"{READY_RAW_DATA}/c_30_70/final_performance_comp.tsv")
-    parser.add_argument('--log_file', action='store', type=str,
-                        default=f"{READY_RAW_DATA}/c_30_70/ML_log_file.log")
+    parser.add_argument('--baseline_folder',action='store', type=str,default=f"{READY_RAW_DATA}/c_30_70")
     parser.add_argument('--n_sample_points', action='store', type=int,
                         default=500)
-
     args = parser.parse_args()
-    data = pd.read_csv(args.features_path, sep=CSV_SEP)
+    features_path = f"{args.baseline_folder}/features{CSV_SUFFIX}"
+    ML_edited_features_path = f"{args.baseline_folder}/ML_edited_features{CSV_SUFFIX}"
+    default_path = f"{args.baseline_folder}/default_sampling{CSV_SUFFIX}"
+    final_performance_path =f"{args.baseline_folder}/final_performance{CSV_SUFFIX}"
+    error_model_path = f"{args.baseline_folder}/error.model"
+    time_model_path = f"{args.baseline_folder}/time.model"
+    final_comparison_path = f"{args.baseline_folder}/final_performance_comp{CSV_SUFFIX}"
+    log_file = f"{args.baseline_folder}/ML_log_file.log"
+
+
+    data = pd.read_csv(features_path, sep=CSV_SEP)
     edit_data(data, epsilon)
-    data.to_csv(args.ML_edited_features_path, sep=CSV_SEP)
+    data.to_csv(ML_edited_features_path, sep=CSV_SEP)
     # full_data = full_data.replace([np.inf, -np.inf,np.nan], -1)
     logging_level = logging.INFO
-    logging.basicConfig(filename=args.log_file, level=logging_level)
-    if os.path.exists(args.final_performance_path):
-        logging.info(f"Using our existing performance in {args.final_performance_path}")
-        final_performance_df = pd.read_csv(args.final_performance_path, sep=CSV_SEP)
+    logging.basicConfig(filename=log_file, level=logging_level)
+    if os.path.exists(final_performance_path):
+        logging.info(f"Using our existing performance in {final_performance_path}")
+        final_performance_df = pd.read_csv(final_performance_path, sep=CSV_SEP)
     else:
         logging.info("Estimating time and error models from beggining")
         msa_features = [col for col in data.columns if
@@ -250,9 +244,9 @@ def main():
         search_features = ['spr_radius', 'spr_cutoff', 'starting_tree_bool', "starting_tree_ll"]
         data_dict = split_to_train_and_test(data, msa_features, search_features)
         rf_mod_err, rf_mod_time, final_performance_df = train_models(data_dict,
-                                                                     args.error_model_path, args.time_model_path)
-    if not os.path.exists(args.default_path):
-        logging.info(f"Using existing default data in {args.default_path}")
+                                                                     error_model_path, time_model_path)
+    if not os.path.exists(default_path):
+        logging.info(f"Using existing default data in {default_path}")
         default_data = data[data["type"] == "default"]
         default_data_performance = get_average_results_on_default_configurations_per_msa(default_data,
                                                                                          n_sample_points=args.n_sample_points,
@@ -260,13 +254,13 @@ def main():
                                                                                          )
     else:
         logging.info("Generating default data from beggining")
-        default_data_performance = pd.read_csv(args.default_path, sep=CSV_SEP)
+        default_data_performance = pd.read_csv(default_path, sep=CSV_SEP)
     aggregated_default_results = default_data_performance.groupby(by=["msa_path"]).agg(
         default_mean_is_global_max=('curr_sample_is_global_max', np.mean),
         default_mean_time=("curr_sample_total_time", np.mean)).reset_index()
 
     comp = final_performance_df.merge(aggregated_default_results, on="msa_path")
-    comp.to_csv(args.final_comparison_path, sep=CSV_SEP)
+    comp.to_csv(final_comparison_path, sep=CSV_SEP)
 
 
 if __name__ == "__main__":
