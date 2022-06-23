@@ -243,13 +243,14 @@ def update_existing_job_results(directory):
         logging.info(f"Updated tasks in {path}")
         job_raxml_runs_done_obj = pickle.load(open(path, "rb"))
         current_job_data.update(job_raxml_runs_done_obj)
-        logging.info(f"Updated tasks and resutls for {path}")
+        logging.info(f"Updated tasks and results for {path}")
     for path in [Path(f) for f in glob(str(directory)+"/**", recursive=True) if Path(f).is_dir() and Path(f).name.startswith('iter')]:
         try:
             rmtree(path)
             logging.info(f"removed folder {path}")
         except:
             logging.info(f"Could not delete folder {path}")
+    return current_job_data
 
 def main():
     parser = main_parser()

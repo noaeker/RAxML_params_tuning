@@ -217,7 +217,7 @@ def edit_data(data, epsilon):
     data["feature_diff_vs_best_tree"] = \
         data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.max()))["feature_optimized_ll"]
     data["feature_brlen_opt_effect"] = data["feature_optimized_ll"] - data["starting_tree_ll"]
-    data["seq_to_loci"] = data["n_seq"]/ data["n_loci"]
+    data["seq_to_loci"] = data["feature_n_seq"]/ data["feature_n_loci"]
     # data["feature_msa_mean_diff_vs_best_tree"] = data.groupby(['msa_path']).transform(lambda x: x.mean())["feature_diff_vs_best_tree"]
     # data["feature_starting_tree_ll_normalized"] = \
     #     data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
@@ -274,9 +274,7 @@ def main():
     final_comparison_path = f"{args.baseline_folder}/final_performance_comp{CSV_SUFFIX}"
     log_file = f"{args.baseline_folder}/ML_log_file.log"
 
-    data = pd.read_csv(features_path, sep=CSV_SEP)
-    edit_data(data, epsilon)
-    data.to_csv(ML_edited_features_path, sep=CSV_SEP)
+
     # full_data = full_data.replace([np.inf, -np.inf,np.nan], -1)
     logging_level = logging.INFO
     logging.basicConfig(filename=log_file, level=logging_level)
@@ -284,6 +282,9 @@ def main():
         logging.info(f"Using our existing enriched test data in {enriched_test_data_path}")
         enriched_test_data = pd.read_csv(enriched_test_data_path, sep=CSV_SEP)
     else:
+        data = pd.read_csv(features_path, sep=CSV_SEP)
+        edit_data(data, epsilon)
+        data.to_csv(ML_edited_features_path, sep=CSV_SEP)
         logging.info("Estimating time and error models from beggining")
         msa_features = [col for col in data.columns if
                         col.startswith("feature_") and col not in ["feature_msa_path", "feature_msa_name",
