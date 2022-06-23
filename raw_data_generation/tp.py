@@ -35,7 +35,7 @@ from glob import glob
 def generate_results_folder(curr_run_prefix):
     create_dir_if_not_exists(RESULTS_FOLDER)
     curr_run_prefix = os.path.join(RESULTS_FOLDER, curr_run_prefix)
-    create_or_clean_dir(curr_run_prefix)
+    create_dir_if_not_exists(curr_run_prefix)
     return curr_run_prefix
 
 
@@ -235,22 +235,21 @@ def move_current_results_to_global_results(current_results_dict, global_results_
 
 
 
-# def update_existing_job_results(directory, global_results_path, current_tasks_path):
-#     current_jobs
-#     logging.info("Update existing tasks from folder")
-#     for path in [f for f in glob(str(directory)+"/**", recursive=True) if Path(f).is_file() and Path(f).name.startswith('local_raxml_done')]:
-#
-#         logging.info(f"Updated tasks in {path}")
-#         job_raxml_runs_done_obj = pickle.load(open(path, "rb"))
-#         update_tasks_and_results(job_raxml_runs_done_obj, global_results_path,
-#                                  current_tasks_path)
-#         logging.info(f"Updated tasks and resutls for {path}")
-#     for path in [Path(f) for f in glob(str(directory)+"/**", recursive=True) if Path(f).is_dir() and Path(f).name.startswith('iter')]:
-#         try:
-#             rmtree(path)
-#             logging.info(f"removed folder {path}")
-#         except:
-#             logging.info(f"Could not delete folder {path}")
+def update_existing_job_results(directory):
+    current_job_data = {}
+    logging.info("Update existing tasks from folder")
+    for path in [f for f in glob(str(directory)+"/**", recursive=True) if Path(f).is_file() and Path(f).name.startswith('local_raxml_done')]:
+
+        logging.info(f"Updated tasks in {path}")
+        job_raxml_runs_done_obj = pickle.load(open(path, "rb"))
+        current_job_data.update(job_raxml_runs_done_obj)
+        logging.info(f"Updated tasks and resutls for {path}")
+    for path in [Path(f) for f in glob(str(directory)+"/**", recursive=True) if Path(f).is_dir() and Path(f).name.startswith('iter')]:
+        try:
+            rmtree(path)
+            logging.info(f"removed folder {path}")
+        except:
+            logging.info(f"Could not delete folder {path}")
 
 def main():
     parser = main_parser()
@@ -289,6 +288,9 @@ def main():
     total_msas_overall = len(target_msas_list)
     logging.info(f"Number of target MSAs: {total_msas_overall}, at each iteration {args.n_MSAs_per_bunch} are handled")
     i = 0
+    logging.info("Updating leftover results")
+    leftover_results = update_existing_job_results(all_jobs_results_folder)
+    logging.info(f"Found {len(leftover_results)}")
     while len(target_msas_list) > 0 or i==0: #sanity check
         i += 1
         logging.info(f"iteration {i} starts, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
@@ -303,7 +305,9 @@ def main():
                                                         n_random_tree_objects_per_msa=args.n_raxml_random_trees,
                                                         curr_run_directory=trees_run_directory, seed=SEED)
 
-
+        logging.info("Updating current tasks to current results")
+        update_tasks_and_results(leftover_results)
+        leftover_results = {}
         logging.info(f"Generating overall {len(current_tasks)} tasks belonging to {args.n_MSAs_per_bunch} MSAs ")
         # Perform pipeline on current MSA, making sure that all tasks in current_tasks_pool are performed.
         curr_iterartion_results_folder = os.path.join(all_jobs_results_folder,f"iter_{i}")

@@ -217,6 +217,7 @@ def edit_data(data, epsilon):
     data["feature_diff_vs_best_tree"] = \
         data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.max()))["feature_optimized_ll"]
     data["feature_brlen_opt_effect"] = data["feature_optimized_ll"] - data["starting_tree_ll"]
+    data["seq_to_loci"] = data["n_seq"]/ data["n_loci"]
     # data["feature_msa_mean_diff_vs_best_tree"] = data.groupby(['msa_path']).transform(lambda x: x.mean())["feature_diff_vs_best_tree"]
     # data["feature_starting_tree_ll_normalized"] = \
     #     data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
