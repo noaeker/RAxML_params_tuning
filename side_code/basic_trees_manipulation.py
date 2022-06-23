@@ -101,10 +101,7 @@ def get_distances_between_leaves(tree):
     return distances
 
 
-def mad_tree_parameter(curr_run_directory,tree_object):
-        tree_path = os.path.join(curr_run_directory,"trees_mad")
-        with open( tree_path,'w') as MAD:
-            MAD.write(tree_object.write(format=1))
+def mad_tree_parameter(tree_path):
         mad_command = "{mad_exe_path} -t -s {tree_path}".format(mad_exe_path=MAD_COMMAND_PREFIX,
                                                                 tree_path=tree_path)
         execute_command_and_write_to_log(mad_command)

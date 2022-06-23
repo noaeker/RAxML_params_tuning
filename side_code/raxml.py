@@ -250,8 +250,9 @@ def raxml_optimize_trees_for_given_msa(full_data_path, ll_on_data_prefix, tree_f
     return trees_ll_on_data, tree_alpha,optimized_trees_final_path
 
 
-def RF_distances(curr_run_directory, trees_path):
-    rf_prefix = os.path.join(curr_run_directory, "SPR_neighbours")
+def RF_distances(curr_run_directory, trees_path_a, trees_path_b= None, name = "RF"):
+    rf_prefix = os.path.join(curr_run_directory, name)
+    trees_path = trees_path_a+(f",{trees_path_b}" if trees_path_b else "")
     rf_command = (
         "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix} --redo").format(
         raxml_exe_path=RAXML_NG_EXE, rf_file_path=trees_path, prefix=rf_prefix)
@@ -278,8 +279,8 @@ def calculate_rf_dist(rf_file_path, curr_run_directory, prefix="rf"):
     return relative_rf_dist
 
 
-def rf_distance(curr_run_directory, tree_str_a, tree_str_b):
-    rf_folder = os.path.join(curr_run_directory, f"rf_calculations")
+def rf_distance(curr_run_directory, tree_str_a, tree_str_b, name=f"rf_calculations"):
+    rf_folder = os.path.join(curr_run_directory, name)
     create_or_clean_dir(rf_folder)
     rf_output_path = os.path.join(rf_folder, "rf_calculations")
     rf_first_phase_trees = unify_text_files([tree_str_a, tree_str_b], rf_output_path, str_given=True)

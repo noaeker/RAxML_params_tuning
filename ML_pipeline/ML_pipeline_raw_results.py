@@ -21,7 +21,10 @@ import argparse
 import lightgbm
 from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV
-
+from scipy.signal import argrelextrema, find_peaks
+from sklearn.neighbors import KernelDensity
+from sklearn.preprocessing import KBinsDiscretizer
+from scipy import interpolate
 
 
 # Mean absolute error (MAE)
@@ -57,21 +60,33 @@ def variable_importance(X_train, rf_model):
     return importances
 
 
-def error_classifier(X_train, y_train, n_jobs, path="gbm_error"):
+def error_classifier(X_train, y_train, n_jobs, path="error", use_lightgbm=False):
+    if use_lightgbm:
+        path = path + "_lightgbm"
     if os.path.exists(path):
         return pickle.load(open(path, "rb"))
 
-    param_grid = {
-        'bootstrap': [True],
-        'max_depth': [80, 90, 100, 110],
-        'max_features': [2, 3],
-        'min_samples_leaf': [3, 4, 5],
-        'min_samples_split': [8, 10, 12],
-        'n_estimators': [100, 200, 300, 1000]
-    }
-    rf = RandomForestClassifier()
-    grid_search = GridSearchCV(estimator=rf, param_grid=param_grid,
-                               cv=3, n_jobs=n_jobs,pre_dispatch= '1*n_jobs', verbose=2)
+    if not use_lightgbm:
+        param_grid = {
+            'bootstrap': [True, False],
+            'max_depth': [80, 90, 100, 110],
+            'min_samples_leaf': [3, 4, 5],
+            'min_samples_split': [8, 10, 12],
+            'n_estimators': [100, 200, 300, 1000]
+        }
+        error_model = RandomForestClassifier()
+    else:
+        param_grid = {'boosting_type': ['gbdt', 'dart', 'rf', 'goss'],
+                      'reg_lambda': [2000.0, 100.0, 500.0, 10000.0, 1200.0, 0.0, 0.5, 1.5, 3],
+                      'reg_alpha': [10.0, 100.0, 0., 1.0, 0.5, 3.0],
+                      'num_leaves': [100, 50],
+                      'bagging_fraction': [0.1, 0.3, 0.5, 0.75, 0.99],
+                      'subsample': [0.1, 0.3, 0.5, 0.75, 0.99]}
+        error_model = lightgbm.LGBMClassifier()
+    if LOCAL_RUN:
+        param_grid = {}
+    grid_search = GridSearchCV(estimator=error_model, param_grid=param_grid,
+                               cv=3, n_jobs=n_jobs, pre_dispatch='1*n_jobs', verbose=2)
     grid_search.fit(X_train, y_train.ravel())
     best_classifier = grid_search.best_estimator_
 
@@ -83,20 +98,34 @@ def error_classifier(X_train, y_train, n_jobs, path="gbm_error"):
     return best_classifier
 
 
-def time_regressor(X_train, y_train,n_jobs, path="gbm_time"):
+def time_regressor(X_train, y_train, n_jobs, path="gbm_time", use_lightgbm=False):
+    if use_lightgbm:
+        path = path + "_lightgbm"
     if os.path.exists(path):
         return pickle.load(open(path, "rb"))
-    param_grid = {
-        'bootstrap': [True],
-        'max_depth': [80, 90, 100, 110],
-        'max_features': [2, 3],
-        'min_samples_leaf': [3, 4, 5],
-        'min_samples_split': [8, 10, 12],
-        'n_estimators': [100, 200, 300, 1000]
-    }
-    rf_time = RandomForestRegressor()
-    grid_search = GridSearchCV(estimator=rf_time, param_grid=param_grid,
-                               cv=3, n_jobs=n_jobs,pre_dispatch= '1*n_jobs', verbose=2)
+    if not use_lightgbm:
+        param_grid = {
+            'bootstrap': [True, False],
+            'max_depth': [80, 90, 100, 110],
+            'min_samples_leaf': [3, 4, 5],
+            'min_samples_split': [8, 10, 12],
+            'n_estimators': [100, 200, 300, 1000]
+        }
+        time_model = RandomForestRegressor()
+    else:
+        param_grid = {'boosting_type': ['gbdt', 'dart', 'rf', 'goss'],
+                      'reg_lambda': [2000.0, 100.0, 500.0, 10000.0, 1200.0, 0.0, 0.5, 1.5, 3],
+                      'reg_alpha': [10.0, 100.0, 0., 1.0, 0.5, 3.0],
+                      'num_leaves': [100, 50],
+                      # 'bagging_fraction': [0.1, 0.3, 0.5, 0.75, 0.99],
+                      'subsample': [0.1, 0.3, 0.5, 0.75, 0.99]}
+
+        time_model = lightgbm.LGBMRegressor()
+
+    if LOCAL_RUN:
+        param_grid = {}
+    grid_search = GridSearchCV(estimator=time_model, param_grid=param_grid,
+                               cv=3, n_jobs=n_jobs, pre_dispatch='1*n_jobs', verbose=2)
     grid_search.fit(X_train, y_train.ravel())
     best_regressor = grid_search.best_estimator_
     # Calculate the absolute errors
@@ -111,9 +140,16 @@ def take_top_n_most_promising_trees(enriched_test_data):
             ["msa_path", "starting_tree_ind", "spr_radius", "spr_cutoff", "starting_tree_type",
              "predicted_failure_probabilities",
              "predicted_status", "is_global_max", "predicted_time", "relative_time"]]
-        curr_msa_data_per_tree.sort_values(
-            by=['starting_tree_ind', 'predicted_failure_probabilities', 'predicted_time'],
-            inplace=True)
+        for starting_tree_ind in curr_msa_data_per_tree["starting_tree_ind"].unique():
+            starting_tree_data = curr_msa_data_per_tree[
+                curr_msa_data_per_tree["starting_tree_ind"] == starting_tree_ind]
+            failure_probabilities = np.array(starting_tree_data["predicted_failure_probabilities"]).reshape(-1, 1)
+            running_times = np.array(starting_tree_data["predicted_time"]).reshape(-1, 1)
+            #spl = interpolate.UnivariateSpline(running_times, failure_probabilities)
+            plt.scatter(running_times, failure_probabilities)
+            #plt.scatter(running_times,spl(running_times),'r')
+            plt.show()
+
         best_configuration_per_starting_tree = curr_msa_data_per_tree.groupby('starting_tree_ind').head(1)
         required_success_probability = 0.99
         for n_trees in range(1, 41):
@@ -131,16 +167,17 @@ def take_top_n_most_promising_trees(enriched_test_data):
     return final_performance_df
 
 
-def train_models(data_dict,n_jobs, error_model_path, time_model_path):
+def train_models(data_dict, n_jobs, error_model_path, time_model_path, use_lightgbm):
     logging.info("About to calculate RF for modelling error")
-    error_model = error_classifier(data_dict["X_train"], data_dict["y_train_err"],n_jobs,error_model_path)
+    error_model = error_classifier(data_dict["X_train"], data_dict["y_train_err"], n_jobs, error_model_path,
+                                   use_lightgbm)
     err_var_impt = variable_importance(data_dict["X_train"], error_model)
     logging.info(f"Error RF variable importance: \n {err_var_impt}")
     predicted_success = error_model.predict(data_dict["X_test"])
     predicted_failure_probabilities = error_model.predict_proba(data_dict["X_test"])[:, 0]
     err_test_metrics = model_metrics(data_dict["y_test_err"], predicted_success, is_classification=True)
     logging.info(f"Error RF metrics: \n {err_test_metrics}")
-    time_model = time_regressor(data_dict["X_train"], data_dict["y_train_time"],n_jobs,time_model_path)
+    time_model = time_regressor(data_dict["X_train"], data_dict["y_train_time"], n_jobs, time_model_path, use_lightgbm)
     time_var_impt = variable_importance(data_dict["X_train"], time_model)
     logging.info(f"Time RF variable importance: \n {time_var_impt}")
     predicted_time = time_model.predict(data_dict["X_test"])
@@ -151,9 +188,8 @@ def train_models(data_dict,n_jobs, error_model_path, time_model_path):
     enriched_test_data["predicted_failure_probabilities"] = predicted_failure_probabilities
     enriched_test_data["predicted_status"] = predicted_success
     enriched_test_data["predicted_time"] = predicted_time
-    final_performance_df = take_top_n_most_promising_trees(enriched_test_data)
 
-    return error_model, time_model, final_performance_df
+    return error_model, time_model, enriched_test_data
 
 
 def split_to_train_and_test(full_data, data_feature_names, search_feature_names):
@@ -220,22 +256,22 @@ def get_average_results_on_default_configurations_per_msa(default_data, n_sample
 def main():
     epsilon = 0.1
     parser = argparse.ArgumentParser()
-    parser.add_argument('--baseline_folder',action='store', type=str,default=f"{READY_RAW_DATA}/c_30_70")
+    parser.add_argument('--baseline_folder', action='store', type=str, default=f"{READY_RAW_DATA}/c_30_70")
     parser.add_argument('--n_sample_points', action='store', type=int,
                         default=500)
     parser.add_argument('--n_jobs', action='store', type=int,
                         default=1)
+    parser.add_argument('--lightgbm', action='store_true', default=False)
     args = parser.parse_args()
     features_path = f"{args.baseline_folder}/features{CSV_SUFFIX}"
     ML_edited_features_path = f"{args.baseline_folder}/ML_edited_features{CSV_SUFFIX}"
     default_path = f"{args.baseline_folder}/default_sampling{CSV_SUFFIX}"
-    final_performance_path =f"{args.baseline_folder}/final_performance{CSV_SUFFIX}"
+    final_performance_path = f"{args.baseline_folder}/final_performance{CSV_SUFFIX}"
+    enriched_test_data_path = f"{args.baseline_folder}/enriched_test_data{CSV_SUFFIX}"
     error_model_path = f"{args.baseline_folder}/error.model"
     time_model_path = f"{args.baseline_folder}/time.model"
     final_comparison_path = f"{args.baseline_folder}/final_performance_comp{CSV_SUFFIX}"
     log_file = f"{args.baseline_folder}/ML_log_file.log"
-
-
 
     data = pd.read_csv(features_path, sep=CSV_SEP)
     edit_data(data, epsilon)
@@ -243,9 +279,9 @@ def main():
     # full_data = full_data.replace([np.inf, -np.inf,np.nan], -1)
     logging_level = logging.INFO
     logging.basicConfig(filename=log_file, level=logging_level)
-    if os.path.exists(final_performance_path):
-        logging.info(f"Using our existing performance in {final_performance_path}")
-        final_performance_df = pd.read_csv(final_performance_path, sep=CSV_SEP)
+    if os.path.exists(enriched_test_data_path):
+        logging.info(f"Using our existing enriched test data in {enriched_test_data_path}")
+        enriched_test_data = pd.read_csv(enriched_test_data_path, sep=CSV_SEP)
     else:
         logging.info("Estimating time and error models from beggining")
         msa_features = [col for col in data.columns if
@@ -253,9 +289,13 @@ def main():
                                                                    "feature_msa_type"]]
         search_features = ['spr_radius', 'spr_cutoff', 'starting_tree_bool', "starting_tree_ll"]
         data_dict = split_to_train_and_test(data, msa_features, search_features)
-        rf_mod_err, rf_mod_time, final_performance_df = train_models(data_dict, args.n_jobs,
-                                                                     error_model_path, time_model_path)
-    final_performance_df.to_csv(final_performance_path, sep = CSV_SEP)
+        rf_mod_err, rf_mod_time, enriched_test_data = train_models(data_dict, args.n_jobs,
+                                                                   error_model_path, time_model_path, args.lightgbm)
+        enriched_test_data.to_csv(enriched_test_data_path, sep=CSV_SEP)
+
+    final_performance_df = take_top_n_most_promising_trees(enriched_test_data)
+    final_performance_df.to_csv(final_performance_path, sep=CSV_SEP)
+
     if not os.path.exists(default_path):
         logging.info(f"Using existing default data in {default_path}")
         default_data = data[data["type"] == "default"]
