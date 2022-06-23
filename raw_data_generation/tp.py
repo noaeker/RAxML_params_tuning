@@ -300,13 +300,13 @@ def main():
         remaining_MSAs = target_msas_list[args.n_MSAs_per_bunch:]
         create_or_clean_dir(trees_run_directory)
         current_results = {}
-        logging.info(f"Generating overall {len(current_tasks)} tasks belonging to {args.n_MSAs_per_bunch} MSAs ")
         current_tasks = generate_all_raxml_runs_per_msa(current_target_MSAs, spr_radius_grid_str=args.spr_radius_grid,
                                                         spr_cutoff_grid_str=args.spr_cutoff_grid,
                                                         n_parsimony_tree_objects_per_msa=args.n_raxml_parsimony_trees,
                                                         n_random_tree_objects_per_msa=args.n_raxml_random_trees,
                                                         curr_run_directory=trees_run_directory, seed=SEED)
 
+        logging.info(f"Generating overall {len(current_tasks)} tasks belonging to {args.n_MSAs_per_bunch} MSAs ")
         logging.info("Updating current tasks to current results")
         update_tasks_and_results(leftover_results)
         leftover_results = {}

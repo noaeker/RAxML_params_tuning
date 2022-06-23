@@ -142,13 +142,23 @@ def take_top_n_most_promising_trees(enriched_test_data):
              "predicted_status", "is_global_max", "predicted_time", "relative_time"]]
         for starting_tree_ind in curr_msa_data_per_tree["starting_tree_ind"].unique():
             starting_tree_data = curr_msa_data_per_tree[
-                curr_msa_data_per_tree["starting_tree_ind"] == starting_tree_ind]
+                curr_msa_data_per_tree["starting_tree_ind"] == starting_tree_ind].sort_values("predicted_time")
             failure_probabilities = np.array(starting_tree_data["predicted_failure_probabilities"]).reshape(-1, 1)
             running_times = np.array(starting_tree_data["predicted_time"]).reshape(-1, 1)
             #spl = interpolate.UnivariateSpline(running_times, failure_probabilities)
-            plt.scatter(running_times, failure_probabilities)
-            #plt.scatter(running_times,spl(running_times),'r')
+            kde = KernelDensity(kernel='gaussian', bandwidth=3).fit(failure_probabilities)
+            e = kde.score_samples(failure_probabilities.reshape(-1,1))
+            plt.hist(failure_probabilities)
             plt.show()
+            extended_data = np.linspace(np.min(failure_probabilities),np.max(failure_probabilities),100).reshape(-1,1)
+            plt.scatter(extended_data,np.exp(kde.score_samples( extended_data )))
+            plt.show()
+            local_minima_indices = argrelextrema(e, np.less)[0]
+            local_minimas = failure_probabilities[local_minima_indices]
+            print(local_minimas)
+            #plt.scatter(running_times, failure_probabilities)
+            #plt.show()
+
 
         best_configuration_per_starting_tree = curr_msa_data_per_tree.groupby('starting_tree_ind').head(1)
         required_success_probability = 0.99
