@@ -81,7 +81,7 @@ def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
         f"Sampling {len(file_path_list)} random MSAs")
     return file_path_list
 
-def update_tasks_and_results(job_raxml_runs_done_obj,current_results,current_tasks, ):
+def update_tasks_and_results(job_raxml_runs_done_obj,current_results,current_tasks):
     logging.debug(f"Job done size is {len(job_raxml_runs_done_obj)}")
     current_results.update(job_raxml_runs_done_obj)  # update new results
     logging.debug(f"Current results dict size is now {len(current_results)}")
@@ -308,7 +308,7 @@ def main():
 
         logging.info(f"Generating overall {len(current_tasks)} tasks belonging to {args.n_MSAs_per_bunch} MSAs ")
         logging.info("Updating current tasks to current results")
-        update_tasks_and_results(leftover_results)
+        update_tasks_and_results(leftover_results,current_results, current_tasks)
         leftover_results = {}
         # Perform pipeline on current MSA, making sure that all tasks in current_tasks_pool are performed.
         curr_iterartion_results_folder = os.path.join(all_jobs_results_folder,f"iter_{i}")
