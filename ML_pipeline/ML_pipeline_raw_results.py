@@ -27,6 +27,7 @@ from sklearn.preprocessing import KBinsDiscretizer
 from scipy import interpolate
 
 
+
 # Mean absolute error (MAE)
 def model_metrics(y_test, predictions, is_classification):
     if is_classification:
@@ -135,40 +136,44 @@ def time_regressor(X_train, y_train, n_jobs, path="gbm_time", use_lightgbm=False
 
 def take_top_n_most_promising_trees(enriched_test_data):
     results_per_msa = []
-    for msa_path in enriched_test_data["msa_path"].unique():
+    #msa_paths = ["/groups/pupko/noaeker/data/ABC_DR/Selectome/Primates/ENSGT00670000097847/ref_msa.aa.phy"]
+    msa_paths =  enriched_test_data["msa_path"].unique()
+    for msa_path in msa_paths:
         curr_msa_data_per_tree = enriched_test_data[enriched_test_data["msa_path"] == msa_path][
             ["msa_path", "starting_tree_ind", "spr_radius", "spr_cutoff", "starting_tree_type",
-             "predicted_failure_probabilities",
+             "predicted_failure_probabilities","delta_ll_from_overall_msa_best_topology",
              "predicted_status", "is_global_max", "predicted_time", "relative_time"]]
-        for starting_tree_ind in curr_msa_data_per_tree["starting_tree_ind"].unique():
-            starting_tree_data = curr_msa_data_per_tree[
-                curr_msa_data_per_tree["starting_tree_ind"] == starting_tree_ind].sort_values("predicted_time")
-            failure_probabilities = np.array(starting_tree_data["predicted_failure_probabilities"]).reshape(-1, 1)
-            running_times = np.array(starting_tree_data["predicted_time"]).reshape(-1, 1)
+        #for starting_tree_ind in curr_msa_data_per_tree["starting_tree_ind"].unique():
+            #print(starting_tree_ind)
+            #starting_tree_data = curr_msa_data_per_tree[
+            #    curr_msa_data_per_tree["starting_tree_ind"] == starting_tree_ind].sort_values("predicted_time")
+            #failure_probabilities = np.array(starting_tree_data["predicted_failure_probabilities"]).reshape(-1, 1)
+            #running_times = np.array(starting_tree_data["predicted_time"]).reshape(-1, 1)
+
+
+
             #spl = interpolate.UnivariateSpline(running_times, failure_probabilities)
-            kde = KernelDensity(kernel='gaussian', bandwidth=3).fit(failure_probabilities)
-            e = kde.score_samples(failure_probabilities.reshape(-1,1))
-            plt.hist(failure_probabilities)
-            plt.show()
-            extended_data = np.linspace(np.min(failure_probabilities),np.max(failure_probabilities),100).reshape(-1,1)
-            plt.scatter(extended_data,np.exp(kde.score_samples( extended_data )))
-            plt.show()
-            local_minima_indices = argrelextrema(e, np.less)[0]
-            local_minimas = failure_probabilities[local_minima_indices]
-            print(local_minimas)
-            #plt.scatter(running_times, failure_probabilities)
+            #spl.set_smoothing_factor(0.5)
+            #first_derivatives = ([(float(x),spl.derivatives(x)[1]) for x in running_times])
+            #for i in range(1,len(first_derivatives)):
+            #    if first_derivatives[i][1]>-0.01:
+            #        break
+            #chosen_point = (first_derivatives[i])
+            #chosen_row = starting_tree_data.iloc[i]
+            #best_configuration_per_starting_tree = best_configuration_per_starting_tree.append(chosen_row, ignore_index= True)
+            #print(chosen_row)
+            #plt.plot(running_times,spl(running_times),color = 'green')
+            #plt.scatter(running_times,failure_probabilities,color = 'red')
             #plt.show()
-
-
-        best_configuration_per_starting_tree = curr_msa_data_per_tree.groupby('starting_tree_ind').head(1)
-        required_success_probability = 0.99
+        required_success_probability = 0.999
+        best_configuration_per_starting_tree = curr_msa_data_per_tree.sort_values(['starting_tree_ind','starting_tree_type','predicted_failure_probabilities','predicted_time']).groupby(['starting_tree_ind','starting_tree_type']).head(1).sort_values(['predicted_failure_probabilities','predicted_time'])
         for n_trees in range(1, 41):
             current_tree_used = best_configuration_per_starting_tree.head(n_trees)
             current_failure_prob_list = list(current_tree_used['predicted_failure_probabilities'])
             current_success_prob_overall = 1 - np.prod(current_failure_prob_list)
             current_option = current_tree_used.groupby(["msa_path"]).agg(
                 total_time_predicted=('predicted_time', np.sum), total_actual_time=('relative_time', np.sum),
-                status=('is_global_max', np.max)).reset_index()
+                status=('is_global_max', np.max), diff = ('delta_ll_from_overall_msa_best_topology', np.min)).reset_index()
             if current_success_prob_overall >= required_success_probability:
                 break
         current_option["n_trees_used"] = n_trees
@@ -178,7 +183,19 @@ def take_top_n_most_promising_trees(enriched_test_data):
 
 
 def train_models(data_dict, n_jobs, error_model_path, time_model_path, use_lightgbm):
-    logging.info("About to calculate RF for modelling error")
+    logging.info("About to generate time model")
+    time_model = time_regressor(data_dict["X_train"], data_dict["y_train_time"], n_jobs, time_model_path, use_lightgbm)
+    time_var_impt = variable_importance(data_dict["X_train"], time_model)
+    logging.info(f"Time RF variable importance: \n {time_var_impt}")
+    predicted_time = time_model.predict(data_dict["X_test"])
+    time_test_metrics = model_metrics(data_dict["y_test_time"], predicted_time, is_classification=False)
+    logging.info(f"Time_test_metrics: \n {time_test_metrics}")
+
+    logging.info("About to estimate Error model based on previous time model")
+    data_dict["X_train"]["feature_predicted_time"] = time_model.predict(data_dict["X_train"])
+    data_dict["X_test"]["feature_predicted_time"] = time_model.predict(data_dict["X_test"])
+
+
     error_model = error_classifier(data_dict["X_train"], data_dict["y_train_err"], n_jobs, error_model_path,
                                    use_lightgbm)
     err_var_impt = variable_importance(data_dict["X_train"], error_model)
@@ -187,12 +204,6 @@ def train_models(data_dict, n_jobs, error_model_path, time_model_path, use_light
     predicted_failure_probabilities = error_model.predict_proba(data_dict["X_test"])[:, 0]
     err_test_metrics = model_metrics(data_dict["y_test_err"], predicted_success, is_classification=True)
     logging.info(f"Error RF metrics: \n {err_test_metrics}")
-    time_model = time_regressor(data_dict["X_train"], data_dict["y_train_time"], n_jobs, time_model_path, use_lightgbm)
-    time_var_impt = variable_importance(data_dict["X_train"], time_model)
-    logging.info(f"Time RF variable importance: \n {time_var_impt}")
-    predicted_time = time_model.predict(data_dict["X_test"])
-    time_test_metrics = model_metrics(data_dict["y_test_time"], predicted_time, is_classification=False)
-    logging.info(f"Time_test_metrics: \n {time_test_metrics}")
 
     enriched_test_data = data_dict["full_test_data"].copy()
     enriched_test_data["predicted_failure_probabilities"] = predicted_failure_probabilities
@@ -203,6 +214,7 @@ def train_models(data_dict, n_jobs, error_model_path, time_model_path, use_light
 
 
 def split_to_train_and_test(full_data, data_feature_names, search_feature_names):
+    full_data = full_data[full_data["type"]!="default"]
     train_data, test_data, validation_data = train_test_validation_splits(
         full_data, test_pct=0.3, val_pct=0)
     X_train = train_data[data_feature_names + search_feature_names]
@@ -224,22 +236,15 @@ def edit_data(data, epsilon):
     data["relative_time"] = data["elapsed_running_time"] / data["test_norm_const"]
     data["msa_name"] = data["msa_path"].apply(lambda s: remove_env_path_prefix(s))
     data["starting_tree_bool"] = data["starting_tree_type"] == "pars"
+    data["feature_ll_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["feature_optimized_ll"]
     data["feature_diff_vs_best_tree"] = \
-        data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.max()))["feature_optimized_ll"]
+        data.groupby(['msa_path']).transform(lambda x: (x - x.max()))["feature_optimized_ll"]
     data["feature_brlen_opt_effect"] = data["feature_optimized_ll"] - data["starting_tree_ll"]
-    data["seq_to_loci"] = data["feature_n_seq"]/ data["feature_n_loci"]
-    # data["feature_msa_mean_diff_vs_best_tree"] = data.groupby(['msa_path']).transform(lambda x: x.mean())["feature_diff_vs_best_tree"]
-    # data["feature_starting_tree_ll_normalized"] = \
-    #     data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
-    #         "starting_tree_ll"]
-    # data["feature_starting_tree_ll_optimized_normalized"] = \
-    #     data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: (x - x.mean()) / x.std())[
-    #         "feature_optimized_ll"]
+    data["feature_seq_to_loci"] = data["feature_n_seq"]/ data["feature_n_loci"]
     data["feature_mean_rf_distance_scaled"] = data["feature_mean_rf_distance"] / data["feature_n_seq"]
-    # data["feature_tree_MAD_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["feature_tree_MAD"]
-    # data["feature_largest_branch_length_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())[
-    #     "feature_largest_branch_length"]
-    data["normalized_time"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["relative_time"]
+    data["feature_diff_vs_best_tree_var"] = \
+        data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: x.std())["feature_diff_vs_best_tree"]
+
 
 
 def get_average_results_on_default_configurations_per_msa(default_data, n_sample_points, seed
@@ -272,7 +277,7 @@ def main():
                         default=500)
     parser.add_argument('--n_jobs', action='store', type=int,
                         default=1)
-    parser.add_argument('--lightgbm', action='store_true', default=False)
+    parser.add_argument('--lightgbm', action='store_true', default=True)
     args = parser.parse_args()
     features_path = f"{args.baseline_folder}/features{CSV_SUFFIX}"
     ML_edited_features_path = f"{args.baseline_folder}/ML_edited_features{CSV_SUFFIX}"
@@ -306,7 +311,7 @@ def main():
         enriched_test_data.to_csv(enriched_test_data_path, sep=CSV_SEP)
 
     final_performance_df = take_top_n_most_promising_trees(enriched_test_data)
-    final_performance_df.to_csv(final_performance_path, sep=CSV_SEP)
+    #final_performance_df.to_csv(final_performance_path, sep=CSV_SEP)
 
     if not os.path.exists(default_path):
         logging.info(f"Using existing default data in {default_path}")
@@ -320,10 +325,11 @@ def main():
         default_data_performance = pd.read_csv(default_path, sep=CSV_SEP)
     aggregated_default_results = default_data_performance.groupby(by=["msa_path"]).agg(
         default_mean_is_global_max=('curr_sample_is_global_max', np.mean),
+        default_mean_err = ('curr_sample_Err',np.mean),
         default_mean_time=("curr_sample_total_time", np.mean)).reset_index()
 
     comp = final_performance_df.merge(aggregated_default_results, on="msa_path")
-    comp.to_csv(final_comparison_path, sep=CSV_SEP)
+    #comp.to_csv(final_comparison_path, sep=CSV_SEP)
 
 
 if __name__ == "__main__":

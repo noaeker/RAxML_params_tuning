@@ -29,7 +29,7 @@ def get_msa_stats(msa_path):
     alignment_df_fixed = alignment_df.replace('-', np.nan)
     gap_lengths = alignment_df_fixed.isna().sum(axis=1)
     gap_pct = alignment_df_fixed.isna().sum(axis=1) / n_loci
-    alignment_df_unique = alignment_df.loc[:, ~alignment_df.columns.duplicated()].copy()
+    alignment_df_unique = alignment_df.T.drop_duplicates().T
     gaps = (alignment_df_fixed.isnull().sum() / len(alignment_df_fixed))
     counts_per_position = [dict(alignment_df_fixed[col].value_counts(dropna=True)) for col in list(alignment_df)]
     probabilities = [list(map(lambda x: x / sum(counts_per_position[col].values()), counts_per_position[col].values()))
@@ -65,13 +65,12 @@ def tree_metrics(curr_run_directory,all_parsimony_trees,tree_object):
     for parsimony_tree in all_parsimony_trees:
         rf_values.append(rf_distance(curr_run_directory,tree_object.write(format=1),parsimony_tree, name = "tree_vs_parsimony_rf"))
     res = {
-        ""
         "feature_mean_branch_length": np.mean(BL_metrics["BL_list"]),
         "feature_mean_internal_branch_length": np.mean(BL_metrics["internal_BL_list"]),
         "feature_mean_leaf_branch_length": np.mean(BL_metrics["leaf_BL_list"]),
         "feature_tree_MAD": mad_tree_parameter(curr_tree_path),
         "feature_largest_branch_length": np.max(BL_metrics["BL_list"]),
-        "feature_minimal_branch_length": np.max(BL_metrics["BL_list"]),
+        "feature_minimal_branch_length": np.min(BL_metrics["BL_list"]),
         "feature_median_branch_length": np.median(BL_metrics["BL_list"]),
         "feature_25_pct_branch_length": np.percentile(BL_metrics["BL_list"], 25),
         "feature_75_pct_branch_length": np.percentile(BL_metrics["BL_list"], 75),
@@ -108,7 +107,7 @@ def msa_features_pipeline(msa_path, existing_msa_features_path):
     return msa_general_features
 
 
-def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_tree_features_path):
+def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_tree_features_path, iterations):
     tmp_folder = os.path.join(curr_run_directory, 'tmp_working_dir_tree_features_pipeline')
     create_or_clean_dir(tmp_folder)
     if os.path.exists(existing_tree_features_path):
@@ -123,9 +122,21 @@ def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_
         optimized_tree_object_ll, optimized_tree_object_alpha, optimized_tree_object = EVAL_tree_object_ll(
             generate_tree_object_from_newick(row["starting_tree_object"]), tmp_folder, get_local_path(msa_path),
             get_msa_type(get_local_path(msa_path)), opt_brlen=True)
+        basic_features = {"feature_optimized_ll": optimized_tree_object_ll,
+                                   'feature_optimized_tree_object_alpha': optimized_tree_object_alpha}
+        distances, ll_improvements = get_random_spr_moves_vs_distances(optimized_tree_object,optimized_tree_object_ll, 20,tmp_folder, get_local_path(msa_path), get_msa_type(get_local_path(msa_path)))
+        SPR_feature_metrics = {'feature_median_ll_improvement': np.median(ll_improvements),
+                               'feature_median_ll_improvement': np.median(ll_improvements),
+                               '75_pct_ll_improvement': np.percentile(ll_improvements,75),
+                               'feature_25_pct_ll_improvement': np.percentile(ll_improvements, 25),
+                               'feature_max_ll_improvement' : np.max(ll_improvements),
+                               'feature_max_ll_improvement_radius': distances[np.argmax(ll_improvements)],
+                               'feature_min_ll_improvement': np.min(ll_improvements),
+                               'feature_min_ll_improvement_radius': distances[np.argmin(ll_improvements)]
+                               }
         curr_tree_features = tree_metrics(tmp_folder,all_parsimony_trees, optimized_tree_object)
-        curr_tree_features.update({"feature_optimized_ll": optimized_tree_object_ll,
-                                   'feature_optimized_tree_object_alpha': optimized_tree_object_alpha})
+        curr_tree_features.update(basic_features)
+        curr_tree_features.update(SPR_feature_metrics)
         tree_features_dict[(row["starting_tree_ind"], row["starting_tree_type"])] = curr_tree_features
     tree_features = pd.DataFrame.from_dict(tree_features_dict, orient='index')
     pickle.dump(tree_features, open(existing_tree_features_path, 'wb'))
@@ -149,7 +160,7 @@ def process_all_msa_RAxML_runs(curr_run_directory, given_msa_data):
     return given_msa_data
 
 
-def enrich_raw_data(curr_run_directory, raw_data):
+def enrich_raw_data(curr_run_directory, raw_data, iterations):
     '''
 
     :param curr_run_directory:
@@ -176,7 +187,7 @@ def enrich_raw_data(curr_run_directory, raw_data):
             msa_features = msa_features_pipeline(msa, existing_msa_features_path)
             logging.info(f"MSA features: {msa_features}")
             msa_enriched_data = msa_enriched_data.merge(msa_features, right_index=True, left_on=["msa_path"])
-            tree_features = tree_features_pipeline(msa, msa_folder, msa_data, existing_tree_features_path)
+            tree_features = tree_features_pipeline(msa, msa_folder, msa_data, existing_tree_features_path, iterations)
             msa_enriched_data = msa_enriched_data.merge(tree_features, right_index=True,
                                                         left_on=["starting_tree_ind", "starting_tree_type"])
             pickle.dump(msa_enriched_data, open(msa_final_dataset_path, "wb"))
@@ -195,6 +206,7 @@ def main():
     parser.add_argument('--results_folder', action='store', type=str,
                         default=RESULTS_FOLDER)
     parser.add_argument('--min_n_observations', action='store', type=int, default=1240)
+    parser.add_argument('--iterations', action='store', type=int, default=40)
     args = parser.parse_args()
     curr_run_directory = os.path.join(args.results_folder, "features_extraction_pipeline_files")
     create_dir_if_not_exists(curr_run_directory)
@@ -209,7 +221,7 @@ def main():
         msa_names = list(np.unique(raw_data["msa_path"]))
         msas_sample = np.random.choice(msa_names, size=3, replace=False)
         raw_data = raw_data[raw_data["msa_path"].isin(msas_sample)]
-    raw_data_with_features = enrich_raw_data(curr_run_directory, raw_data)
+    raw_data_with_features = enrich_raw_data(curr_run_directory, raw_data, iterations=args.iterations)
     logging.info(f'Writing enriched data to {args.features_out_path}')
     raw_data_with_features.to_csv(args.features_out_path, sep=CSV_SEP)
 

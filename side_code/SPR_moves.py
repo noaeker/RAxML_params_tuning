@@ -13,13 +13,18 @@ def get_distance_between_edges(tree, pruned_edge,regraft_edge):
         dist = (tree & pruned_edge.node_b).get_distance((tree & regraft_edge.node_a), topology_only=True)
     return dist
 
-def get_all_possible_spr_moves(starting_tree, min_rearr_dist = -1, max_rearr_dist = np.inf):
-    edges_list = []
-    main_tree_root_pointer_cp = starting_tree.copy()
+
+def get_all_edges(main_tree_root_pointer_cp):
+    edges_list  = []
     for i, node in enumerate(main_tree_root_pointer_cp.iter_descendants("levelorder")):
         if node.up:
             edge = Edge(node_a=node.name, node_b=node.up.name)
             edges_list.append(edge)
+    return edges_list
+
+def get_all_possible_spr_moves(starting_tree, min_rearr_dist = -1, max_rearr_dist = np.inf):
+    main_tree_root_pointer_cp = starting_tree.copy()
+    edges_list = get_all_edges(main_tree_root_pointer_cp)
     possible_moves = []
     for prune_edge in edges_list:
         for rgft_edge in edges_list:
@@ -69,18 +74,12 @@ def generate_neighbour(base_tree, possible_move):
 
 
 
-def get_random_spr_moves_vs_distances(starting_tree_path, n_iterations,curr_run_directory, msa_path, msa_type):
-    starting_tree = generate_tree_object_from_newick(starting_tree_path)
-    edges_list = []
+def get_random_spr_moves_vs_distances(starting_tree,starting_tree_ll, n_iterations,curr_run_directory, msa_path, msa_type):
     main_tree_root_pointer_cp = starting_tree.copy()
-    for i, node in enumerate(main_tree_root_pointer_cp.iter_descendants("levelorder")):
-        if node.up:
-            edge = Edge(node_a=node.name, node_b=node.up.name)
-            edges_list.append(edge)
+    edges_list = get_all_edges(main_tree_root_pointer_cp)
     distances = []
     ll_improvements = []
-    starting_tree_ll = EVAL_tree_object_ll([starting_tree], curr_run_directory, msa_path, msa_type)
-    i=0
+    i = 0
     while len(distances)<n_iterations:
             np.random.seed(SEED+i)
             i+=1
@@ -90,11 +89,9 @@ def get_random_spr_moves_vs_distances(starting_tree_path, n_iterations,curr_run_
             if not ((prune_edge.node_a == rgft_edge.node_a) or (prune_edge.node_b == rgft_edge.node_b) or (
                     prune_edge.node_b == rgft_edge.node_a) or (prune_edge.node_a == rgft_edge.node_b)):
                 neighbour = generate_neighbour(starting_tree,move)
-                neighbour_ll = EVAL_tree_object_ll([neighbour], curr_run_directory, msa_path, msa_type)
+                neighbour_ll, tree_alpha,tree_path = EVAL_tree_object_ll(neighbour, curr_run_directory, msa_path, msa_type)
                 ll_improvements.append(neighbour_ll-starting_tree_ll)
                 distances.append(curr_rearr_dist)
-    print(distances)
-    print(ll_improvements)
     return distances, ll_improvements
 
 
