@@ -291,12 +291,13 @@ def main():
     i = 0
     logging.info("Updating leftover results")
     leftover_results = update_existing_job_results(all_jobs_results_folder)
-    logging.info(f"Found {len(leftover_results)}")
+    logging.info(f"Found {len(leftover_results)} leftover tasks")
     while len(target_msas_list) > 0 or i==0: #sanity check
         i += 1
         logging.info(f"iteration {i} starts, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         random.seed(SEED)
         current_target_MSAs = target_msas_list[:args.n_MSAs_per_bunch]
+        logging.info(f"Current target MSAs are: {current_target_MSAs}")
         remaining_MSAs = target_msas_list[args.n_MSAs_per_bunch:]
         create_or_clean_dir(trees_run_directory)
         current_results = {}
@@ -308,8 +309,8 @@ def main():
 
         logging.info(f"Generating overall {len(current_tasks)} tasks belonging to {args.n_MSAs_per_bunch} MSAs ")
         logging.info("Updating current tasks to current results")
-        update_tasks_and_results(leftover_results,current_results, current_tasks)
-        leftover_results = {}
+        if i==1:
+            update_tasks_and_results(leftover_results,current_results, current_tasks)
         # Perform pipeline on current MSA, making sure that all tasks in current_tasks_pool are performed.
         curr_iterartion_results_folder = os.path.join(all_jobs_results_folder,f"iter_{i}")
         os.mkdir(curr_iterartion_results_folder)
@@ -322,8 +323,8 @@ def main():
         target_msas_list = remaining_MSAs
         pickle.dump(target_msas_list , open(file_paths_path, "wb")) # Done with current filess
         total_msas_done += args.n_MSAs_per_bunch
-        with open(all_jobs_general_log_file,'w'): #empty log file
-            pass
+        #with open(all_jobs_general_log_file,'w'): #empty log file
+        #    pass
         logging.info(f"###### iteration {i} done, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         logging.info(f"###### So far done with {total_msas_done}/{total_msas_overall} of the MSAs ")
         try:

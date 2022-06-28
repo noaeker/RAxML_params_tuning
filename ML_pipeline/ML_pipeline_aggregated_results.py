@@ -115,7 +115,7 @@ def main():
     args = parser.parse_args()
     data = pd.read_csv(args.features_path, sep=CSV_SEP)
     edit_data(data, epsilon)
-    data = data.groupby(['msa_name','msa_path', 'starting_tree_bool','spr_radius']).mean().reset_index()
+    data = data.groupby(['msa_name','msa_path', 'starting_tree_bool','spr_radius','spr_cutoff']).mean().reset_index()
     data = edit_aggregated_data(data)
     # full_data = full_data.replace([np.inf, -np.inf,np.nan], -1)
     all_jobs_general_log_file = os.path.join(ML_RESULTS_FOLDER, "ML_log_file.log")

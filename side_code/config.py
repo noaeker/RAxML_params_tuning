@@ -62,7 +62,7 @@ if not LOCAL_RUN:
 
 elif LOCAL_RUN:
     IQTREE_EXE = "/Users/noa/Programs/iqtree-2.1.3-MacOSX/bin/iqtree2"
-    RAXML_NG_EXE = "/Users/noa/Programs/Raxml/raxml-ng  "
+    RAXML_NG_EXE = "/Users/noa/Programs/Raxml/raxml-ng"
     RAXML_HPC_EXE = "/Users/noa/Programs/standard-RAxML/raxmlHPC-PTHREADS "
     MAD_COMMAND_PREFIX = "/Users/noa/Programs/mad.osx"
     RATE4SITE_COMMAND_PREFIX = "/Users/noa/Programs/rate4site"

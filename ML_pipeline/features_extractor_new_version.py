@@ -17,6 +17,20 @@ from shutil import rmtree
 import pandas as pd
 import pickle
 import argparse
+from pypythia.predictor import DifficultyPredictor
+from pypythia.prediction import get_all_features
+from pypythia.raxmlng import RAxMLNG
+from pypythia.msa import MSA
+
+
+def pypythia(msa_path):
+    predictor = DifficultyPredictor(open(f"{PROJECT_ROOT_DIRECRTORY}/pypythia/predictor.pckl", "rb"))
+    raxmlng = RAxMLNG(RAXML_NG_EXE)
+    msa = MSA(msa_path)
+    model = "WAG+G" if get_msa_type(msa_path)=="AA" else "GTR+G"
+    msa_features = get_all_features(raxmlng, msa, model)
+    difficulty = predictor.predict(msa_features)
+    return difficulty
 
 
 def get_msa_stats(msa_path):
@@ -37,6 +51,7 @@ def get_msa_stats(msa_path):
                      list(alignment_df)]
     entropy = [sum(list(map(lambda x: -x * np.log(x), probabilities[col]))) for col in list(alignment_df)]
     constant_sites_pct = sum([1 for et in entropy if et == 0]) / len(entropy)
+    msa_difficulty = pypythia(msa_path)
     all_msa_features.update({"feature_constant_sites_pct": constant_sites_pct, "feature_avg_entropy": np.mean(entropy),
                              "feature_25_pct_entropy": np.percentile(entropy, 25),
                              "feature_75_pct_entropy": np.percentile(entropy, 75),
@@ -49,7 +64,9 @@ def get_msa_stats(msa_path):
                              "feature_gap_max_by_min": ((np.max(gap_lengths) - np.min(gap_lengths)) / (
                                      np.max(gap_lengths) + 0.00001)), "feature_min_gap_pct": np.min(gap_pct),
                              "feature_n_unique_sites": len(alignment_df_unique.columns),
-                             "feature_frac_unique_sites": len(alignment_df_unique.columns) / len(alignment_df.columns)})
+                             "feature_frac_unique_sites": len(alignment_df_unique.columns) / len(alignment_df.columns),
+                            "pypythia_msa_difficulty": msa_difficulty}
+                            )
     return all_msa_features
 
 
@@ -98,8 +115,8 @@ def get_local_path(path):
 def msa_features_pipeline(msa_path, existing_msa_features_path):
     if os.path.exists(existing_msa_features_path):
         logging.info("Using existing MSA general features")
-        existing_tree_features = pickle.load(open(existing_msa_features_path, "rb"))
-        return existing_tree_features
+        existing_msa_features = pickle.load(open(existing_msa_features_path, "rb"))
+        return existing_msa_features
     logging.info("Calculating MSA general features from beggining")
     msa_general_features = pd.DataFrame.from_dict(
         {msa_path: get_msa_stats(get_local_path(msa_path))}, orient='index')
