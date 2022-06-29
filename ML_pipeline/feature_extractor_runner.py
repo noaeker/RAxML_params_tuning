@@ -63,6 +63,7 @@ def main():
     parser.add_argument('--iterations', action='store', type=int, default=40)
     parser.add_argument('--n_jobs', action='store', type=int, default=2)
     parser.add_argument('--jobs_prefix', action='store', type=str, default="features_job")
+    parser.add_argument('--queue',type=str, default = "pupkolab")
     args = parser.parse_args()
     feature_pipeline_dir = os.path.join(args.results_folder, "features_extraction_pipeline_files")
     create_dir_if_not_exists(feature_pipeline_dir)
