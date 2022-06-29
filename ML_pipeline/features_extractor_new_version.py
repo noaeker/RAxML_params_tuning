@@ -99,7 +99,7 @@ def tree_metrics(curr_run_directory,all_parsimony_trees,tree_object):
         'feature_min_rf_distance': np.min([d for d in rf_values if d>0]),
         'feature_25_pct_rf_distance': np.percentile(rf_values, 25),
         'feature_75_pct_rf_distance': np.percentile(rf_values, 75),
-        'feature_median_rf_relative_distance': np.median(rf_values)
+        'feature_median_rf_distance': np.median(rf_values)
 
     }
     return res
@@ -143,8 +143,8 @@ def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_
                                    'feature_optimized_tree_object_alpha': optimized_tree_object_alpha}
         distances, ll_improvements = get_random_spr_moves_vs_distances(optimized_tree_object,optimized_tree_object_ll, 20,tmp_folder, get_local_path(msa_path), get_msa_type(get_local_path(msa_path)))
         SPR_feature_metrics = {'feature_median_ll_improvement': np.median(ll_improvements),
-                               'feature_median_ll_improvement': np.median(ll_improvements),
-                               '75_pct_ll_improvement': np.percentile(ll_improvements,75),
+                               'feature_mean_ll_improvement': np.mean(ll_improvements),
+                               'feature_75_pct_ll_improvement': np.percentile(ll_improvements,75),
                                'feature_25_pct_ll_improvement': np.percentile(ll_improvements, 25),
                                'feature_max_ll_improvement' : np.max(ll_improvements),
                                'feature_max_ll_improvement_radius': distances[np.argmax(ll_improvements)],

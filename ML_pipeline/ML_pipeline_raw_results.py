@@ -241,7 +241,7 @@ def edit_data(data, epsilon):
     data["feature_brlen_opt_effect"] = data["feature_optimized_ll"] - data["starting_tree_ll"]
     data["feature_seq_to_loci"] = data["feature_n_seq"]/ data["feature_n_loci"]
     data["feature_seq_to_unique_loci"] = data["feature_n_seq"] / data["feature_n_unique_sites"]
-    data["feature_mean_rf_distance_scaled"] = data["feature_mean_rf_distance"] / data["feature_n_seq"]
+    data["feature_mean_rf_distance_normalized"] = data.groupby('msa_path').transform(lambda x: (x - x.mean()) / x.std())["feature_mean_rf_distance"]
     data["feature_diff_vs_best_tree_var"] = \
         data.groupby(['msa_path', 'starting_tree_type']).transform(lambda x: x.std())["feature_diff_vs_best_tree"]
 

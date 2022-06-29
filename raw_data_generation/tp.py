@@ -156,6 +156,22 @@ def assign_tasks_over_available_jobs(current_tasks, number_of_jobs_to_send,max_n
     return tasks_chunks
 
 
+def finish_all_running_jobs(job_tracking_dict):
+    for job_ind in list(job_tracking_dict.keys()): # remove all remaining folders
+        logging.info(f"Deleting job {job_ind} to make sure it is removed")
+        if not LOCAL_RUN:
+            delete_current_job_cmd = f"qstat | grep {job_tracking_dict[job_ind]['job_name']} | xargs qdel"
+            execute_command_and_write_to_log(delete_current_job_cmd, print_to_log=True)
+        try:
+            if os.path.exists(job_tracking_dict[job_ind]["job_entire_folder"]):
+                logging.info(f"Deleting {job_ind} folder since all tasks are done")
+                rmtree(job_tracking_dict[job_ind]["job_entire_folder"])
+                del job_tracking_dict[job_ind]
+        except Exception:
+            logging.info(f"Couldn't delete folder {job_tracking_dict[job_ind]['job_entire_folder']}")
+            pass
+
+
 def current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results, all_jobs_results_folder,
                            args):
     '''
@@ -195,20 +211,8 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results
         time.sleep(args.waiting_time_between_iterations)
     logging.info("Done with the current tasks bunch")
     logging.info(f"Current job_tracking_dict keys are {job_tracking_dict.keys()}" )
-    for job_ind in list(job_tracking_dict.keys()): # remove all remaining folders
-        logging.info(f"Deleting job {job_ind} to make sure it is removed")
-        if not LOCAL_RUN:
-            delete_current_job_cmd = f"qstat | grep {job_tracking_dict[job_ind]['job_name']} | xargs qdel"
-            execute_command_and_write_to_log(delete_current_job_cmd, print_to_log=True)
-        try:
-            if os.path.exists(job_tracking_dict[job_ind]["job_entire_folder"]):
-                logging.info(f"Deleting {job_ind} folder since all tasks are done")
-                rmtree(job_tracking_dict[job_ind]["job_entire_folder"])
-                del job_tracking_dict[job_ind]
-        except Exception:
-            logging.info(f"Couldn't delete folder {job_tracking_dict[job_ind]['job_entire_folder']}")
-            pass
-        #time.sleep(15)
+    finish_all_running_jobs(job_tracking_dict)
+    #time.sleep(15)
 
 
 
