@@ -27,7 +27,7 @@ def generate_results_folder(curr_run_prefix):
     return curr_run_prefix
 
 
-def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder, feature_pipeline_dir, args):
+def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_data, feature_pipeline_dir, args):
     jobs_csv_path_list = []
     msa_names = list(np.unique(raw_data["msa_path"]))
     msa_splits = np.array_split(list(msa_names), args.n_jobs)
@@ -40,7 +40,7 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder, feature_pipelin
         current_raw_data = raw_data[raw_data["msa_path"].isin(job_msas)]
         current_raw_data.to_csv(current_raw_data_path, sep = CSV_SEP)
 
-        run_command = f' python {FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --feature_pipeline_dir {feature_pipeline_dir} --features_output_path {current_feature_output_path} --iterations {args.iterations}'
+        run_command = f' python {FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --feature_pipeline_dir {existing_msas_data} --features_output_path {current_feature_output_path} --iterations {args.iterations}'
 
         if not LOCAL_RUN:
             job_name = args.jobs_prefix + str(job_ind)
@@ -48,7 +48,7 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder, feature_pipelin
             submit_linux_job(job_name, curr_job_folder, curr_job_log_path, run_command, 1, job_ind,
                              queue=args.queue)
         else:
-            submit_local_job(FEATURE_EXTRACTION_CODE, ["--job_ind", str(job_ind), "--curr_job_folder", curr_job_folder,"--curr_job_raw_path",current_raw_data_path,"--feature_pipeline_dir",feature_pipeline_dir,"--features_output_path",current_feature_output_path,"--iterations",str(args.iterations)
+            submit_local_job(FEATURE_EXTRACTION_CODE, ["--job_ind", str(job_ind), "--curr_job_folder", curr_job_folder,"--curr_job_raw_path",current_raw_data_path,"--feature_pipeline_dir",existing_msas_data,"--features_output_path",current_feature_output_path,"--iterations",str(args.iterations)
                                               ])
     return jobs_csv_path_list
 
@@ -71,6 +71,8 @@ def main():
     create_dir_if_not_exists(feature_pipeline_dir)
     all_jobs_running_folder = os.path.join(feature_pipeline_dir, "all_jobs")
     create_dir_if_not_exists(all_jobs_running_folder )
+    existing_msas_data = os.path.join(feature_pipeline_dir, "all_msa_features")
+    create_dir_if_not_exists(existing_msas_data)
     log_file_path = os.path.join(feature_pipeline_dir, "general_features.log")
     logging.basicConfig(filename=log_file_path, level=logging.INFO)
     raw_data = pd.read_csv(args.raw_data_path, sep=CSV_SEP)
@@ -82,7 +84,7 @@ def main():
         msa_names = list(np.unique(raw_data["msa_path"]))
         msas_sample = np.random.choice(msa_names, size=3, replace=False)
         raw_data = raw_data[raw_data["msa_path"].isin(msas_sample)]
-    jobs_csv_path_list = distribute_MSAS_over_jobs(raw_data, all_jobs_running_folder, feature_pipeline_dir, args)
+    jobs_csv_path_list = distribute_MSAS_over_jobs(raw_data, all_jobs_running_folder,existing_msas_data, feature_pipeline_dir, args)
     prev_number_of_jobs_done =0
     number_of_jobs_done=0
     while number_of_jobs_done<len(jobs_csv_path_list):
