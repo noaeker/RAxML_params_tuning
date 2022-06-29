@@ -73,7 +73,6 @@ def main():
     raw_data = pd.read_csv(args.raw_data_path, sep=CSV_SEP)
     counts = raw_data['msa_path'].value_counts()
     idx = counts[counts < args.min_n_observations].index
-    idx = counts[counts < args.min_n_observations].index
     raw_data = raw_data[~raw_data['msa_path'].isin(idx)]
     if LOCAL_RUN:
         np.random.seed(SEED)
