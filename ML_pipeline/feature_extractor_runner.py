@@ -40,11 +40,13 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder, feature_pipelin
         current_raw_data = raw_data[raw_data["msa_path"].isin(job_msas)]
         current_raw_data.to_csv(current_raw_data_path, sep = CSV_SEP)
 
-        run_command = f' python {FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --feature_pipeline_dir {feature_pipeline_dir} --features_output_path {current_feature_output_path} --iterations {args.iterations}' \
+        run_command = f' python {FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --feature_pipeline_dir {feature_pipeline_dir} --features_output_path {current_feature_output_path} --iterations {args.iterations}'
 
-        job_name = args.jobs_prefix + str(job_ind)
         if not LOCAL_RUN:
-            submit_linux_job(job_name, curr_job_folder, run_command, 1, job_ind, queue=args.queue)
+            job_name = args.jobs_prefix + str(job_ind)
+            curr_job_log_path = os.path.join(curr_job_folder, str(job_ind) + "_tmp_log")
+            submit_linux_job(job_name, curr_job_folder, curr_job_log_path, run_command, 1, job_ind,
+                             queue=args.queue)
         else:
             submit_local_job(FEATURE_EXTRACTION_CODE, ["--job_ind", str(job_ind), "--curr_job_folder", curr_job_folder,"--curr_job_raw_path",current_raw_data_path,"--feature_pipeline_dir",feature_pipeline_dir,"--features_output_path",current_feature_output_path,"--iterations",str(args.iterations)
                                               ])
