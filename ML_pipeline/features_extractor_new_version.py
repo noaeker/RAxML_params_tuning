@@ -216,31 +216,21 @@ def enrich_raw_data(curr_run_directory, raw_data, iterations):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--raw_data_path', action='store', type=str,
-                        default=f"/Users/noa/Workspace/raxml_deep_learning_results/local_data_generation/current_raw_results/global_csv_new.tsv")
-    parser.add_argument('--features_out_path', action='store', type=str,
-                        default=f"/Users/noa/Workspace/raxml_deep_learning_results/local_data_generation/current_ML_results/features{CSV_SUFFIX}")
-    parser.add_argument('--results_folder', action='store', type=str,
-                        default=RESULTS_FOLDER)
-    parser.add_argument('--min_n_observations', action='store', type=int, default=1240)
-    parser.add_argument('--iterations', action='store', type=int, default=40)
+    parser.add_argument('--job_ind', action='store', type=int)
+    parser.add_argument('--curr_job_raw_path', action='store', type=str)
+    parser.add_argument('--curr_job_folder', action='store', type=str)
+    parser.add_argument('--feature_pipeline_dir', action='store', type=str)
+    parser.add_argument('--features_output_path', action='store', type=str)
+    parser.add_argument('--iterations', action='store', type=int)
     args = parser.parse_args()
-    curr_run_directory = os.path.join(args.results_folder, "features_extraction_pipeline_files")
+    curr_run_directory = args.feature_pipeline_dir
     create_dir_if_not_exists(curr_run_directory)
-    log_file_path = os.path.join(curr_run_directory, "features.log")
+    log_file_path = os.path.join(args.curr_job_folder, "features.log")
     logging.basicConfig(filename=log_file_path, level=logging.INFO)
-    raw_data = pd.read_csv(args.raw_data_path, sep=CSV_SEP)
-    counts = raw_data['msa_path'].value_counts()
-    idx = counts[counts < args.min_n_observations].index
-    raw_data = raw_data[~raw_data['msa_path'].isin(idx)]
-    if LOCAL_RUN:
-        np.random.seed(SEED)
-        msa_names = list(np.unique(raw_data["msa_path"]))
-        msas_sample = np.random.choice(msa_names, size=3, replace=False)
-        raw_data = raw_data[raw_data["msa_path"].isin(msas_sample)]
-    raw_data_with_features = enrich_raw_data(curr_run_directory, raw_data, iterations=args.iterations)
-    logging.info(f'Writing enriched data to {args.features_out_path}')
-    raw_data_with_features.to_csv(args.features_out_path, sep=CSV_SEP)
+    curr_job_raw_data = pd.read_csv(args.curr_job_raw_path, sep=CSV_SEP)
+    raw_data_with_features = enrich_raw_data(curr_run_directory, curr_job_raw_data, iterations=args.iterations)
+    logging.info(f'Writing enriched data to {args.features_output_path}')
+    raw_data_with_features.to_csv(args.features_output_path, sep=CSV_SEP)
 
 
 if __name__ == "__main__":
