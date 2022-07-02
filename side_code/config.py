@@ -47,6 +47,7 @@ COLUMNS_TO_INCLUDE_CSV = ["msa_folder","original_alignment_path","msa_name","ela
 # PATH CONFIGURATION
 
 if not LOCAL_RUN:
+    IQTREE_EXE = "/groups/pupko/noaeker/programs/tree_search_programs/iqtree/bin/iqtree"
     RAXML_NG_EXE = "/groups/pupko/noaeker/programs/tree_search_programs/raxml-ng/raxml-ng"
     MAD_COMMAND_PREFIX = "/groups/pupko/noaeker/programs/other_programs/mad"
     RESULTS_FOLDER = "/groups/pupko/noaeker/RAxML_params_tuning_results"
