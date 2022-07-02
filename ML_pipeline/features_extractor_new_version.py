@@ -65,7 +65,7 @@ def get_msa_stats(msa_path):
                                      np.max(gap_lengths) + 0.00001)), "feature_min_gap_pct": np.min(gap_pct),
                              "feature_n_unique_sites": len(alignment_df_unique.columns),
                              "feature_frac_unique_sites": len(alignment_df_unique.columns) / len(alignment_df.columns),
-                            "pypythia_msa_difficulty": msa_difficulty}
+                            "feature_pypythia_msa_difficulty": msa_difficulty}
                             )
     return all_msa_features
 
@@ -160,21 +160,31 @@ def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_
     return tree_features
 
 
-def process_all_msa_RAxML_runs(curr_run_directory, given_msa_data):
+def process_all_msa_RAxML_runs(curr_run_directory,processed_dataset_path, msa_data):
     '''
 
     :param curr_run_directory:
-    :param given_msa_data:
+    :param processed_msa_data:
     :return:
     '''
-    best_msa_ll = max(given_msa_data["final_ll"])
-    given_msa_data["best_msa_ll"] = best_msa_ll
-    best_msa_tree_topology = max(given_msa_data[given_msa_data["final_ll"] == best_msa_ll]['final_tree_topology'])
-    given_msa_data["rf_from_overall_msa_best_topology"] = given_msa_data["final_tree_topology"].apply(
-        lambda x: rf_distance(curr_run_directory, x, best_msa_tree_topology, name = "MSA_enrichment_RF_calculations"))
-    given_msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
-        (given_msa_data["rf_from_overall_msa_best_topology"]) > 0, best_msa_ll - given_msa_data["final_ll"], 0)
-    return given_msa_data
+    if os.path.exists(processed_dataset_path):
+        logging.info("## Using existing data features for this MSA")
+        msa_data = pickle.load(open(processed_dataset_path, "rb"))
+    else:
+        logging.info("## Calculating features from beggining for this MSA")
+        best_msa_ll = max(msa_data["final_ll"])
+        msa_data["best_msa_ll"] = best_msa_ll
+        best_msa_tree_topology = max(msa_data[msa_data["final_ll"] == best_msa_ll]['final_tree_topology'])
+        msa_path = max(msa_data[msa_data["final_ll"] == best_msa_ll]['msa_path'])
+        msa_data["rf_from_overall_msa_best_topology"] = msa_data["final_tree_topology"].apply(
+            lambda x: rf_distance(curr_run_directory, x, best_msa_tree_topology, name = "MSA_enrichment_RF_calculations"))
+        msa_data["SH_test_results"] = msa_data["final_tree_topology"].apply(
+            lambda x: sh_test(curr_run_directory, x, best_msa_tree_topology, msa_path=get_local_path(msa_path), name ="MSA_enrichment_TREE_TEST_calculations"))
+
+        msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
+            (msa_data["rf_from_overall_msa_best_topology"]) > 0, best_msa_ll - msa_data["final_ll"], 0)
+        pickle.dump(msa_data,open(processed_dataset_path,'wb'))
+    return msa_data
 
 
 def enrich_raw_data(curr_run_directory, raw_data, iterations):
@@ -190,25 +200,21 @@ def enrich_raw_data(curr_run_directory, raw_data, iterations):
     for i, msa in enumerate(MSAs):
         logging.info(f"Working on MSA number {i} in : {msa}")
         msa_folder = os.path.join(curr_run_directory, get_msa_name(msa, GENERAL_MSA_DIR))
+        msa_data = raw_data[raw_data["msa_path"] == msa].copy()
         create_dir_if_not_exists(msa_folder)
         existing_msa_features_path = os.path.join(msa_folder, "msa_features")
         existing_tree_features_path = os.path.join(msa_folder, "tree_features")
         msa_final_dataset_path = os.path.join(msa_folder, "final_dataset")
-        if os.path.exists(msa_final_dataset_path):
-            logging.info("## Using existing data features for this MSA")
-            msa_enriched_data = pickle.load(open(msa_final_dataset_path, "rb"))
-        else:
-            logging.info("## Calculating features from beggining for this MSA")
-            msa_data = raw_data[raw_data["msa_path"] == msa].copy()
-            msa_enriched_data = process_all_msa_RAxML_runs(msa_folder, msa_data)
-            msa_features = msa_features_pipeline(msa, existing_msa_features_path)
-            logging.info(f"MSA features: {msa_features}")
-            msa_enriched_data = msa_enriched_data.merge(msa_features, right_index=True, left_on=["msa_path"])
-            tree_features = tree_features_pipeline(msa, msa_folder, msa_data, existing_tree_features_path, iterations)
-            msa_enriched_data = msa_enriched_data.merge(tree_features, right_index=True,
-                                                        left_on=["starting_tree_ind", "starting_tree_type"])
-            pickle.dump(msa_enriched_data, open(msa_final_dataset_path, "wb"))
-        enriched_datasets.append(msa_enriched_data)
+        processed_dataset_path = os.path.join(msa_folder, "processed_dataset")
+        processed_msa_data = process_all_msa_RAxML_runs(msa_folder,processed_dataset_path, msa_data)
+        msa_features = msa_features_pipeline(msa, existing_msa_features_path)
+        logging.info(f"MSA features: {msa_features}")
+        processed_msa_data = processed_msa_data.merge(msa_features, right_index=True, left_on=["msa_path"])
+        tree_features = tree_features_pipeline(msa, msa_folder, msa_data, existing_tree_features_path, iterations)
+        processed_msa_data = processed_msa_data.merge(tree_features, right_index=True,
+                                                    left_on=["starting_tree_ind", "starting_tree_type"])
+        pickle.dump(processed_msa_data, open(msa_final_dataset_path, "wb"))
+        enriched_datasets.append(processed_msa_data)
     enriched_data = pd.concat(enriched_datasets)
     logging.info(f"Number of unique MSAs in final result is {len(enriched_data['msa_path'].unique())}")
     return enriched_data

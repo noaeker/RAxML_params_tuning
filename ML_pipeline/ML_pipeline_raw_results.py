@@ -300,13 +300,11 @@ def main():
         data = pd.read_csv(features_path, sep=CSV_SEP)
         non_default_data = data[data["type"]!="default"]
         edit_data(non_default_data, epsilon)
-        #if args.aggregate:
-        #non_default_data = non_default_data.groupby(['msa_name','msa_path', 'starting_tree_bool']).mean().reset_index()
         non_default_data.to_csv(ML_edited_features_path, sep=CSV_SEP)
         logging.info("Estimating time and error models from beggining")
-        msa_features = [col for col in non_default_data.columns if
-                        col.startswith("feature_") and col not in ["feature_msa_path", "feature_msa_name",
-                                                                   "feature_msa_type"]]
+        msa_features = [col for col in non_default_data.columns if col in ["pypythia_msa_difficulty"] or
+                        (col.startswith("feature_") and col not in ["feature_msa_path", "feature_msa_name",
+                                                                   "feature_msa_type"])]
         search_features = ['spr_radius', 'spr_cutoff', 'starting_tree_bool', "starting_tree_ll"]
         data_dict = split_to_train_and_test(non_default_data, msa_features, search_features)
         rf_mod_err, rf_mod_time, enriched_test_data = train_models(data_dict, args.n_jobs,

@@ -69,12 +69,21 @@ def unify_text_files(input_path_list, output_file_path, str_given=False):
     return output_file_path
 
 
-def add_csvs_content(csvs_path_list, unified_csv_path):
+def add_csvs_content_to_current_content(csvs_path_list, unified_csv_path):
     existing_df = [pd.read_csv(unified_csv_path, sep=CSV_SEP)] if os.path.exists(unified_csv_path) else []
     existing_df_size = pd.read_csv(unified_csv_path, sep=CSV_SEP).size if os.path.exists(unified_csv_path) else 0
     logging.info('Existing df size is: {}'.format(existing_df_size))
     non_empty_df = [pd.read_csv(f, sep=CSV_SEP) for f in csvs_path_list if not pd.read_csv(f, sep=CSV_SEP).empty]
     combined_df = pd.concat(non_empty_df + existing_df, sort=False)
+    combined_df_size = combined_df.size
+    logging.info('Combined df size is: {}'.format(combined_df_size))
+    combined_df.to_csv(unified_csv_path, sep=CSV_SEP)
+    return combined_df
+
+
+def add_csvs_content(csvs_path_list, unified_csv_path):
+    non_empty_df = [pd.read_csv(f, sep=CSV_SEP) for f in csvs_path_list if not pd.read_csv(f, sep=CSV_SEP).empty]
+    combined_df = pd.concat(non_empty_df, sort=False)
     combined_df_size = combined_df.size
     logging.info('Combined df size is: {}'.format(combined_df_size))
     combined_df.to_csv(unified_csv_path, sep=CSV_SEP)
