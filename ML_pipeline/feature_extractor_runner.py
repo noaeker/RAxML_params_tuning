@@ -27,7 +27,7 @@ def generate_results_folder(curr_run_prefix):
     return curr_run_prefix
 
 
-def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_data, feature_pipeline_dir, args):
+def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_data,args):
     jobs_csv_path_list = []
     msa_names = list(np.unique(raw_data["msa_path"]))
     msa_splits = np.array_split(list(msa_names), min(args.n_jobs,len(msa_names)))
@@ -40,12 +40,12 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_da
         current_raw_data = raw_data[raw_data["msa_path"].isin(job_msas)]
         current_raw_data.to_csv(current_raw_data_path, sep = CSV_SEP)
 
-        run_command = f' python {FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --feature_pipeline_dir {existing_msas_data} --features_output_path {current_feature_output_path} --iterations {args.iterations}'
+        run_command = f' python {FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --feature_pipeline_dir {existing_msas_data} --features_output_path {current_feature_output_path} --iterations {args.iterations} --cpus_per_job {args.cpus_per_job}'
 
         if not LOCAL_RUN:
             job_name = args.jobs_prefix + str(job_ind)
             curr_job_log_path = os.path.join(curr_job_folder, str(job_ind) + "_tmp_log")
-            submit_linux_job(job_name, curr_job_folder, curr_job_log_path, run_command, 1, job_ind,
+            submit_linux_job(job_name, curr_job_folder, curr_job_log_path, run_command, cpus=args.cpus_per_job, job_ind = job_ind,
                              queue=args.queue)
         else:
             submit_local_job(FEATURE_EXTRACTION_CODE, ["--job_ind", str(job_ind), "--curr_job_folder", curr_job_folder,"--curr_job_raw_path",current_raw_data_path,"--feature_pipeline_dir",existing_msas_data,"--features_output_path",current_feature_output_path,"--iterations",str(args.iterations)
@@ -64,7 +64,8 @@ def main():
     parser.add_argument('--min_n_observations', action='store', type=int, default=1240)
     parser.add_argument('--iterations', action='store', type=int, default=40)
     parser.add_argument('--n_jobs', action='store', type=int, default=2)
-    parser.add_argument('--jobs_prefix', action='store', type=str, default="features_job")
+    parser.add_argument('--jobs_prefix', action='store', type=str, default="fe_")
+    parser.add_argument('--cpus_per_job', action='store', type=int, default=4)
     parser.add_argument('--queue',type=str, default = "pupkolab")
     args = parser.parse_args()
     feature_pipeline_dir = os.path.join(args.results_folder, "features_extraction_pipeline_files")
@@ -84,7 +85,7 @@ def main():
         msa_names = list(np.unique(raw_data["msa_path"]))
         msas_sample = np.random.choice(msa_names, size=3, replace=False)
         raw_data = raw_data[raw_data["msa_path"].isin(msas_sample)][:20]
-    jobs_csv_path_list = distribute_MSAS_over_jobs(raw_data, all_jobs_running_folder,existing_msas_data, feature_pipeline_dir, args)
+    jobs_csv_path_list = distribute_MSAS_over_jobs(raw_data, all_jobs_running_folder,existing_msas_data, args)
     prev_number_of_jobs_done =0
     number_of_jobs_done=0
     while number_of_jobs_done<len(jobs_csv_path_list):

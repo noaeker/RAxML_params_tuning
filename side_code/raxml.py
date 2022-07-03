@@ -292,11 +292,11 @@ def is_plausible_set_by_iqtree(tree_test_log_file):
 
 
 
-def perform_iqtree_sh_test(trees_file_path, msa_path, curr_run_directory, prefix="sh"):
+def perform_iqtree_sh_test(trees_file_path, msa_path, curr_run_directory, cpus_per_job, prefix="sh"):
     sh_run_folder = os.path.join(curr_run_directory,"sh_run")
     create_or_clean_dir(sh_run_folder)
     sh_prefix = os.path.join(sh_run_folder, prefix)
-    sh_command = f'{IQTREE_EXE} -s {msa_path} -z {trees_file_path} -n 0 -zb 10000 -zw -au -pre {sh_prefix} -m WAG+G -nt 1 '
+    sh_command = f'{IQTREE_EXE} -s {msa_path} -z {trees_file_path} -n 0 -zb 10000 -zw -au -pre {sh_prefix} -m WAG+G -nt {cpus_per_job} '
     execute_command_and_write_to_log(sh_command)
     log_file = sh_prefix+".iqtree"
     res = is_plausible_set_by_iqtree(log_file)
@@ -313,12 +313,12 @@ def rf_distance(curr_run_directory, tree_str_a, tree_str_b, name=f"rf_calculatio
     return rf
 
 
-def sh_test(curr_run_directory, test_tree, ML_tree, msa_path, name=f"sh_calculations"):
+def sh_test(curr_run_directory, test_tree, ML_tree, msa_path, cpus_per_job, name=f"sh_calculations"):
     sh_folder = os.path.join(curr_run_directory, name)
     create_or_clean_dir(sh_folder)
     sh_test_output_path = os.path.join(sh_folder, "sh_test_tree")
     unify_text_files([test_tree,ML_tree], sh_test_output_path, str_given=True)
-    sh = perform_iqtree_sh_test(trees_file_path= sh_test_output_path, msa_path=msa_path, curr_run_directory=sh_folder)
+    sh = perform_iqtree_sh_test(trees_file_path= sh_test_output_path, msa_path=msa_path, curr_run_directory=sh_folder,cpus_per_job = cpus_per_job)
     return sh
 
 

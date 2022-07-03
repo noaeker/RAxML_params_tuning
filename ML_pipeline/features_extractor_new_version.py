@@ -160,7 +160,7 @@ def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_
     return tree_features
 
 
-def process_all_msa_RAxML_runs(curr_run_directory,processed_dataset_path, msa_data):
+def process_all_msa_RAxML_runs(curr_run_directory,processed_dataset_path, msa_data, cpus_per_job):
     '''
 
     :param curr_run_directory:
@@ -179,7 +179,7 @@ def process_all_msa_RAxML_runs(curr_run_directory,processed_dataset_path, msa_da
         msa_data["rf_from_overall_msa_best_topology"] = msa_data["final_tree_topology"].apply(
             lambda x: rf_distance(curr_run_directory, x, best_msa_tree_topology, name = "MSA_enrichment_RF_calculations"))
         msa_data["SH_test_results"] = msa_data["final_tree_topology"].apply(
-            lambda x: sh_test(curr_run_directory, x, best_msa_tree_topology, msa_path=get_local_path(msa_path), name ="MSA_enrichment_TREE_TEST_calculations"))
+            lambda x: sh_test(curr_run_directory, x, best_msa_tree_topology, msa_path=get_local_path(msa_path),cpus_per_job = cpus_per_job, name ="MSA_enrichment_TREE_TEST_calculations"))
 
         msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
             (msa_data["rf_from_overall_msa_best_topology"]) > 0, best_msa_ll - msa_data["final_ll"], 0)
@@ -187,7 +187,7 @@ def process_all_msa_RAxML_runs(curr_run_directory,processed_dataset_path, msa_da
     return msa_data
 
 
-def enrich_raw_data(curr_run_directory, raw_data, iterations):
+def enrich_raw_data(curr_run_directory, raw_data, iterations, cpus_per_job):
     '''
 
     :param curr_run_directory:
@@ -206,7 +206,7 @@ def enrich_raw_data(curr_run_directory, raw_data, iterations):
         existing_tree_features_path = os.path.join(msa_folder, "tree_features")
         msa_final_dataset_path = os.path.join(msa_folder, "final_dataset")
         processed_dataset_path = os.path.join(msa_folder, "processed_dataset")
-        processed_msa_data = process_all_msa_RAxML_runs(msa_folder,processed_dataset_path, msa_data)
+        processed_msa_data = process_all_msa_RAxML_runs(msa_folder,processed_dataset_path, msa_data, cpus_per_job)
         msa_features = msa_features_pipeline(msa, existing_msa_features_path)
         logging.info(f"MSA features: {msa_features}")
         processed_msa_data = processed_msa_data.merge(msa_features, right_index=True, left_on=["msa_path"])
@@ -228,13 +228,14 @@ def main():
     parser.add_argument('--feature_pipeline_dir', action='store', type=str)
     parser.add_argument('--features_output_path', action='store', type=str)
     parser.add_argument('--iterations', action='store', type=int)
+    parser.add_argument('--cpus_per_job', action='store', type=int)
     args = parser.parse_args()
     curr_run_directory = args.feature_pipeline_dir
     create_dir_if_not_exists(curr_run_directory)
     log_file_path = os.path.join(args.curr_job_folder, "features.log")
     logging.basicConfig(filename=log_file_path, level=logging.INFO)
     curr_job_raw_data = pd.read_csv(args.curr_job_raw_path, sep=CSV_SEP)
-    raw_data_with_features = enrich_raw_data(curr_run_directory, curr_job_raw_data, iterations=args.iterations)
+    raw_data_with_features = enrich_raw_data(curr_run_directory, curr_job_raw_data, iterations=args.iterations, cpus_per_job = args.cpus_per_job)
     logging.info(f'Writing enriched data to {args.features_output_path}')
     raw_data_with_features.to_csv(args.features_output_path, sep=CSV_SEP)
 
