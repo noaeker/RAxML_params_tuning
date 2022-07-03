@@ -296,7 +296,7 @@ def perform_iqtree_sh_test(trees_file_path, msa_path, curr_run_directory, prefix
     sh_run_folder = os.path.join(curr_run_directory,"sh_run")
     create_or_clean_dir(sh_run_folder)
     sh_prefix = os.path.join(sh_run_folder, prefix)
-    sh_command = f'{IQTREE_EXE} -s {msa_path} -z {trees_file_path} -n 0 -zb 10000 -zw -au -pre {sh_prefix} -m WAG+G '
+    sh_command = f'{IQTREE_EXE} -s {msa_path} -z {trees_file_path} -n 0 -zb 10000 -zw -au -pre {sh_prefix} -m WAG+G -nt 1 '
     execute_command_and_write_to_log(sh_command)
     log_file = sh_prefix+".iqtree"
     res = is_plausible_set_by_iqtree(log_file)
