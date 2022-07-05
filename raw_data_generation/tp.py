@@ -234,8 +234,7 @@ def move_current_results_to_global_results(current_results_dict, global_results_
     logging.info(f"Current results size is {len(current_results_dict)} and will be added to global dict ")
     global_results_dict.update(current_results_dict)  # update new results
     global_results_to_csv(global_results_dict, global_results_csv_path)
-    with open(global_results_path, "wb") as GLOBAL_RESULTS:
-        pickle.dump(global_results_dict, GLOBAL_RESULTS)
+    pickle.dump(global_results_dict, open(global_results_path, "wb"))
 
 
 
