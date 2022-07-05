@@ -229,7 +229,13 @@ def global_results_to_csv(global_results_dict, csv_path):
 def move_current_results_to_global_results(current_results_dict, global_results_path,global_results_csv_path):
 
     logging.info("Moving current results to global results")
-    global_results_dict = pickle.load(open(global_results_path, "rb"))
+    for i in range(10):
+        try:
+            global_results_dict = pickle.load(open(global_results_path, "rb"))
+            break
+        except:
+            logging.info(f"Failed to load global results {i}")
+            time.sleep(60)
     logging.info(f"Global results size is {len(global_results_dict)}")
     logging.info(f"Current results size is {len(current_results_dict)} and will be added to global dict ")
     global_results_dict.update(current_results_dict)  # update new results
@@ -276,9 +282,6 @@ def main():
     trimmed_test_msa_path = os.path.join(global_results_folder, "TEST_MSA")
     global_csv_path = os.path.join(global_results_folder, f'global_csv{CSV_SUFFIX}')
     trees_run_directory = os.path.join(all_jobs_results_folder, 'starting_trees_generation')
-    #update_existing_tasks(all_jobs_results_folder, global_results_path, global_csv_path,
-    #                      current_tasks_path)
-    # extract files
     if not args.use_existing_global_data or not os.path.exists(global_results_folder):
         create_or_clean_dir(global_results_folder)
         target_msas_list = generate_file_path_list_and_test_msa(args, trimmed_test_msa_path)
@@ -295,6 +298,7 @@ def main():
     i = 0
     logging.info("Updating leftover results")
     leftover_results = update_existing_job_results(all_jobs_results_folder)
+    pickle.dump(leftover_results,open(os.path.join(all_jobs_results_folder,"local_raxml_done_prev"),"wb")) # save current results.
     logging.info(f"Found {len(leftover_results)} leftover tasks")
     while len(target_msas_list) > 0 or i==0: #sanity check
         i += 1
@@ -314,7 +318,8 @@ def main():
         logging.info(f"Generating overall {len(current_tasks)} tasks belonging to {args.n_MSAs_per_bunch} MSAs ")
         logging.info("Updating current tasks to current results")
         if i==1:
-            update_tasks_and_results(leftover_results,current_results, current_tasks)
+           update_tasks_and_results(leftover_results,current_results, current_tasks)
+
         # Perform pipeline on current MSA, making sure that all tasks in current_tasks_pool are performed.
         curr_iterartion_results_folder = os.path.join(all_jobs_results_folder,f"iter_{i}")
         os.mkdir(curr_iterartion_results_folder)

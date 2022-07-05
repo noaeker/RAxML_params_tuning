@@ -118,11 +118,10 @@ def filter_unique_topologies_new(curr_run_directory, trees_path, n):
     rf_distances_file_path = rf_prefix + ".raxml.rfDistances"
     unique_file_path = trees_path + "_unique"
     unique_topology_groups = {}
-    with open(rf_distances_file_path, 'r') as DIST, open(trees_path, 'r') as TREES, open(unique_file_path,
-                                                                                         'w') as UNIQUE_TREES:
+    with open(rf_distances_file_path, 'r') as DIST, open(trees_path, 'r') as TREES:
         distances = DIST.readlines()
         original_trees = TREES.readlines()
-        ind = 0
+        original_trees_inds = list(range(len(original_trees)))
         for line in distances:
             lst = line.split("\t")
             curr_tree, comp_tree, dist = int(lst[0]), int(lst[1]), int(lst[2])
