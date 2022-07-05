@@ -108,6 +108,36 @@ def wait_for_file_existence(path, name):
         raise GENERAL_RAXML_ERROR(error_msg)
 
 
+def filter_unique_topologies_new(curr_run_directory, trees_path, n):
+    logging.debug("Removing duplicate SPR neighbours")
+    rf_prefix = os.path.join(curr_run_directory, "SPR_neighbours")
+    rf_command = (
+        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
+        raxml_exe_path=RAXML_NG_EXE, rf_file_path=trees_path, prefix=rf_prefix)
+    execute_command_and_write_to_log(rf_command)
+    rf_distances_file_path = rf_prefix + ".raxml.rfDistances"
+    unique_file_path = trees_path + "_unique"
+    unique_topology_groups = {}
+    with open(rf_distances_file_path, 'r') as DIST, open(trees_path, 'r') as TREES, open(unique_file_path,
+                                                                                         'w') as UNIQUE_TREES:
+        distances = DIST.readlines()
+        original_trees = TREES.readlines()
+        ind = 0
+        for line in distances:
+            lst = line.split("\t")
+            curr_tree, comp_tree, dist = int(lst[0]), int(lst[1]), int(lst[2])
+            if curr_tree in unique_topologies and dist == 0:
+                unique_topology_inds.remove(comp_tree)
+        unique_trees = [original_trees[ind] for ind in unique_topology_inds]
+        UNIQUE_TREES.writelines(unique_trees)
+    rf_prefix = os.path.join(curr_run_directory, "SPR_neighbours_check")
+    rf_command = (
+        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
+        raxml_exe_path=RAXML_NG_EXE, rf_file_path=unique_file_path, prefix=rf_prefix)
+    execute_command_and_write_to_log(rf_command)
+    return unique_file_path
+
+
 def filter_unique_topologies(curr_run_directory, trees_path, n):
     logging.debug("Removing duplicate SPR neighbours")
     rf_prefix = os.path.join(curr_run_directory, "SPR_neighbours")
@@ -128,7 +158,6 @@ def filter_unique_topologies(curr_run_directory, trees_path, n):
             if curr_tree in unique_topology_inds and comp_tree in unique_topology_inds and dist == 0:
                 unique_topology_inds.remove(comp_tree)
         unique_trees = [original_trees[ind] for ind in unique_topology_inds]
-        n_unique_top = len(unique_trees)
         UNIQUE_TREES.writelines(unique_trees)
     rf_prefix = os.path.join(curr_run_directory, "SPR_neighbours_check")
     rf_command = (
@@ -277,30 +306,29 @@ def calculate_rf_dist(rf_file_path, curr_run_directory, prefix="rf"):
     return relative_rf_dist
 
 
-def is_plausible_set_by_iqtree(tree_test_log_file):
+def is_plausible_set_by_iqtree(tree_test_log_file, n_trees):
     with open(tree_test_log_file) as iqtree_log_file:
         data = iqtree_log_file.readlines()
         for i,line in enumerate(data):
             if line.split()==['Tree','logL','deltaL','bp-RELL','p-KH','p-SH','p-WKH','p-WSH','c-ELW','p-AU']:
                 break
-        relevant_line = data[i+2]
-        significant_result = relevant_line.split()[2:].count('-')
-        if significant_result>0:
-            return 0
-        else:
-            return 1
+        relevant_lines = data[i+3:i+3+n_trees]
+        sh_results = [relevant_line.split()[-1].count('-')>0 for relevant_line in relevant_lines]
+        return sh_results
 
 
 
-def perform_iqtree_sh_test(trees_file_path, msa_path, curr_run_directory, cpus_per_job, prefix="sh"):
+def perform_iqtree_sh_test(trees_file_path, msa_path, curr_run_directory, cpus_per_job, n_trees, prefix="sh"):
     sh_run_folder = os.path.join(curr_run_directory,"sh_run")
     create_or_clean_dir(sh_run_folder)
     sh_prefix = os.path.join(sh_run_folder, prefix)
-    sh_command = f'{IQTREE_EXE} -s {msa_path} -z {trees_file_path} -n 0 -zb 10000 -zw -au -pre {sh_prefix} -m WAG+G -nt {cpus_per_job} '
+    sh_command = f'{IQTREE_EXE} -s {msa_path} -z {trees_file_path} -n 0 -zb 10000 -zw -au -pre {sh_prefix} -m WAG+G'
+    if not LOCAL_RUN:
+        sh_command = sh_command+ f' -nt {cpus_per_job}'
     execute_command_and_write_to_log(sh_command)
     log_file = sh_prefix+".iqtree"
-    res = is_plausible_set_by_iqtree(log_file)
-    return res
+    res_vec = is_plausible_set_by_iqtree(log_file, n_trees = n_trees)
+    return res_vec
 
 
 def rf_distance(curr_run_directory, tree_str_a, tree_str_b, name=f"rf_calculations"):
@@ -313,13 +341,13 @@ def rf_distance(curr_run_directory, tree_str_a, tree_str_b, name=f"rf_calculatio
     return rf
 
 
-def sh_test(curr_run_directory, test_tree, ML_tree, msa_path, cpus_per_job, name=f"sh_calculations"):
+def sh_test(curr_run_directory, test_trees, ML_tree, msa_path, cpus_per_job, name=f"sh_calculations"):
     sh_folder = os.path.join(curr_run_directory, name)
     create_or_clean_dir(sh_folder)
     sh_test_output_path = os.path.join(sh_folder, "sh_test_tree")
-    unify_text_files([test_tree,ML_tree], sh_test_output_path, str_given=True)
-    sh = perform_iqtree_sh_test(trees_file_path= sh_test_output_path, msa_path=msa_path, curr_run_directory=sh_folder,cpus_per_job = cpus_per_job)
-    return sh
+    unify_text_files([ML_tree]+test_trees, sh_test_output_path, str_given=True)
+    sh_vec = perform_iqtree_sh_test(trees_file_path= sh_test_output_path, msa_path=msa_path, curr_run_directory=sh_folder,cpus_per_job = cpus_per_job, n_trees = len(test_trees))
+    return sh_vec
 
 
 def EVAL_tree_object_ll(tree_object, curr_run_directory, msa_path, msa_type, opt_brlen=False):

@@ -84,7 +84,7 @@ def main():
         np.random.seed(SEED)
         msa_names = list(np.unique(raw_data["msa_path"]))
         msas_sample = np.random.choice(msa_names, size=3, replace=False)
-        raw_data = raw_data[raw_data["msa_path"].isin(msas_sample)][:20]
+        raw_data = raw_data[raw_data["msa_path"].isin(msas_sample)]
     jobs_csv_path_list = distribute_MSAS_over_jobs(raw_data, all_jobs_running_folder,existing_msas_data, args)
     prev_number_of_jobs_done =0
     number_of_jobs_done=0

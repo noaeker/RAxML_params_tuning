@@ -178,9 +178,7 @@ def process_all_msa_RAxML_runs(curr_run_directory,processed_dataset_path, msa_da
         msa_path = max(msa_data[msa_data["final_ll"] == best_msa_ll]['msa_path'])
         msa_data["rf_from_overall_msa_best_topology"] = msa_data["final_tree_topology"].apply(
             lambda x: rf_distance(curr_run_directory, x, best_msa_tree_topology, name = "MSA_enrichment_RF_calculations"))
-        msa_data["SH_test_results"] = msa_data["final_tree_topology"].apply(
-            lambda x: sh_test(curr_run_directory, x, best_msa_tree_topology, msa_path=get_local_path(msa_path),cpus_per_job = cpus_per_job, name ="MSA_enrichment_TREE_TEST_calculations"))
-
+        msa_data["SH_test_results"] = sh_test(test_trees=list(msa_data["final_tree_topology"]), ML_tree = best_msa_tree_topology, msa_path=get_local_path(msa_path),cpus_per_job = cpus_per_job, name ="MSA_enrichment_TREE_TEST_calculations", curr_run_directory = curr_run_directory)
         msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
             (msa_data["rf_from_overall_msa_best_topology"]) > 0, best_msa_ll - msa_data["final_ll"], 0)
         pickle.dump(msa_data,open(processed_dataset_path,'wb'))
@@ -198,23 +196,23 @@ def enrich_raw_data(curr_run_directory, raw_data, iterations, cpus_per_job):
     MSAs = raw_data["msa_path"].unique()
     logging.info(f"Number of MSAs to work on: {len(MSAs)}")
     for i, msa in enumerate(MSAs):
-        logging.info(f"Working on MSA number {i} in : {msa}")
-        msa_folder = os.path.join(curr_run_directory, get_msa_name(msa, GENERAL_MSA_DIR))
-        msa_data = raw_data[raw_data["msa_path"] == msa].copy()
-        create_dir_if_not_exists(msa_folder)
-        existing_msa_features_path = os.path.join(msa_folder, "msa_features")
-        existing_tree_features_path = os.path.join(msa_folder, "tree_features")
-        msa_final_dataset_path = os.path.join(msa_folder, "final_dataset")
-        processed_dataset_path = os.path.join(msa_folder, "processed_dataset")
-        processed_msa_data = process_all_msa_RAxML_runs(msa_folder,processed_dataset_path, msa_data, cpus_per_job)
-        msa_features = msa_features_pipeline(msa, existing_msa_features_path)
-        logging.info(f"MSA features: {msa_features}")
-        processed_msa_data = processed_msa_data.merge(msa_features, right_index=True, left_on=["msa_path"])
-        tree_features = tree_features_pipeline(msa, msa_folder, msa_data, existing_tree_features_path, iterations)
-        processed_msa_data = processed_msa_data.merge(tree_features, right_index=True,
-                                                    left_on=["starting_tree_ind", "starting_tree_type"])
-        pickle.dump(processed_msa_data, open(msa_final_dataset_path, "wb"))
-        enriched_datasets.append(processed_msa_data)
+            logging.info(f"Working on MSA number {i} in : {msa}")
+            msa_folder = os.path.join(curr_run_directory, get_msa_name(msa, GENERAL_MSA_DIR))
+            msa_data = raw_data[raw_data["msa_path"] == msa].copy()
+            create_dir_if_not_exists(msa_folder)
+            existing_msa_features_path = os.path.join(msa_folder, "msa_features")
+            existing_tree_features_path = os.path.join(msa_folder, "tree_features")
+            msa_final_dataset_path = os.path.join(msa_folder, "final_dataset")
+            processed_dataset_path = os.path.join(msa_folder, "processed_dataset")
+            processed_msa_data = process_all_msa_RAxML_runs(msa_folder,processed_dataset_path, msa_data, cpus_per_job)
+            msa_features = msa_features_pipeline(msa, existing_msa_features_path)
+            logging.info(f"MSA features: {msa_features}")
+            processed_msa_data = processed_msa_data.merge(msa_features, right_index=True, left_on=["msa_path"])
+            tree_features = tree_features_pipeline(msa, msa_folder, msa_data, existing_tree_features_path, iterations)
+            processed_msa_data = processed_msa_data.merge(tree_features, right_index=True,
+                                                        left_on=["starting_tree_ind", "starting_tree_type"])
+            pickle.dump(processed_msa_data, open(msa_final_dataset_path, "wb"))
+            enriched_datasets.append(processed_msa_data)
     enriched_data = pd.concat(enriched_datasets)
     logging.info(f"Number of unique MSAs in final result is {len(enriched_data['msa_path'].unique())}")
     return enriched_data
