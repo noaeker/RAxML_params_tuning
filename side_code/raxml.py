@@ -108,34 +108,41 @@ def wait_for_file_existence(path, name):
         raise GENERAL_RAXML_ERROR(error_msg)
 
 
-def filter_unique_topologies_new(curr_run_directory, trees_path):
-    rf_prefix = os.path.join(curr_run_directory, "unique_topologies_filter")
+def get_unique_trees_mapping(curr_run_directory, trees):
+    get_unique_trees_dir = os.path.join(curr_run_directory, "get_unique_trees_mapping")
+    create_or_clean_dir(get_unique_trees_dir)
+    all_trees_path = os.path.join(get_unique_trees_dir,"current_msa_trees")
+    with open(all_trees_path,'w') as TREES_PATH:
+        TREES_PATH.writelines(trees)
+    rf_prefix = os.path.join(get_unique_trees_dir, "unique_topologies_filter")
     rf_command = (
-        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
-        raxml_exe_path=RAXML_NG_EXE, rf_file_path=trees_path, prefix=rf_prefix)
+        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix} --redo").format(
+        raxml_exe_path=RAXML_NG_EXE, rf_file_path=all_trees_path, prefix=rf_prefix)
     execute_command_and_write_to_log(rf_command)
     rf_distances_file_path = rf_prefix + ".raxml.rfDistances"
-    unique_file_path = trees_path + "_unique"
-    unique_topology_groups = {}
-    with open(rf_distances_file_path, 'r') as DIST, open(trees_path, 'r') as TREES:
+    with open(rf_distances_file_path, 'r') as DIST:
         distances = DIST.readlines()
-        original_trees = TREES.readlines()
-        original_trees_inds = list(range(len(original_trees)))
+        clusters_keys= []
+        trees_mapping = {}
         for line in distances:
             lst = line.split("\t")
             curr_tree, comp_tree, dist = int(lst[0]), int(lst[1]), int(lst[2])
-            if curr_tree in unique_topologies and dist == 0:
-                unique_topology_inds.remove(comp_tree)
-        unique_trees = [original_trees[ind] for ind in unique_topology_inds]
-        UNIQUE_TREES.writelines(unique_trees)
-    return unique_file_path
+            if curr_tree not in clusters_keys and curr_tree not in trees_mapping: #Add new cluster if needed
+                clusters_keys.append(curr_tree)
+            if dist==0 and comp_tree not in trees_mapping:
+                trees_mapping[comp_tree] = curr_tree
+        trees_mapping.update({tree_ind: tree_ind for tree_ind in clusters_keys})
+        last_tree = len(trees)-1
+        if last_tree not in trees_mapping:
+            trees_mapping[last_tree] = last_tree
+    return trees_mapping
 
 
 def filter_unique_topologies(curr_run_directory, trees_path, n):
     logging.debug("Removing duplicate SPR neighbours")
     rf_prefix = os.path.join(curr_run_directory, "SPR_neighbours")
     rf_command = (
-        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
+        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix} --redo").format(
         raxml_exe_path=RAXML_NG_EXE, rf_file_path=trees_path, prefix=rf_prefix)
     execute_command_and_write_to_log(rf_command)
     rf_distances_file_path = rf_prefix + ".raxml.rfDistances"
@@ -154,7 +161,7 @@ def filter_unique_topologies(curr_run_directory, trees_path, n):
         UNIQUE_TREES.writelines(unique_trees)
     rf_prefix = os.path.join(curr_run_directory, "SPR_neighbours_check")
     rf_command = (
-        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
+        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix} --redo").format(
         raxml_exe_path=RAXML_NG_EXE, rf_file_path=unique_file_path, prefix=rf_prefix)
     execute_command_and_write_to_log(rf_command)
     return unique_file_path
@@ -167,7 +174,7 @@ def generate_n_unique_tree_topologies_as_starting_trees(n, original_file_path, c
     if tree_type == "pars" and n > 1:
         rf_prefix = os.path.join(curr_run_directory, "parsimony_rf_eval")
         rf_command = (
-            "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
+            "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix} --redo").format(
             raxml_exe_path=RAXML_NG_EXE, rf_file_path=trees_path, prefix=rf_prefix)
         execute_command_and_write_to_log(rf_command)
         rf_distances_file_path = rf_prefix + ".raxml.rfDistances"
@@ -181,7 +188,7 @@ def generate_n_tree_topologies(n, original_file_path, curr_run_directory,
     prefix = os.path.join(curr_run_directory, f"{tree_type}_tree_generation")
     model = "GTR+G" if msa_type == "DNA" else "WAG+G"
     random_tree_generation_command = (
-        "{raxml_exe_path} --force msa --force perf_threads  --msa {msa_path} --model {model} --start --tree {tree_type}{{{n}}} --prefix {prefix} --seed {seed} ").format(
+        "{raxml_exe_path} --force msa --force perf_threads  --msa {msa_path} --model {model} --start --tree {tree_type}{{{n}}} --prefix {prefix} --seed {seed} --redo ").format(
         n=n, raxml_exe_path=RAXML_NG_EXE, tree_type=tree_type,
         msa_path=original_file_path, prefix=prefix, seed=seed, model=model)
     trees_path = prefix + ".raxml.startTree"
@@ -192,7 +199,7 @@ def generate_n_tree_topologies(n, original_file_path, curr_run_directory,
 def extract_parsimony_unique_topologies(curr_run_directory, trees_path, dist_path, n):
     rf_prefix = os.path.join(curr_run_directory, "parsimony_rf")
     rf_command = (
-        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
+        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix} --redo").format(
         raxml_exe_path=RAXML_NG_EXE, rf_file_path=trees_path, prefix=rf_prefix)
     execute_command_and_write_to_log(rf_command)
     unique_file_path = trees_path + "_unique"
@@ -210,7 +217,7 @@ def extract_parsimony_unique_topologies(curr_run_directory, trees_path, dist_pat
         UNIQUE_TREES.writelines(unique_trees)
     rf_prefix = os.path.join(curr_run_directory, "parsimony_check_rf")
     rf_command = (
-        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
+        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix} --redo").format(
         raxml_exe_path=RAXML_NG_EXE, rf_file_path=unique_file_path, prefix=rf_prefix)
     execute_command_and_write_to_log(rf_command)
     return unique_file_path
@@ -306,8 +313,8 @@ def is_plausible_set_by_iqtree(tree_test_log_file, n_trees):
             if line.split()==['Tree','logL','deltaL','bp-RELL','p-KH','p-SH','p-WKH','p-WSH','c-ELW','p-AU']:
                 break
         relevant_lines = data[i+3:i+3+n_trees]
-        sh_results = [relevant_line.split()[-1].count('-')>0 for relevant_line in relevant_lines]
-        return sh_results
+        au_results = [relevant_line.split()[-2] for relevant_line in relevant_lines]
+        return au_results
 
 
 
@@ -334,7 +341,7 @@ def rf_distance(curr_run_directory, tree_str_a, tree_str_b, name=f"rf_calculatio
     return rf
 
 
-def sh_test(curr_run_directory, test_trees, ML_tree, msa_path, cpus_per_job, name=f"sh_calculations"):
+def au_test(curr_run_directory, test_trees, ML_tree, msa_path, cpus_per_job, name=f"sh_calculations"):
     sh_folder = os.path.join(curr_run_directory, name)
     create_or_clean_dir(sh_folder)
     sh_test_output_path = os.path.join(sh_folder, "sh_test_tree")

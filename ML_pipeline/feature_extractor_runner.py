@@ -55,10 +55,8 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_da
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--raw_data_path', action='store', type=str,
-                        default=f"/Users/noa/Workspace/raxml_deep_learning_results/local_data_generation/current_raw_results/global_csv_new.tsv")
-    parser.add_argument('--features_out_path', action='store', type=str,
-                        default=f"/Users/noa/Workspace/raxml_deep_learning_results/local_data_generation/current_ML_results/features{CSV_SUFFIX}")
+    parser.add_argument('--raw_data_folder', action='store', type=str,
+                        default=f"/Users/noa/Workspace/raxml_deep_learning_results/local_data_generation/current_raw_results")
     parser.add_argument('--results_folder', action='store', type=str,
                         default=RESULTS_FOLDER)
     parser.add_argument('--min_n_observations', action='store', type=int, default=1240)
@@ -70,13 +68,18 @@ def main():
     args = parser.parse_args()
     feature_pipeline_dir = os.path.join(args.results_folder, "features_extraction_pipeline_files")
     create_dir_if_not_exists(feature_pipeline_dir)
+    features_out_path = os.path.join(feature_pipeline_dir,f"all_features{CSV_SEP}")
     all_jobs_running_folder = os.path.join(feature_pipeline_dir, "all_jobs")
     create_dir_if_not_exists(all_jobs_running_folder )
     existing_msas_data = os.path.join(feature_pipeline_dir, "all_msa_features")
     create_dir_if_not_exists(existing_msas_data)
     log_file_path = os.path.join(feature_pipeline_dir, "general_features.log")
     logging.basicConfig(filename=log_file_path, level=logging.INFO)
-    raw_data = pd.read_csv(args.raw_data_path, sep=CSV_SEP)
+    csv_files_in_folder = [os.path.join(args.raw_data_folder, f) for f in
+                           os.listdir(args.raw_data_folder) if f.endswith(CSV_SUFFIX)]
+    dfs_in_folder = [pd.read_csv(f, sep=CSV_SEP) for f in csv_files_in_folder]
+    logging.info(f"Combining CSV files: {csv_files_in_folder}")
+    raw_data = pd.concat(dfs_in_folder, sort=False)
     counts = raw_data['msa_path'].value_counts()
     idx = counts[counts < args.min_n_observations].index
     raw_data = raw_data[~raw_data['msa_path'].isin(idx)]
@@ -87,14 +90,14 @@ def main():
         raw_data = raw_data[raw_data["msa_path"].isin(msas_sample)]
     jobs_csv_path_list = distribute_MSAS_over_jobs(raw_data, all_jobs_running_folder,existing_msas_data, args)
     prev_number_of_jobs_done =0
-    number_of_jobs_done=0
-    while number_of_jobs_done<len(jobs_csv_path_list):
-        number_of_jobs_done = np.sum([1 for csv_path in jobs_csv_path_list if os.path.exists(csv_path) ])
-        if number_of_jobs_done>prev_number_of_jobs_done:
-            prev_number_of_jobs_done = number_of_jobs_done
-            logging.info(f"total jobs done = {number_of_jobs_done}")
-    logging.info(f"done with all jobs! writing to csv in {args.features_out_path}")
-    add_csvs_content(jobs_csv_path_list, args.features_out_path)
+    while len(existing_csv_paths)<len(jobs_csv_path_list):
+        existing_csv_paths = [csv_path for csv_path in jobs_csv_path_list if os.path.exists(csv_path)]
+        if len(existing_csv_paths)>prev_number_of_jobs_done:
+            prev_number_of_jobs_done = len(existing_csv_paths)
+            logging.info(f"total jobs done = {len(existing_csv_paths)}")
+            add_csvs_content(jobs_csv_path_list, features_out_path)
+    logging.info(f"done with all jobs! writing to csv in {features_out_path}")
+    add_csvs_content(jobs_csv_path_list, features_out_path)
 
 
 

@@ -178,7 +178,12 @@ def process_all_msa_RAxML_runs(curr_run_directory,processed_dataset_path, msa_da
         msa_path = max(msa_data[msa_data["final_ll"] == best_msa_ll]['msa_path'])
         msa_data["rf_from_overall_msa_best_topology"] = msa_data["final_tree_topology"].apply(
             lambda x: rf_distance(curr_run_directory, x, best_msa_tree_topology, name = "MSA_enrichment_RF_calculations"))
-        msa_data["SH_test_results"] = sh_test(test_trees=list(msa_data["final_tree_topology"]), ML_tree = best_msa_tree_topology, msa_path=get_local_path(msa_path),cpus_per_job = cpus_per_job, name ="MSA_enrichment_TREE_TEST_calculations", curr_run_directory = curr_run_directory)
+        msa_data = msa_data.sort_values(["starting_tree_type","starting_tree_ind","spr_radius","spr_cutoff"])
+        msa_data = msa_data.sample(100).reset_index()
+        msa_data["final_trees_inds"] = list(range(len(msa_data.index)))
+        unique_trees_mapping = get_unique_trees_mapping(curr_run_directory, list(msa_data["final_tree_topology"]))
+        msa_data["tree_clusters_ind"] = msa_data["final_trees_inds"].apply(lambda x: unique_trees_mapping[x])
+        msa_data["AU_test_results"] = au_test(test_trees=list(msa_data["final_tree_topology"]), ML_tree = best_msa_tree_topology, msa_path=get_local_path(msa_path), cpus_per_job = cpus_per_job, name ="MSA_enrichment_TREE_TEST_calculations", curr_run_directory = curr_run_directory)
         msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
             (msa_data["rf_from_overall_msa_best_topology"]) > 0, best_msa_ll - msa_data["final_ll"], 0)
         pickle.dump(msa_data,open(processed_dataset_path,'wb'))
