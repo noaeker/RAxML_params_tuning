@@ -68,7 +68,7 @@ def main():
     args = parser.parse_args()
     feature_pipeline_dir = os.path.join(args.results_folder, "features_extraction_pipeline_files")
     create_dir_if_not_exists(feature_pipeline_dir)
-    features_out_path = os.path.join(feature_pipeline_dir,f"all_features{CSV_SEP}")
+    features_out_path = os.path.join(feature_pipeline_dir,f"all_features{CSV_SUFFIX}")
     all_jobs_running_folder = os.path.join(feature_pipeline_dir, "all_jobs")
     create_dir_if_not_exists(all_jobs_running_folder )
     existing_msas_data = os.path.join(feature_pipeline_dir, "all_msa_features")
@@ -90,6 +90,7 @@ def main():
         raw_data = raw_data[raw_data["msa_path"].isin(msas_sample)]
     jobs_csv_path_list = distribute_MSAS_over_jobs(raw_data, all_jobs_running_folder,existing_msas_data, args)
     prev_number_of_jobs_done =0
+    existing_csv_paths = []
     while len(existing_csv_paths)<len(jobs_csv_path_list):
         existing_csv_paths = [csv_path for csv_path in jobs_csv_path_list if os.path.exists(csv_path)]
         if len(existing_csv_paths)>prev_number_of_jobs_done:
