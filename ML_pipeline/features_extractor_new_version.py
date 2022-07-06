@@ -183,7 +183,11 @@ def process_all_msa_RAxML_runs(curr_run_directory,processed_dataset_path, msa_da
         msa_data["final_trees_inds"] = list(range(len(msa_data.index)))
         unique_trees_mapping = get_unique_trees_mapping(curr_run_directory, list(msa_data["final_tree_topology"]))
         msa_data["tree_clusters_ind"] = msa_data["final_trees_inds"].apply(lambda x: unique_trees_mapping[x])
-        msa_data["AU_test_results"] = au_test(test_trees=list(msa_data["final_tree_topology"]), ML_tree = best_msa_tree_topology, msa_path=get_local_path(msa_path), cpus_per_job = cpus_per_job, name ="MSA_enrichment_TREE_TEST_calculations", curr_run_directory = curr_run_directory)
+        try:
+            msa_data["AU_test_results"] = au_test(test_trees=list(msa_data["final_tree_topology"]), ML_tree = best_msa_tree_topology, msa_path=get_local_path(msa_path), cpus_per_job = cpus_per_job, name ="MSA_enrichment_TREE_TEST_calculations", curr_run_directory = curr_run_directory)
+        except:
+            logging.info(f"AU couldn't be estimated for current MSA")
+            return -1
         msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
             (msa_data["rf_from_overall_msa_best_topology"]) > 0, best_msa_ll - msa_data["final_ll"], 0)
         pickle.dump(msa_data,open(processed_dataset_path,'wb'))
@@ -210,6 +214,8 @@ def enrich_raw_data(curr_run_directory, raw_data, iterations, cpus_per_job):
             msa_final_dataset_path = os.path.join(msa_folder, "final_dataset")
             processed_dataset_path = os.path.join(msa_folder, "processed_dataset")
             processed_msa_data = process_all_msa_RAxML_runs(msa_folder,processed_dataset_path, msa_data, cpus_per_job)
+            if processed_msa_data==-1:
+                continue
             msa_features = msa_features_pipeline(msa, existing_msa_features_path)
             logging.info(f"MSA features: {msa_features}")
             processed_msa_data = processed_msa_data.merge(msa_features, right_index=True, left_on=["msa_path"])
