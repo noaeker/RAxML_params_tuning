@@ -108,9 +108,8 @@ def wait_for_file_existence(path, name):
         raise GENERAL_RAXML_ERROR(error_msg)
 
 
-def filter_unique_topologies_new(curr_run_directory, trees_path, n):
-    logging.debug("Removing duplicate SPR neighbours")
-    rf_prefix = os.path.join(curr_run_directory, "SPR_neighbours")
+def filter_unique_topologies_new(curr_run_directory, trees_path):
+    rf_prefix = os.path.join(curr_run_directory, "unique_topologies_filter")
     rf_command = (
         "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
         raxml_exe_path=RAXML_NG_EXE, rf_file_path=trees_path, prefix=rf_prefix)
@@ -129,11 +128,6 @@ def filter_unique_topologies_new(curr_run_directory, trees_path, n):
                 unique_topology_inds.remove(comp_tree)
         unique_trees = [original_trees[ind] for ind in unique_topology_inds]
         UNIQUE_TREES.writelines(unique_trees)
-    rf_prefix = os.path.join(curr_run_directory, "SPR_neighbours_check")
-    rf_command = (
-        "{raxml_exe_path} --force msa --force perf_threads --rfdist --tree {rf_file_path} --prefix {prefix}").format(
-        raxml_exe_path=RAXML_NG_EXE, rf_file_path=unique_file_path, prefix=rf_prefix)
-    execute_command_and_write_to_log(rf_command)
     return unique_file_path
 
 

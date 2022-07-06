@@ -87,7 +87,8 @@ def main():
     with open(job_arguments_path, 'w') as JOB_ARGUMENTS:
         JOB_ARGUMENTS.write(f"Job arguments are: {args}")
     logging.info(f'#Started running on job {args.job_ind}\n')
-    job_tasks_dict = pickle.load(open(job_local_tasks_path, "rb"))
+    with open(job_local_tasks_path, "rb") as LOCAL_TASKS_PATH:
+        job_tasks_dict = pickle.load(LOCAL_TASKS_PATH)
     job_done_dict = {}
     tmp_starting_tree_path = os.path.join(args.curr_job_folder, "tmp_tree")
     total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
@@ -105,7 +106,8 @@ def main():
         logging.debug(f"Current task results: {results}")
         raxml_run.set_run_results(results)
         job_done_dict[task_key] = raxml_run
-        pickle.dump(job_done_dict, open(job_local_done_dump_path, "wb"))
+        with open(job_local_done_dump_path, "wb") as LOCAL_DONE_DUMP:
+            pickle.dump(job_done_dict, LOCAL_DONE_DUMP)
     logging.info("Done with current job")
 
 

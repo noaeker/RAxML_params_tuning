@@ -30,6 +30,7 @@ from subprocess import PIPE, STDOUT, call
 import sys
 from pathlib import Path
 from glob import glob
+import datetime
 
 
 def generate_results_folder(curr_run_prefix):
@@ -226,21 +227,8 @@ def global_results_to_csv(global_results_dict, csv_path):
 
 
 
-def move_current_results_to_global_results(current_results_dict, global_results_path,global_results_csv_path):
 
-    logging.info("Moving current results to global results")
-    for i in range(10):
-        try:
-            global_results_dict = pickle.load(open(global_results_path, "rb"))
-            break
-        except:
-            logging.info(f"Failed to load global results {i}")
-            time.sleep(60)
-    logging.info(f"Global results size is {len(global_results_dict)}")
-    logging.info(f"Current results size is {len(current_results_dict)} and will be added to global dict ")
-    global_results_dict.update(current_results_dict)  # update new results
-    global_results_to_csv(global_results_dict, global_results_csv_path)
-    pickle.dump(global_results_dict, open(global_results_path, "wb"))
+
 
 
 
@@ -276,30 +264,35 @@ def main():
         pass
     logging.info('#Started running')
     run_prefix = args.existing_global_data_to_use if args.existing_global_data_to_use is True else args.run_prefix
-    global_results_folder = os.path.join(RESULTS_FOLDER, f'global_shared_results_{run_prefix}')
-    global_results_path = os.path.join(global_results_folder, 'global_results_dict')
-    file_paths_path = os.path.join(global_results_folder, f"global_file_paths_{run_prefix}")
-    trimmed_test_msa_path = os.path.join(global_results_folder, "TEST_MSA")
-    global_csv_path = os.path.join(global_results_folder, f'global_csv{CSV_SUFFIX}')
+    now = datetime.datetime.now()
+    all_runs_csv_outputs_folder = os.path.join(RESULTS_FOLDER,'all_final_csvs_results')
+    create_dir_if_not_exists(all_runs_csv_outputs_folder)
+    specific_shared_results_folder = os.path.join(RESULTS_FOLDER, f'global_shared_results_{run_prefix}')
+    file_paths_path = os.path.join(specific_shared_results_folder, f"global_file_paths_{run_prefix}")
+    trimmed_test_msa_path = os.path.join(specific_shared_results_folder, "TEST_MSA")
     trees_run_directory = os.path.join(all_jobs_results_folder, 'starting_trees_generation')
-    if not args.use_existing_global_data or not os.path.exists(global_results_folder):
-        create_or_clean_dir(global_results_folder)
+    if not args.use_existing_global_data or not os.path.exists(specific_shared_results_folder):
+        create_or_clean_dir(specific_shared_results_folder)
         target_msas_list = generate_file_path_list_and_test_msa(args, trimmed_test_msa_path)
         logging.info("Generating glboal results, file paths and tasks from beggining")
-        pickle.dump({}, open(global_results_path, "wb"))
         pickle.dump(target_msas_list, open(file_paths_path, "wb"))
     else:
         logging.info("Using existing global results and tasks")
+    date_str = f'{run_prefix}{now.year}_{now.month}_{now.hour}_{now.minute}'
+    global_csv_path = os.path.join(all_runs_csv_outputs_folder, f'global_csv_{run_prefix}_{date_str}_{CSV_SUFFIX}')
 
-    target_msas_list = pickle.load(open(file_paths_path, "rb"))
+    with open(file_paths_path, "rb") as FILE_PATHS:
+        target_msas_list = pickle.load(FILE_PATHS)
     total_msas_done = 0
     total_msas_overall = len(target_msas_list)
     logging.info(f"Number of target MSAs: {total_msas_overall}, at each iteration {args.n_MSAs_per_bunch} are handled")
     i = 0
     logging.info("Updating leftover results")
     leftover_results = update_existing_job_results(all_jobs_results_folder)
-    pickle.dump(leftover_results,open(os.path.join(all_jobs_results_folder,"local_raxml_done_prev"),"wb")) # save current results.
+    with open(os.path.join(all_jobs_results_folder,"local_raxml_done_prev"),"wb") as PREV_RESULTS:
+        pickle.dump(leftover_results,PREV_RESULTS) # save current results.
     logging.info(f"Found {len(leftover_results)} leftover tasks")
+    current_results = {}
     while len(target_msas_list) > 0 or i==0: #sanity check
         i += 1
         logging.info(f"iteration {i} starts, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
@@ -308,7 +301,6 @@ def main():
         logging.info(f"Current target MSAs are: {current_target_MSAs}")
         remaining_MSAs = target_msas_list[args.n_MSAs_per_bunch:]
         create_or_clean_dir(trees_run_directory)
-        current_results = {}
         current_tasks = generate_all_raxml_runs_per_msa(current_target_MSAs, spr_radius_grid_str=args.spr_radius_grid,
                                                         spr_cutoff_grid_str=args.spr_cutoff_grid,
                                                         n_parsimony_tree_objects_per_msa=args.n_raxml_parsimony_trees,
@@ -328,7 +320,8 @@ def main():
 
 
         # Final procedures
-        move_current_results_to_global_results(current_results, global_results_path, global_csv_path)
+        logging.info(f"Current results size is {len(current_results)} and will be saved to path: {global_csv_path} ")
+        global_results_to_csv(current_results, global_csv_path)
         target_msas_list = remaining_MSAs
         pickle.dump(target_msas_list , open(file_paths_path, "wb")) # Done with current filess
         total_msas_done += args.n_MSAs_per_bunch
