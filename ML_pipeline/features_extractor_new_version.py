@@ -13,6 +13,7 @@ from side_code.MSA_manipulation import get_alignment_data, get_msa_name
 from side_code.file_handling import create_or_clean_dir, create_dir_if_not_exists
 from side_code.MSA_manipulation import get_alignment_data, alignment_list_to_df, get_msa_type, get_msa_name
 from side_code.config import *
+from ML_pipeline.features_job_functions import feature_job_parser
 from shutil import rmtree
 import pandas as pd
 import pickle
@@ -160,7 +161,7 @@ def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_
     return tree_features
 
 
-def process_all_msa_RAxML_runs(curr_run_directory,processed_dataset_path, msa_data, cpus_per_job):
+def process_all_msa_RAxML_runs(curr_run_directory,processed_dataset_path, msa_data, cpus_per_job,perform_topology_tests = False):
     '''
 
     :param curr_run_directory:
@@ -179,22 +180,23 @@ def process_all_msa_RAxML_runs(curr_run_directory,processed_dataset_path, msa_da
         msa_data["rf_from_overall_msa_best_topology"] = msa_data["final_tree_topology"].apply(
             lambda x: rf_distance(curr_run_directory, x, best_msa_tree_topology, name = "MSA_enrichment_RF_calculations"))
         msa_data = msa_data.sort_values(["starting_tree_type","starting_tree_ind","spr_radius","spr_cutoff"])
-        msa_data = msa_data.sample(100).reset_index()
         msa_data["final_trees_inds"] = list(range(len(msa_data.index)))
         unique_trees_mapping = get_unique_trees_mapping(curr_run_directory, list(msa_data["final_tree_topology"]))
         msa_data["tree_clusters_ind"] = msa_data["final_trees_inds"].apply(lambda x: unique_trees_mapping[x])
-        try:
-            msa_data["AU_test_results"] = au_test(test_trees=list(msa_data["final_tree_topology"]), ML_tree = best_msa_tree_topology, msa_path=get_local_path(msa_path), cpus_per_job = cpus_per_job, name ="MSA_enrichment_TREE_TEST_calculations", curr_run_directory = curr_run_directory)
-        except:
-            logging.info(f"AU couldn't be estimated for current MSA")
-            return -1
+        if perform_topology_tests:
+            per_clusters_data = msa_data.groupby(["tree_clusters_ind"]).first().reset_index()[["tree_clusters_ind","final_tree_topology"]]
+            au_test_results = au_test(per_tree_clusters_data=per_clusters_data, ML_tree = best_msa_tree_topology, msa_path=get_local_path(msa_path), cpus_per_job = cpus_per_job, name ="MSA_enrichment_TREE_TEST_calculations", curr_run_directory = curr_run_directory)
+            msa_data = msa_data.merge(pd.DataFrame(au_test_results), on = "tree_clusters_ind")
+        #except:
+            #logging.info(f"AU couldn't be estimated for current MSA")
+            #return pd.DataFrame()
         msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
             (msa_data["rf_from_overall_msa_best_topology"]) > 0, best_msa_ll - msa_data["final_ll"], 0)
         pickle.dump(msa_data,open(processed_dataset_path,'wb'))
     return msa_data
 
 
-def enrich_raw_data(curr_run_directory, raw_data, iterations, cpus_per_job):
+def enrich_raw_data(curr_run_directory, raw_data, iterations, cpus_per_job,perform_topology_tests):
     '''
 
     :param curr_run_directory:
@@ -207,14 +209,14 @@ def enrich_raw_data(curr_run_directory, raw_data, iterations, cpus_per_job):
     for i, msa in enumerate(MSAs):
             logging.info(f"Working on MSA number {i} in : {msa}")
             msa_folder = os.path.join(curr_run_directory, get_msa_name(msa, GENERAL_MSA_DIR))
-            msa_data = raw_data[raw_data["msa_path"] == msa].copy()
+            msa_data = raw_data[raw_data["msa_path"] == msa].copy().reset_index()
             create_dir_if_not_exists(msa_folder)
             existing_msa_features_path = os.path.join(msa_folder, "msa_features")
             existing_tree_features_path = os.path.join(msa_folder, "tree_features")
             msa_final_dataset_path = os.path.join(msa_folder, "final_dataset")
             processed_dataset_path = os.path.join(msa_folder, "processed_dataset")
-            processed_msa_data = process_all_msa_RAxML_runs(msa_folder,processed_dataset_path, msa_data, cpus_per_job)
-            if processed_msa_data==-1:
+            processed_msa_data = process_all_msa_RAxML_runs(msa_folder,processed_dataset_path, msa_data, cpus_per_job, perform_topology_tests=perform_topology_tests)
+            if not len(processed_msa_data.index)>0:
                 continue
             msa_features = msa_features_pipeline(msa, existing_msa_features_path)
             logging.info(f"MSA features: {msa_features}")
@@ -230,21 +232,12 @@ def enrich_raw_data(curr_run_directory, raw_data, iterations, cpus_per_job):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--job_ind', action='store', type=int)
-    parser.add_argument('--curr_job_raw_path', action='store', type=str)
-    parser.add_argument('--curr_job_folder', action='store', type=str)
-    parser.add_argument('--feature_pipeline_dir', action='store', type=str)
-    parser.add_argument('--features_output_path', action='store', type=str)
-    parser.add_argument('--iterations', action='store', type=int)
-    parser.add_argument('--cpus_per_job', action='store', type=int)
+    parser = feature_job_parser()
     args = parser.parse_args()
-    curr_run_directory = args.feature_pipeline_dir
-    create_dir_if_not_exists(curr_run_directory)
     log_file_path = os.path.join(args.curr_job_folder, "features.log")
     logging.basicConfig(filename=log_file_path, level=logging.INFO)
     curr_job_raw_data = pd.read_csv(args.curr_job_raw_path, sep=CSV_SEP)
-    raw_data_with_features = enrich_raw_data(curr_run_directory, curr_job_raw_data, iterations=args.iterations, cpus_per_job = args.cpus_per_job)
+    raw_data_with_features = enrich_raw_data(args.curr_job_folder, curr_job_raw_data, iterations=args.iterations, cpus_per_job = args.cpus_per_job,perform_topology_tests= args.perform_topology_tests)
     logging.info(f'Writing enriched data to {args.features_output_path}')
     raw_data_with_features.to_csv(args.features_output_path, sep=CSV_SEP)
 

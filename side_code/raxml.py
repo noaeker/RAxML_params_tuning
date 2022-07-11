@@ -306,29 +306,23 @@ def calculate_rf_dist(rf_file_path, curr_run_directory, prefix="rf"):
     return relative_rf_dist
 
 
-def is_plausible_set_by_iqtree(tree_test_log_file, n_trees):
+def is_plausible_set_by_iqtree(tree_test_log_file):
     with open(tree_test_log_file) as iqtree_log_file:
         data = iqtree_log_file.readlines()
         for i,line in enumerate(data):
             if line.split()==['Tree','logL','deltaL','bp-RELL','p-KH','p-SH','p-WKH','p-WSH','c-ELW','p-AU']:
                 break
-        relevant_lines = data[i+3:i+3+n_trees]
-        au_results = [relevant_line.split()[-2] for relevant_line in relevant_lines]
-        return au_results
+        relevant_line = data[i+3].split()
+        return {'au_test_sign':relevant_line[-1], 'au_test':relevant_line[-2],
+                'wsh_test_sign':relevant_line[-5],'wsh_test':relevant_line[-6],
+                'wkh_test_sign':relevant_line[-7],'wkh_test':relevant_line[-8],
+                'sh_test_sign': relevant_line[-9], 'sh_test': relevant_line[-10],
+                'kh_test_sign': relevant_line[-11], 'kh_test': relevant_line[-12]
+
+                }
 
 
 
-def perform_iqtree_sh_test(trees_file_path, msa_path, curr_run_directory, cpus_per_job, n_trees, prefix="sh"):
-    sh_run_folder = os.path.join(curr_run_directory,"sh_run")
-    create_or_clean_dir(sh_run_folder)
-    sh_prefix = os.path.join(sh_run_folder, prefix)
-    sh_command = f'{IQTREE_EXE} -s {msa_path} -z {trees_file_path} -n 0 -zb 10000 -zw -au -pre {sh_prefix} -m WAG+G'
-    if not LOCAL_RUN:
-        sh_command = sh_command+ f' -nt {cpus_per_job}'
-    execute_command_and_write_to_log(sh_command)
-    log_file = sh_prefix+".iqtree"
-    res_vec = is_plausible_set_by_iqtree(log_file, n_trees = n_trees)
-    return res_vec
 
 
 def rf_distance(curr_run_directory, tree_str_a, tree_str_b, name=f"rf_calculations"):
@@ -341,13 +335,28 @@ def rf_distance(curr_run_directory, tree_str_a, tree_str_b, name=f"rf_calculatio
     return rf
 
 
-def au_test(curr_run_directory, test_trees, ML_tree, msa_path, cpus_per_job, name=f"sh_calculations"):
+def au_test(curr_run_directory, per_tree_clusters_data, ML_tree, msa_path, cpus_per_job, name=f"sh_calculations"):
     sh_folder = os.path.join(curr_run_directory, name)
     create_or_clean_dir(sh_folder)
     sh_test_output_path = os.path.join(sh_folder, "sh_test_tree")
-    unify_text_files([ML_tree]+test_trees, sh_test_output_path, str_given=True)
-    sh_vec = perform_iqtree_sh_test(trees_file_path= sh_test_output_path, msa_path=msa_path, curr_run_directory=sh_folder,cpus_per_job = cpus_per_job, n_trees = len(test_trees))
-    return sh_vec
+    sh_run_folder = os.path.join(curr_run_directory, "sh_run")
+    res_vec = []
+    for ind,row in per_tree_clusters_data.iterrows():
+        tree = row["final_tree_topology"]
+        cluster_ind = row["tree_clusters_ind"]
+        create_or_clean_dir(sh_run_folder)
+        unify_text_files([ML_tree] + [tree], sh_test_output_path, str_given=True)
+        sh_prefix = os.path.join(sh_run_folder, "curr_sh_run")
+        sh_command = f'{IQTREE_EXE} -s {msa_path} -z {sh_test_output_path} -n 0 -zb 10000 -zw -au -pre {sh_prefix} -m WAG+G'
+        if not LOCAL_RUN:
+            sh_command = sh_command + f' -nt {cpus_per_job}'
+        execute_command_and_write_to_log(sh_command)
+        log_file = sh_prefix + ".iqtree"
+        res= is_plausible_set_by_iqtree(log_file)
+        res.update({"tree_clusters_ind": cluster_ind})
+        res_vec.append(res)
+    return res_vec
+
 
 
 def EVAL_tree_object_ll(tree_object, curr_run_directory, msa_path, msa_type, opt_brlen=False):
