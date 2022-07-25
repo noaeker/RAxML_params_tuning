@@ -8,17 +8,13 @@ sys.path.append(PROJECT_ROOT_DIRECRTORY)
 
 from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, add_csvs_content
 from side_code.config import *
-from old_code.raw_data_aggregation_analysis.job_runner_side_funcs import get_sampling_job_related_files_paths, \
-    data_sampling_parser
 from side_code.code_submission import generate_argument_str, submit_linux_job, generate_argument_list, submit_local_job
 from ML_pipeline.features_job_functions import features_main_parser
+from side_code.MSA_manipulation import get_msa_name
 import pandas as pd
-import pickle
 import os
 import numpy as np
-import argparse
-import random
-from sklearn.model_selection import ParameterGrid
+
 
 
 def generate_results_folder(curr_run_prefix):
@@ -28,7 +24,7 @@ def generate_results_folder(curr_run_prefix):
     return curr_run_prefix
 
 
-def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,args):
+def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_folder,args):
     jobs_csv_path_list = []
     msa_names = list(np.unique(raw_data["msa_path"]))
     msa_splits = np.array_split(list(msa_names), min(args.n_jobs, len(msa_names)))
@@ -42,7 +38,7 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,args):
         current_raw_data.to_csv(current_raw_data_path, sep=CSV_SEP)
 
         run_command = f' python {FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --features_output_path {current_feature_output_path} {generate_argument_str(args)}' \
-            f' --cpus_per_job {args.cpus_per_job}'
+            f' --cpus_per_job {args.cpus_per_job} --existing_msas_folder {existing_msas_folder}'
 
         if not LOCAL_RUN:
             job_name = args.jobs_prefix + str(job_ind)
@@ -54,7 +50,7 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,args):
             submit_local_job(FEATURE_EXTRACTION_CODE,
                              ["--job_ind", str(job_ind), "--curr_job_folder", curr_job_folder, "--curr_job_raw_path",
                               current_raw_data_path,
-                              "--features_output_path", current_feature_output_path,
+                              "--features_output_path", current_feature_output_path,"--existing_msas_folder", existing_msas_folder
                               ]+ generate_argument_list(args))
     return jobs_csv_path_list
 
@@ -79,12 +75,13 @@ def main():
     counts = raw_data['msa_path'].value_counts()
     idx = counts[counts < args.min_n_observations].index
     raw_data = raw_data[~raw_data['msa_path'].isin(idx)]
+    #non_existing_msa_paths = [(msa_path) for msa_path in raw_data['msa_path'] if get_msa_name(get_msa_name) not in existing_msa_names]
     #if LOCAL_RUN:
     #    np.random.seed(SEED)
     #    msa_names = list(np.unique(raw_data["msa_path"]))
     #    msas_sample = np.random.choice(msa_names, size=3, replace=False)
     #    raw_data = raw_data[raw_data["msa_path"].isin(msas_sample)]
-    jobs_csv_path_list = distribute_MSAS_over_jobs(raw_data, all_jobs_running_folder, args)
+    jobs_csv_path_list = distribute_MSAS_over_jobs(raw_data, all_jobs_running_folder,existing_msas_data_path, args)
     prev_number_of_jobs_done = 0
     existing_csv_paths = []
     while len(existing_csv_paths) < len(jobs_csv_path_list):

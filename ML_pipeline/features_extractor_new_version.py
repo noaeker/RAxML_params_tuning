@@ -217,6 +217,7 @@ def enrich_raw_data(curr_run_directory, raw_data, iterations, cpus_per_job,perfo
             processed_dataset_path = os.path.join(msa_folder, "processed_dataset")
             processed_msa_data = process_all_msa_RAxML_runs(msa_folder,processed_dataset_path, msa_data, cpus_per_job, perform_topology_tests=perform_topology_tests)
             if not len(processed_msa_data.index)>0:
+                logging.info("no data to process")
                 continue
             msa_features = msa_features_pipeline(msa, existing_msa_features_path)
             logging.info(f"MSA features: {msa_features}")
@@ -237,7 +238,7 @@ def main():
     log_file_path = os.path.join(args.curr_job_folder, "features.log")
     logging.basicConfig(filename=log_file_path, level=logging.INFO)
     curr_job_raw_data = pd.read_csv(args.curr_job_raw_path, sep=CSV_SEP)
-    raw_data_with_features = enrich_raw_data(args.curr_job_folder, curr_job_raw_data, iterations=args.iterations, cpus_per_job = args.cpus_per_job,perform_topology_tests= args.perform_topology_tests)
+    raw_data_with_features = enrich_raw_data(curr_run_directory=args.existing_msas_folder, raw_data = curr_job_raw_data, iterations=args.iterations, cpus_per_job = args.cpus_per_job,perform_topology_tests= args.perform_topology_tests)
     logging.info(f'Writing enriched data to {args.features_output_path}')
     raw_data_with_features.to_csv(args.features_output_path, sep=CSV_SEP)
 

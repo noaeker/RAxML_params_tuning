@@ -28,4 +28,5 @@ def feature_job_parser():
     parser.add_argument('--curr_job_folder', action='store', type=str)
     parser.add_argument('--existing_msas_data', action='store', type=str)
     parser.add_argument('--features_output_path', action='store', type=str)
+    parser.add_argument('--existing_msas_folder', action='store', type=str)
     return parser
