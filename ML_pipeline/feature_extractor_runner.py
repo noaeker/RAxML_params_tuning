@@ -8,13 +8,14 @@ sys.path.append(PROJECT_ROOT_DIRECRTORY)
 
 from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, add_csvs_content
 from side_code.config import *
-from side_code.code_submission import generate_argument_str, submit_linux_job, generate_argument_list, submit_local_job
+from side_code.code_submission import generate_argument_str, submit_linux_job, generate_argument_list, submit_local_job, execute_command_and_write_to_log
 from ML_pipeline.features_job_functions import features_main_parser
 from side_code.MSA_manipulation import get_msa_name
 import pandas as pd
 import os
 import numpy as np
 import time
+from shutil import rmtree
 
 
 
@@ -26,7 +27,7 @@ def generate_results_folder(curr_run_prefix):
 
 
 def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_folder,args):
-    jobs_csv_path_list = []
+    job_dict = {}
     msa_names = list(np.unique(raw_data["msa_path"]))
     msa_splits = np.array_split(list(msa_names), min(args.n_jobs, len(msa_names)))
     for job_ind, job_msas in enumerate(msa_splits):
@@ -34,15 +35,14 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_fo
         create_or_clean_dir(curr_job_folder)
         current_raw_data_path = os.path.join(curr_job_folder, f"job_{job_ind}_raw_data{CSV_SUFFIX}")
         current_feature_output_path = os.path.join(curr_job_folder, f"job_{job_ind}_raw_data_with_features{CSV_SUFFIX}")
-        jobs_csv_path_list.append(current_feature_output_path)
         current_raw_data = raw_data[raw_data["msa_path"].isin(job_msas)]
         current_raw_data.to_csv(current_raw_data_path, sep=CSV_SEP)
 
         run_command = f' python {FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --features_output_path {current_feature_output_path} {generate_argument_str(args)}' \
             f' --cpus_per_job {args.cpus_per_job} --existing_msas_folder {existing_msas_folder}'
 
+        job_name = args.jobs_prefix + str(job_ind)
         if not LOCAL_RUN:
-            job_name = args.jobs_prefix + str(job_ind)
             curr_job_log_path = os.path.join(curr_job_folder, str(job_ind) + "_tmp_log")
             submit_linux_job(job_name, curr_job_folder, curr_job_log_path, run_command, cpus=args.cpus_per_job,
                              job_ind=job_ind,
@@ -53,7 +53,14 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_fo
                               current_raw_data_path,
                               "--features_output_path", current_feature_output_path,"--existing_msas_folder", existing_msas_folder
                               ]+ generate_argument_list(args))
-    return jobs_csv_path_list
+        job_dict[job_ind] = {"current_feature_output_path": current_feature_output_path, "job_name": job_name}
+    return job_dict
+
+def finish_all_running_jobs(job_names):
+    logging.info("Deleting all jobs")
+    for job_name in job_names: # remove all remaining folders
+            delete_current_job_cmd = f"qstat | grep {job_name} | xargs qdel"
+            execute_command_and_write_to_log(delete_current_job_cmd, print_to_log=True)
 
 
 def main():
@@ -82,18 +89,21 @@ def main():
     #    msa_names = list(np.unique(raw_data["msa_path"]))
     #    msas_sample = np.random.choice(msa_names, size=3, replace=False)
     #    raw_data = raw_data[raw_data["msa_path"].isin(msas_sample)]
-    jobs_csv_path_list = distribute_MSAS_over_jobs(raw_data, all_jobs_running_folder,existing_msas_data_path, args)
+    jobs_dict = distribute_MSAS_over_jobs(raw_data, all_jobs_running_folder,existing_msas_data_path, args)
     prev_number_of_jobs_done = 0
     existing_csv_paths = []
-    while len(existing_csv_paths) < len(jobs_csv_path_list):
-        existing_csv_paths = [csv_path for csv_path in jobs_csv_path_list if os.path.exists(csv_path)]
+    while len(existing_csv_paths) < len(jobs_dict):
+        existing_csv_paths = [jobs_dict[job_ind]["current_feature_output_path"] for job_ind in jobs_dict if os.path.exists(jobs_dict[job_ind]["current_feature_output_path"])]
         if len(existing_csv_paths) > prev_number_of_jobs_done:
             prev_number_of_jobs_done = len(existing_csv_paths)
             logging.info(f"total jobs done = {len(existing_csv_paths)}")
-            add_csvs_content(jobs_csv_path_list, features_out_path)
+    all_csv_paths = [jobs_dict[job_ind]["current_feature_output_path"] for job_ind in jobs_dict]
     logging.info(f"done with all jobs! writing to csv in {features_out_path}")
     time.sleep(60)
-    add_csvs_content(jobs_csv_path_list, features_out_path)
+    if not LOCAL_RUN:
+        job_names = [jobs_dict[job_ind]["job_name"] for job_ind in jobs_dict]
+        finish_all_running_jobs(job_names)
+    add_csvs_content(all_csv_paths, features_out_path)
 
 
 if __name__ == "__main__":
