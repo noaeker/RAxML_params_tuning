@@ -14,6 +14,7 @@ from side_code.MSA_manipulation import get_msa_name
 import pandas as pd
 import os
 import numpy as np
+import time
 
 
 
@@ -66,7 +67,7 @@ def main():
     existing_msas_data_path = os.path.join(feature_pipeline_dir, "all_msa_features")
     create_dir_if_not_exists(existing_msas_data_path)
     log_file_path = os.path.join(feature_pipeline_dir, "general_features.log")
-    logging.basicConfig(filename=log_file_path, level=logging.DEBUG)
+    logging.basicConfig(filename=log_file_path, level=logging.INFO)
     csv_files_in_folder = [os.path.join(args.raw_data_folder, f) for f in
                            os.listdir(args.raw_data_folder) if f.endswith(CSV_SUFFIX)]
     dfs_in_folder = [pd.read_csv(f, sep=CSV_SEP) for f in csv_files_in_folder]
@@ -91,6 +92,7 @@ def main():
             logging.info(f"total jobs done = {len(existing_csv_paths)}")
             add_csvs_content(jobs_csv_path_list, features_out_path)
     logging.info(f"done with all jobs! writing to csv in {features_out_path}")
+    time.sleep(60)
     add_csvs_content(jobs_csv_path_list, features_out_path)
 
 
