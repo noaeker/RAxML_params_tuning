@@ -75,7 +75,7 @@ def main():
     existing_msas_data_path = os.path.join(feature_pipeline_dir, "all_msa_features")
     create_dir_if_not_exists(existing_msas_data_path)
     log_file_path = os.path.join(feature_pipeline_dir, "general_features.log")
-    logging.basicConfig(filename=log_file_path, level=logging.INFO)
+    logging.basicConfig(filename=log_file_path, level=logging.DEBUG)
     csv_files_in_folder = [os.path.join(args.raw_data_folder, f) for f in
                            os.listdir(args.raw_data_folder) if f.endswith(CSV_SUFFIX)]
     dfs_in_folder = [pd.read_csv(f, sep=CSV_SEP) for f in csv_files_in_folder]
