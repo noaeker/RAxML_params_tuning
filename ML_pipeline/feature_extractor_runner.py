@@ -31,6 +31,7 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_fo
     msa_names = list(np.unique(raw_data["msa_path"]))
     msa_splits = np.array_split(list(msa_names), min(args.n_jobs, len(msa_names)))
     for job_ind, job_msas in enumerate(msa_splits):
+        time.sleep(10)
         curr_job_folder = os.path.join(all_jobs_results_folder, "job_" + str(job_ind))
         create_or_clean_dir(curr_job_folder)
         current_raw_data_path = os.path.join(curr_job_folder, f"job_{job_ind}_raw_data{CSV_SUFFIX}")
