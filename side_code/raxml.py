@@ -335,24 +335,25 @@ def rf_distance(curr_run_directory, tree_str_a, tree_str_b, name=f"rf_calculatio
     return rf
 
 
-def au_test(curr_run_directory, per_tree_clusters_data, ML_tree, msa_path, cpus_per_job, name=f"sh_calculations"):
+def au_test(curr_run_directory, per_tree_clusters_data, ML_tree, msa_path, cpus_per_job,msa_type, name=f"sh_calculations"):
     sh_folder = os.path.join(curr_run_directory, name)
     create_or_clean_dir(sh_folder)
     sh_test_output_path = os.path.join(sh_folder, "sh_test_tree")
     sh_run_folder = os.path.join(curr_run_directory, "sh_run")
     res_vec = []
+    model = "GTR+G" if msa_type == "DNA" else "WAG+G"
     for ind,row in per_tree_clusters_data.iterrows():
         tree = row["final_tree_topology"]
         cluster_ind = row["tree_clusters_ind"]
         create_or_clean_dir(sh_run_folder)
         unify_text_files([ML_tree] + [tree], sh_test_output_path, str_given=True)
         sh_prefix = os.path.join(sh_run_folder, "curr_sh_run")
-        sh_command = f'{IQTREE_EXE} -s {msa_path} -z {sh_test_output_path} -n 0 -zb 10000 -zw -au -pre {sh_prefix} -m WAG+G'
+        sh_command = f'{IQTREE_EXE} -s {msa_path} -z {sh_test_output_path} -n 0 -zb 10000 -zw -au -pre {sh_prefix} -m {model}'
         if not LOCAL_RUN:
             sh_command = sh_command + f' -nt {cpus_per_job}'
         execute_command_and_write_to_log(sh_command)
         log_file = sh_prefix + ".iqtree"
-        res= is_plausible_set_by_iqtree(log_file)
+        res = is_plausible_set_by_iqtree(log_file)
         res.update({"tree_clusters_ind": cluster_ind})
         res_vec.append(res)
     return res_vec
