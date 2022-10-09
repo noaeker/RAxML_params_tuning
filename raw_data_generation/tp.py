@@ -216,19 +216,10 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results
     #time.sleep(15)
 
 
-
-
-
-
 def global_results_to_csv(global_results_dict, csv_path):
     results = [global_results_dict[task_ind].transform_to_dict() for task_ind in global_results_dict]
     df = pd.DataFrame(results)
     df.to_csv(csv_path, sep=CSV_SEP, index=False)
-
-
-
-
-
 
 
 

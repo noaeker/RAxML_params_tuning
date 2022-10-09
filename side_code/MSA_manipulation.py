@@ -14,6 +14,12 @@ def get_msa_name(msa_path, general_msa_dir):
     return msa_path.replace(general_msa_dir, "").replace(os.path.sep,
                                                          "_")
 
+def get_local_path(path):
+    if LOCAL_RUN:
+        return path.replace("/groups/pupko/noaeker/", "/Users/noa/Workspace/")
+    else:
+        return path
+
 
 def get_msa_data(msa_path, msa_suffix):
     with open(msa_path) as original:

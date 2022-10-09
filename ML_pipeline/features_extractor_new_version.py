@@ -11,7 +11,7 @@ from side_code.raxml import *
 from side_code.basic_trees_manipulation import *
 from side_code.MSA_manipulation import get_alignment_data, get_msa_name
 from side_code.file_handling import create_or_clean_dir, create_dir_if_not_exists
-from side_code.MSA_manipulation import get_alignment_data, alignment_list_to_df, get_msa_type, get_msa_name
+from side_code.MSA_manipulation import get_alignment_data, alignment_list_to_df, get_msa_type, get_msa_name, get_local_path
 from side_code.config import *
 from ML_pipeline.features_job_functions import feature_job_parser
 from shutil import rmtree
@@ -106,12 +106,6 @@ def tree_metrics(curr_run_directory,all_parsimony_trees,tree_object):
     return res
 
 
-def get_local_path(path):
-    if LOCAL_RUN:
-        return path.replace("/groups/pupko/noaeker/", "/Users/noa/Workspace/")
-    else:
-        return path
-
 
 def msa_features_pipeline(msa_path, existing_msa_features_path):
     if os.path.exists(existing_msa_features_path):
@@ -161,7 +155,7 @@ def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_
     return tree_features
 
 
-def process_all_msa_RAxML_runs(curr_run_directory, msa_path,processed_dataset_path, msa_data, cpus_per_job,perform_topology_tests = False):
+def process_all_msa_RAxML_runs(curr_run_directory, processed_dataset_path, msa_data, cpus_per_job,perform_topology_tests = False):
     '''
 
     :param curr_run_directory:
@@ -181,6 +175,7 @@ def process_all_msa_RAxML_runs(curr_run_directory, msa_path,processed_dataset_pa
             lambda x: rf_distance(curr_run_directory, x, best_msa_tree_topology, name = "MSA_enrichment_RF_calculations"))
         msa_data = msa_data.sort_values(["starting_tree_type","starting_tree_ind","spr_radius","spr_cutoff"])
         msa_data["final_trees_inds"] = list(range(len(msa_data.index)))
+        msa_data["final_trees_inds"] = list(range(len(msa_data.index)))
         unique_trees_mapping = get_unique_trees_mapping(curr_run_directory, list(msa_data["final_tree_topology"]))
         msa_data["tree_clusters_ind"] = msa_data["final_trees_inds"].apply(lambda x: unique_trees_mapping[x])
         msa_type = get_msa_type(get_local_path(msa_path))
@@ -191,7 +186,7 @@ def process_all_msa_RAxML_runs(curr_run_directory, msa_path,processed_dataset_pa
                 msa_data = msa_data.merge(pd.DataFrame(au_test_results), on = "tree_clusters_ind")
             except Exception as e:
                 logging.info(f"AU couldn't be estimated for current MSA")
-                logging.info(f'Error details: {e.message}, {e.args}')
+                logging.info(f'Error details: {str(e)}')
                 return pd.DataFrame()
         msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
             (msa_data["rf_from_overall_msa_best_topology"]) > 0, best_msa_ll - msa_data["final_ll"], 0)
@@ -218,7 +213,7 @@ def enrich_raw_data(curr_run_directory, raw_data, iterations, cpus_per_job,perfo
             existing_tree_features_path = os.path.join(msa_folder, "tree_features")
             msa_final_dataset_path = os.path.join(msa_folder, "final_dataset")
             processed_dataset_path = os.path.join(msa_folder, "processed_dataset")
-            processed_msa_data = process_all_msa_RAxML_runs(msa_folder,msa_path,processed_dataset_path, msa_data, cpus_per_job, perform_topology_tests=perform_topology_tests)
+            processed_msa_data = process_all_msa_RAxML_runs(msa_folder,processed_dataset_path, msa_data, cpus_per_job, perform_topology_tests=perform_topology_tests)
             if not len(processed_msa_data.index)>0:
                 logging.info("no data to process")
                 continue

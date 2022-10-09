@@ -1,0 +1,211 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+library(survival)
+library(survminer)
+library(cmprsk)
+library(tidyverse)
+library(caret)
+library(survival)
+library(survminer)
+library(lubridate)
+```
+
+```{r}
+ML_edited_features =  read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/ML_edited_features.tsv")
+raw_final_data = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/raw_final_performance.tsv")
+model_performance = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/final_performance_comp.tsv")
+
+```
+
+```{r}
+model_performance<- model_performance %>% mutate (time_imprv = curr_sample_total_time/total_actual_time, accuracy_diff =diff-curr_sample_err )
+```
+
+Summary statistics
+
+```{r}
+ML_edited_features %>% distinct (msa_path)
+ML_edited_features  %>% distinct (spr_radius)
+ML_edited_features  %>% distinct (spr_cutoff)
+per_msa_features<- ML_edited_features %>% distinct(msa_path, feature_n_loci, feature_n_seq )
+
+per_msa_features %>%  ggplot(aes(x=feature_n_seq)) + geom_histogram(color="darkblue", fill="purple")+
+  labs(title="Number of sequences",x="Number of sequences", y = "Count")+theme(axis.text=element_text(size=15))
+per_msa_features %>%  ggplot(aes(x=feature_n_loci)) + geom_histogram(color="darkblue", fill="orange")+
+  labs(title="Number of MSA positions",x="Number of MSA positions", y = "Count")+theme(axis.text=element_text(size=15))
+```
+
+Efficiency
+
+```{r}
+model_performance %>% ggplot(aes(x=time_imprv)) + geom_histogram(color="darkblue", fill="lightblue")+
+  labs(title="Running-time improvement between default cofnfiguration to ML-based tree search",x="Running-time improvement", y = "Count")+theme(axis.text=element_text(size=14),axis.title=element_text(size=14,face="bold"))
+summary(model_performance %>% pull(time_imprv))
+```
+Accuracy
+
+```{r}
+model_performance %>% ggplot(aes(x=accuracy_diff)) + geom_histogram(color="darkblue", fill="pink")+
+  labs(title="Log-likelihood difference between default cofnfiguration to ML-based tree search",x="Log-likelihood diff", y = "Count")+theme(axis.text=element_text(size=14),axis.title=element_text(size=14,face="bold"))
+
+summary(model_performance %>% pull(diff))
+
+summary(model_performance %>% pull(curr_sample_err))
+
+summary(ML_edited_features %>% pull(delta_ll_from_overall_msa_best_topology))
+```
+Overall performance
+
+```{r}
+model_performance<- model_performance %>% mutate (is_better_time = time_imprv>1, is_more_accurate = accuracy_diff<=0) 
+model_performance %>% group_by(is_better_time,is_more_accurate) %>% count()
+
+model_performance<- model_performance %>% mutate (is_better_time = time_imprv>1, is_more_accurate = accuracy_diff<=0) 
+model_performance %>% group_by(is_better_time,is_more_accurate) %>% summarise(median_accuracy_diff = median(accuracy_diff) , median_running_time_imprv = median(time_imprv))
+```
+
+
+ML-chosen parameters
+
+
+```{r}
+
+raw_final_data %>% group_by(msa_path) %>% count() %>% ggplot(aes(x=n)) + geom_histogram(color = "purple", fill = "lightblue")+
+  labs(title="",x="Number of starting trees", y = "Count")+theme(axis.text=element_text(size=14),axis.title=element_text(size=14,face="bold"))
+
+raw_final_data %>% group_by(msa_path, starting_tree_type) %>% count() %>% ungroup() %>% group_by(msa_path) %>% mutate(total_size = sum(n)) %>% filter (starting_tree_type=="pars") %>% mutate (pct_parsimony = n/total_size) %>% ggplot(aes(x=pct_parsimony)) + geom_histogram(color = "purple", fill = "lightblue")+
+  labs(title="",x="Fraction of parsimnoy trees", y = "Count")+theme(axis.text=element_text(size=14),axis.title=element_text(size=14,face="bold"))
+
+raw_final_data %>% ggplot(aes(x=spr_radius)) + geom_histogram(color="darkgreen", fill="green")+
+  labs(title="",x="SPR radius", y = "Count")+theme(axis.text=element_text(size=14),axis.title=element_text(size=14,face="bold"))
+
+raw_final_data %>% ggplot(aes(x=spr_cutoff)) + geom_histogram(color="orange", fill="yellow")+
+  labs(title="",x="SPR cutoff", y = "Count")+theme(axis.text=element_text(size=14),axis.title=element_text(size=14,face="bold"))
+```
+Correlation between features
+
+
+Pypythia
+
+```{r}
+
+ML_edited_features %>% ggplot(aes(x = feature_pypythia_msa_difficulty)) + geom_histogram(fill = "purple")
+
+```
+
+
+
+```{r}
+count_per_starting_tree<-ML_edited_features %>% group_by(msa_path,starting_tree_ind, starting_tree_type,tree_clusters_ind,feature_pypythia_msa_difficulty) %>% count() %>% ungroup() %>% group_by(msa_path,feature_pypythia_msa_difficulty, starting_tree_ind,starting_tree_type) %>% count() 
+summary(count_per_starting_tree %>% pull(n))
+```
+
+
+```{r}
+
+count_per_starting_tree_per_MSA<- count_per_starting_tree %>% group_by(msa_path, starting_tree_type,feature_pypythia_msa_difficulty) %>% summarise(median_per_tree = median(n))
+var_per_starting_tree_per_MSA<- count_per_starting_tree %>% group_by(msa_path, starting_tree_type,feature_pypythia_msa_difficulty) %>% summarise(var_across_trees = var(n))
+
+
+count_per_starting_tree_per_MSA %>% ggplot(aes(x = median_per_tree, fill = starting_tree_type))+ geom_histogram(position = position_dodge(), bins = 10)
+var_per_starting_tree_per_MSA %>% ggplot(aes(x = var_across_trees, fill = starting_tree_type))+ geom_histogram(position = position_dodge(), bins = 10)
+
+count_per_starting_tree_per_MSA %>% ggplot(aes(x = median_per_tree, y = feature_pypythia_msa_difficulty, color = starting_tree_type))+ geom_point()
+
+
+var_per_starting_tree_per_MSA %>% ggplot(aes(x = var_across_trees, y = feature_pypythia_msa_difficulty, color = starting_tree_type))+ geom_point()
+```
+```{r}
+lm1<- lm(median_per_tree~(feature_pypythia_msa_difficulty)*starting_tree_type , data =count_per_starting_tree_per_MSA )
+summary(lm1)
+plot(fitted(lm1),resid(lm1))
+lm2<- lm(var_across_trees~feature_pypythia_msa_difficulty*starting_tree_type , data =var_per_starting_tree_per_MSA )
+summary(lm2)
+```
+```{r}
+count_per_final_tree_topology<- ML_edited_features %>% group_by(msa_path,starting_tree_ind, starting_tree_type,tree_clusters_ind) %>% count() %>% ungroup() %>% group_by(msa_path,feature_pypythia_msa_difficulty, starting_tree_ind,starting_tree_type) %>% count() 
+```
+
+
+```{r}
+count_per_SPR_radius<-ML_edited_features %>% group_by(msa_path,spr_radius, starting_tree_type,tree_clusters_ind) %>% count() %>% ungroup() %>% group_by(msa_path,spr_radius, starting_tree_type) %>% count() 
+count_per_SPR_radius %>% ggplot(aes(x = n, fill = starting_tree_type))+ geom_histogram()+facet_grid(rows = vars(spr_radius))
+
+
+count_per_SPR_cutoff<-ML_edited_features %>% group_by(msa_path,spr_cutoff, starting_tree_type,tree_clusters_ind) %>% count() %>% ungroup() %>% group_by(msa_path,spr_cutoff, starting_tree_type) %>% count() 
+count_per_SPR_cutoff %>% ggplot(aes(x = n, fill = starting_tree_type))+ geom_histogram()+facet_grid(rows = vars(spr_cutoff))
+```
+```{r}
+summary(count_per_SPR_radius %>% pull(n))
+```
+
+```{r}
+example<- ML_edited_features %>% filter (msa_path=='/groups/pupko/noaeker/data/ABC_DR/PANDIT/PF00005/ref_msa.aa.phy')
+ML_edited_features %>% distinct (msa_path, starting_tree_ind,starting_tree_ll,tree_clusters_ind,feature_mean_branch_length,feature_mean_internal_branch_length,feature_mean_leaf_branch_length,feature_tree_MAD,feature_mean_rf_distance)
+```
+```{r}
+ML_edited_features %>% filter (msa_path=="/groups/pupko/noaeker/data/ABC_DR/PANDIT/PF00005/ref_msa.aa.phy")
+```
+
+
+```{r}
+tree_features_analysis = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/tree_comparisons.tsv")
+```
+```{r}
+tree_features_analysis %>% head()
+```
+
+
+
+```{r}
+tree_features_analysis %>% head(5)
+tree_features_analysis_edited<- tree_features_analysis %>% mutate (LL_diff = delta_ll_from_overall_msa_best_topology_other-delta_ll_from_overall_msa_best_topology, starting_tree_ll_diff = starting_tree_ll- starting_tree_ll_other) %>% mutate (is_better = LL_diff>0.1)
+
+tree_features_analysis_edited %>% ggplot(aes(x = rf_dist_starting_trees, y= rf_dist_final_trees)) + geom_point()+ facet_grid(rows = vars(starting_tree_type), cols = vars(starting_tree_type_other))
+
+
+```
+```{r}
+tree_features_analysis_edited %>% filter (starting_tree_type==starting_tree_type_other,) %>%  ggplot(aes(y = (LL_diff), x=(starting_tree_ll_diff))) + geom_point()+ facet_grid(rows = vars(starting_tree_type))
+
+tree_features_analysis_edited %>% filter (starting_tree_type==starting_tree_type_other,) %>%  ggplot(aes(y = (rf_dist_final_trees), x=abs((starting_tree_ll_diff)))) + geom_point()+ facet_grid(rows = vars(starting_tree_type))
+```
+
+```{r}
+
+data_for_ML<-tree_features_analysis_edited %>% select (-starting_tree_ind,-msa_path_other , -starting_tree_ind_other, -starting_tree_object, -starting_tree_object_other,-delta_ll_from_overall_msa_best_topology_other, -final_ll_other, -final_tree_topology, -final_tree_topology_other,-starting_tree_type,-starting_tree_type_other ,-feature_msa_type,-LL_diff,-rf_dist_final_trees,-delta_ll_from_overall_msa_best_topo  )
+
+msas = tree_features_analysis_edited %>% distinct (msa_path) %>% pull(msa_path)
+test_sampled_msas = msas[sample(1:length(msas),20)]
+test<-  data_for_ML %>% filter (msa_path %in% test_sampled_msas) %>% select (-msa_path)
+train<-  data_for_ML %>% filter (!(msa_path %in% test_sampled_msas)) %>% select (-msa_path)
+
+
+bin_glm<-  glm(is_better ~ . , data = train, family = "binomial")
+caret::varImp(bin_glm)
+
+nullmod <- glm(is_better ~1,data = train , family="binomial")
+r2 = 1-logLik(bin_glm)/logLik(nullmod)
+print(r2)
+summary(bin_glm)
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+```{r}
+summary(train)
+```
+

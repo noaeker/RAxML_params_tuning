@@ -21,43 +21,25 @@ library(lubridate)
 ```{r}
 
 
-raw_data = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/c_30_70/features.tsv")
+raw_data = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/all_data/ML_edited_features.tsv")
+raw_data <- raw_data %>% mutate(normalized_time = elapsed_running_time/test_norm_const) %>% mutate(is_global_max_str=ifelse(delta_ll_from_overall_msa_best_topology==0,"Global-maximum","Local-maximum"), is_global_max_num =ifelse(delta_ll_from_overall_msa_best_topology==0,1,2) )  %>%  mutate(is_global_max_str = as_factor(is_global_max_str)) 
 
 
 ```
 
-```{r}
 
-```
-
-
-
-```{r}
-raw_data <- raw_data %>% mutate(normalized_time = elapsed_running_time/test_norm_const) %>% mutate(is_global_max=ifelse(delta_ll_from_overall_msa_best_topology==0,"Global-maximum","Local-maximum"))  %>%  mutate(is_global_max = as_factor(is_global_max)) 
-
-agg_data_non_default<- raw_data %>% filter (type!="default") %>% group_by(msa_path,spr_radius,spr_cutoff,starting_tree_type, feature_n_seq, feature_n_loci,feature_mean_rf_distance, feature_constant_sites_pct) %>% summarize (mean_global = mean(delta_ll_from_overall_msa_best_topology==0), sum_global = sum(delta_ll_from_overall_msa_best_topology==0) , mean_time = mean(normalized_time) ) %>% ungroup()
-
-
-msas = raw_data %>% distinct (msa_path) %>% pull(msa_path)
-example_msa = pluck(msas,40)
-agg_data_non_default %>% filter(msa_path==example_msa) %>% ggplot(aes(y=mean_global, x = spr_radius, color = starting_tree_type )) + geom_point(size =1)+ geom_line()+ facet_grid(rows = vars(spr_cutoff))+expand_limits( y = 0)
-
-```
 
 ```{r}
 
 library(cmprsk)
-default_data= read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/c_30_70/default_sampling.tsv")
+default_data= read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/all_data/default_sampling.tsv")
 default_data<- default_data %>% mutate(curr_sample_is_global_max=ifelse(curr_sample_is_global_max==0,"Local-maximum","Global-maximum"))
-msas = default_data %>% distinct (msa_path) %>% pull(msa_path)
-example_msa = pluck(msas,118)
-msa_default <- default_data %>% filter(msa_path==example_msa) #msa_path==example_msa,
-
 
 fit<-cuminc(
-    ftime = msa_default$curr_sample_total_time, 
-    fstatus = msa_default$curr_sample_is_global_max, 
+    ftime = default_data$curr_sample_total_time, 
+    fstatus = default_data$curr_sample_is_global_max, 
     cencode = 0,
+    #group =  default_data$starting_tree_type
     )
 ggcompetingrisks(fit = fit, multiple_panels = FALSE,  xlab = "Time to event", ylab = "Cumulative incidence of event",title = "Competing Risks Analysis")#+scale_color_manual(name="", values=c("blue","red"), labels=c("Local maxima", "Global maxima"))
 
@@ -65,55 +47,29 @@ summary(fit)
 
 ```
 
-```{r}
-msa_default
-msa_default %>% ggplot(aes(x=curr_sample_total_time, fill=curr_sample_is_global_max))+geom_histogram()
-```
+
 
 ```{r}
 library(cmprsk)
 msas = raw_data %>% distinct (msa_path) %>% pull(msa_path)
-example_msa = pluck(msas,40)
-first_msa_default <- raw_data %>% filter(type == "default") #msa_path==example_msa, 
+example_msa = pluck(msas,130)
+first_msa_default <- raw_data %>% filter(type=="default",msa_path==example_msa) #msa_path==example_msa, 
 fit<-cuminc(
-    ftime = first_msa_default $normalized_time, 
-    fstatus = first_msa_default $is_global_max, 
+    ftime = first_msa_default $normalized_relative_time, 
+    fstatus = first_msa_default $is_global_max_str, 
     cencode = 0,
     group = first_msa_default$starting_tree_type
     )
 ggcompetingrisks(fit = fit, multiple_panels = FALSE,  xlab = "Time to event", ylab = "Cumulative incidence of event",title = "Competing Risks Analysis")#+scale_color_manual(name="", values=c("blue","red"), labels=c("Local maxima", "Global maxima"))
 
 summary(fit)
-
 ```
 
 
 
 ```{r}
-library(randomForestSRC)
-raw_data[sapply(raw_data, is.character)] <- lapply(raw_data[sapply(raw_data, is.character)], 
-                                                           as.factor)
-
-is_global_max <- as.factor(raw_data$is_global_max)
-first_msa<- raw_data %>% filter(msa_path== example_msa, spr_cutoff==1, spr_radiys==5)
-o <- rfsrc.fast(Surv(normalized_time,is_global_max) ~. , data = as.data.frame(first_msa), importance = TRUE)
-print(o)
-```
-
-```{r}
-plot(get.tree(o, 3))
-```
-
-
-```{r}
-pdf("follic.pdf", width = 8, height = 8)
-par(cex.axis = 2.0, cex.lab = 2.0, cex.main = 2.0, mar = c(6.0,6,1,1), mgp = c(4, 1, 0))
-plot.competing.risk(o)
-dev.off()
-```
-
-```{r}
-res.cox <- coxph(Surv(normalized_time, is_global_max) ~ as.factor(starting_tree_type), data = raw_data)
+library(cmprsk)
+res.cox <- coxph(formula=Surv(normalized_relative_time, is_global_max_num) ~ spr_radius+spr_cutoff+starting_tree_type, data = raw_data)
 summary(res.cox)
 ```
 
@@ -122,6 +78,28 @@ fit <- survfit(res.cox, data = raw_data)
 ggsurvplot(fit, conf.int = TRUE,
            ggtheme = theme_minimal())
 ```
+
+
+```{r}
+# library(randomForestSRC)
+# raw_data[sapply(raw_data, is.character)] <- lapply(raw_data[sapply(raw_data, is.character)], 
+#                                                            as.factor)
+# 
+# is_global_max <- as.factor(raw_data$is_global_max)
+# first_msa<- raw_data %>% filter(msa_path== example_msa, spr_cutoff==1, spr_radius==5)
+# o <- rfsrc.fast(Surv(normalized_time,is_global_max) ~. , data = as.data.frame(first_msa), importance = TRUE)
+# print(o)
+# plot(get.tree(o, 3))
+pdf("follic.pdf", width = 8, height = 8)
+par(cex.axis = 2.0, cex.lab = 2.0, cex.main = 2.0, mar = c(6.0,6,1,1), mgp = c(4, 1, 0))
+plot.competing.risk(o)
+dev.off()
+```
+
+
+
+
+
 
 
 ```{r}

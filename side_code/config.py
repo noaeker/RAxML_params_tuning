@@ -12,12 +12,12 @@ POSSIBLE_PROTEIN_LETTERS = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L
                             'W', 'Y', 'V']
 SEED = 1
 BASELINE = "X"
-CURR_RUN_PREFIX = "first_tuning"
-CURR_JOBS_PREFIX = "first_tuning"
+CURR_RUN_PREFIX = "pandit_tuning"
+CURR_JOBS_PREFIX = "pandit_tuning"
 N_CPUS_PER_JOB = 1
 N_CPUS_PER_TRAINING = 1
 N_CPUS_RAXML = 1
-N_MSAS = 2
+N_MSAS = 5
 N_JOBS = 2
 N_TASKS_PER_JOB = 300
 MIN_N_SEQ = 10
@@ -73,7 +73,7 @@ elif LOCAL_RUN:
     LOCAL_DATA_GENERATION = f"{RESULTS_FOLDER}/local_data_generation"
     READY_RAW_DATA = f"{RESULTS_FOLDER}/ready_raw_data"
     MSAs_CSV_PATH = "/Users/noa/Workspace/data/sampled_datasets.csv"
-    GENERAL_MSA_DIR = "/Users/noa/Workspace/data/single-gene_alignments"
+    GENERAL_MSA_DIR = '/Users/noa/Workspace/data/Pandit_msas'#"/Users/noa/Workspace/data/single-gene_alignments"
     PROJECT_ROOT_DIRECRTORY = "/Users/noa/Workspace/RAxML_params_tuning"
     MAIN_CODE_PATH = f"{PROJECT_ROOT_DIRECRTORY}/raw_data_generation/tune_params.py"
     SAMPLING_MAIN_CODE_PATH = f"{PROJECT_ROOT_DIRECRTORY}/raw_data_sampling_analysis.py"
