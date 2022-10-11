@@ -7,7 +7,7 @@ import os
 
 def main():
     pandit_database_path = '/Users/noa/Workspace/data/Pandit'
-    formatted_msas_folder = '/Users/noa/Workspace/data/Pandit_msas'
+    formatted_msas_folder = '/Users/noa/Workspace/data/New_MSAs/Pandit_msas'
     create_dir_if_not_exists(formatted_msas_folder)
     with open(pandit_database_path) as PANDIT_DATABASE:
         data = PANDIT_DATABASE.read()
@@ -18,7 +18,7 @@ def main():
     for MSA, MSA_name in zip(raw_data_per_MSA,MSA_names):
         MSA_species = re.findall('NAM\s+(\S+)\s*ASQ\s*(\S+)',MSA)
         MSA_path = os.path.join(formatted_msas_folder,MSA_name+".fasta")
-        MSA_content = "\n".join([name+"\n"+sequence for name,sequence in MSA_species])
+        MSA_content = "\n".join([">"+name+"\n"+sequence for name,sequence in MSA_species])
         MSA_data = {"n_species": len(MSA_species), "n_loci": len(MSA_species[0][1])}
         data_per_MSA[MSA_name] = MSA_data
         with open(MSA_path,'w') as MSA_FILE:

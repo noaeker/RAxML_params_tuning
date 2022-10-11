@@ -36,7 +36,7 @@ import datetime
 def generate_results_folder(curr_run_prefix):
     create_dir_if_not_exists(RESULTS_FOLDER)
     curr_run_prefix = os.path.join(RESULTS_FOLDER, curr_run_prefix)
-    create_dir_if_not_exists(curr_run_prefix)
+    create_or_clean_dir(curr_run_prefix)
     return curr_run_prefix
 
 
@@ -87,9 +87,9 @@ def update_tasks_and_results(job_raxml_runs_done_obj,current_results,current_tas
     current_results.update(job_raxml_runs_done_obj)  # update new results
     logging.debug(f"Current results dict size is now {len(current_results)}")
     # update tasks dictionary
-    for task_ind in job_raxml_runs_done_obj:
-        if task_ind in current_tasks:
-            del current_tasks[task_ind]
+    for MSA in job_raxml_runs_done_obj:
+        if MSA in current_tasks:
+            del current_tasks[MSA]
 
 
 def terminate_current_job(job_ind, job_tracking_dict):
@@ -109,6 +109,8 @@ def terminate_current_job(job_ind, job_tracking_dict):
             # delete job folder
     del job_tracking_dict[job_ind]
     logging.info(f"job {job_ind} deleted from job tracking dict")
+
+
 
 
 def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout):
@@ -145,16 +147,19 @@ def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout
 
 
 
-def assign_tasks_over_available_jobs(current_tasks, number_of_jobs_to_send,max_n_tasks_per_job): # load tasks file
-    if len(current_tasks) == 0:
+def assign_MSA_tasks_over_available_jobs(current_tasks_per_msa, number_of_jobs_to_send): # load tasks file
+    n_tasks = len(current_tasks_per_msa)
+    if n_tasks == 0:
         return []
-    tasks_keys = list(current_tasks.keys())
-    np.random.shuffle(tasks_keys)
-    tasks = np.array(tasks_keys[:max_n_tasks_per_job*number_of_jobs_to_send])
-    np.random.shuffle(tasks)
-    tasks_chunk_keys = np.array_split(tasks, min(number_of_jobs_to_send, len(current_tasks)))
-    tasks_chunks = [{key: current_tasks[key] for key in key_chunks} for key_chunks in tasks_chunk_keys]
-    return tasks_chunks
+    else:
+        tasks_per_job = []
+        MSAs = list(current_tasks_per_msa.keys())
+        MSAs_ind_per_job = np.array_split(range(len(MSAs)), min(number_of_jobs_to_send, len(current_tasks_per_msa)))
+        for MSAs_group in MSAs_ind_per_job:
+            curr_job_tasks = {MSAs[ind]: current_tasks_per_msa[MSAs[ind]] for ind in MSAs_group}
+            tasks_per_job.append(curr_job_tasks)
+        return tasks_per_job
+
 
 
 def finish_all_running_jobs(job_tracking_dict):
@@ -190,19 +195,19 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results
     '''
     job_tracking_dict = {}
     job_first_index = 0
-    max_n_tasks_per_job = args.max_n_tasks_per_job if args.max_n_tasks_per_job>0 else ceil(len(current_tasks)/args.max_n_parallel_jobs)
-    logging.info(f"Maximal number of tasks per job is {max_n_tasks_per_job}")
+    max_n_MSAs_per_job = args.max_n_tasks_per_job if args.max_n_tasks_per_job>0 else ceil(len(current_tasks)/args.max_n_parallel_jobs)
+    logging.info(f"Maximal number of MSAs per job is {max_n_MSAs_per_job}")
     while len(current_tasks) > 0:  # Make sure all current tasks are performed
         number_of_available_jobs_to_send = args.max_n_parallel_jobs - len(job_tracking_dict)
         if number_of_available_jobs_to_send > 0:  # Available new jobs.
             logging.info(f"## Currently {len(job_tracking_dict)} jobs are running  ,  {number_of_available_jobs_to_send} available jobs are about to be sent!")
-            logging.info(f"Remaining tasks to be performed: {len(current_tasks)}")
-            tasks_per_job = assign_tasks_over_available_jobs(current_tasks,
-                                                             number_of_available_jobs_to_send,max_n_tasks_per_job)  # Partitioning of tasks over jobs
-            for i, job_task in enumerate(tasks_per_job):
+            logging.info(f"Remaining MSAs to be fully done: {len(current_tasks)}")
+            tasks_per_job = assign_MSA_tasks_over_available_jobs(current_tasks,
+                                                                 number_of_available_jobs_to_send)  # Partitioning of tasks over jobs
+            for i, MSAs_tasks in enumerate(tasks_per_job):
                 job_ind = job_first_index + i
-                logging.info(f"Submitted job number {job_ind}, which will perform {len(job_task)} tasks")
-                curr_job_related_files_paths = submit_single_job(all_jobs_results_folder, job_ind, job_task,
+                logging.info(f"Submitted job number {job_ind}, which will work {len(MSAs_tasks)} MSAs")
+                curr_job_related_files_paths = submit_single_job(all_jobs_results_folder, job_ind, MSAs_tasks,
                                                                  trimmed_test_msa_path,args)
                 job_tracking_dict[job_ind] = curr_job_related_files_paths
                 time.sleep(args.waiting_time_between_job_submissions) # wait 3 seconds between job sendings
@@ -210,14 +215,14 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results
             job_first_index += number_of_new_job_sent
         check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout= args.timeout)
         time.sleep(args.waiting_time_between_iterations)
-    logging.info("Done with the current tasks bunch")
+    logging.info("Done with the current msa tasks bunch")
     logging.info(f"Current job_tracking_dict keys are {job_tracking_dict.keys()}" )
     finish_all_running_jobs(job_tracking_dict)
     #time.sleep(15)
 
 
 def global_results_to_csv(global_results_dict, csv_path):
-    results = [global_results_dict[task_ind].transform_to_dict() for task_ind in global_results_dict]
+    results = [global_results_dict[MSA][task_ind].transform_to_dict() for MSA in global_results_dict for task_ind in global_results_dict[MSA]]
     df = pd.DataFrame(results)
     df.to_csv(csv_path, sep=CSV_SEP, index=False)
 
@@ -278,11 +283,6 @@ def main():
     total_msas_overall = len(target_msas_list)
     logging.info(f"Number of target MSAs: {total_msas_overall}, at each iteration {args.n_MSAs_per_bunch} are handled")
     i = 0
-    logging.info("Updating leftover results")
-    leftover_results = update_existing_job_results(all_jobs_results_folder)
-    with open(os.path.join(all_jobs_results_folder,"local_raxml_done_prev"),"wb") as PREV_RESULTS:
-        pickle.dump(leftover_results,PREV_RESULTS) # save current results.
-    logging.info(f"Found {len(leftover_results)} leftover tasks")
     current_results = {}
     while len(target_msas_list) > 0 or i==0: #sanity check
         i += 1
@@ -298,11 +298,7 @@ def main():
                                                         n_random_tree_objects_per_msa=args.n_raxml_random_trees,
                                                         curr_run_directory=trees_run_directory, seed=SEED)
 
-        logging.info(f"Generating overall {len(current_tasks)} tasks belonging to {args.n_MSAs_per_bunch} MSAs ")
-        logging.info("Updating current tasks to current results")
-        if i==1:
-           update_tasks_and_results(leftover_results,current_results, current_tasks)
-
+        logging.info(f"Generating tasks belonging to {args.n_MSAs_per_bunch} MSAs ")
         # Perform pipeline on current MSA, making sure that all tasks in current_tasks_pool are performed.
         curr_iterartion_results_folder = os.path.join(all_jobs_results_folder,f"iter_{i}")
         os.mkdir(curr_iterartion_results_folder)
