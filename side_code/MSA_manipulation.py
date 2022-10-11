@@ -170,21 +170,21 @@ def remove_MSAs_with_not_enough_seq_and_locis(file_path_list, min_n_seq, max_n_s
     return proper_file_path_list
 
 
-
-def get_msa_type(msa_path):
-    #msa_path_no_extension = os.path.splitext(msa_path)[0]
-    #if re.search('\w+D[\da-z]+', msa_path_no_extension.split(os.sep)[-2]) is not None:
-    #    msa_type = "DNA"
-    #else:
-    #    msa_type = "AA"
-    #return msa_type
-    all_letters = ""
-    for record in  get_alignment_data(msa_path):
-        all_letters = all_letters+str(record.seq)
-    letters_str = all_letters.replace("-","")
-    ACGT_content = re.sub('[ACGTNOX?]','',letters_str)
-    if len(ACGT_content)/len(letters_str)>0.9:
-        return "DNA"
-    else:
-        return "AA"
+#
+# def get_msa_type(msa_path):
+#     #msa_path_no_extension = os.path.splitext(msa_path)[0]
+#     #if re.search('\w+D[\da-z]+', msa_path_no_extension.split(os.sep)[-2]) is not None:
+#     #    msa_type = "DNA"
+#     #else:
+#     #    msa_type = "AA"
+#     #return msa_type
+#     all_letters = ""
+#     for record in  get_alignment_data(msa_path):
+#         all_letters = all_letters+str(record.seq)
+#     letters_str = all_letters.replace("-","")
+#     ACGT_content = re.sub('[ACGTNOX?]','',letters_str)
+#     if len(ACGT_content)/len(letters_str)>0.9:
+#         return "DNA"
+#     else:
+#         return "AA"
 

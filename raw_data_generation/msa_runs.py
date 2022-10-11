@@ -1,7 +1,7 @@
 from side_code.raxml import *
 from side_code.basic_trees_manipulation import *
 from side_code.config import *
-from side_code.MSA_manipulation import get_msa_type
+#from side_code.MSA_manipulation import get_msa_type
 from sklearn.model_selection import ParameterGrid
 import numpy as np
 import uuid
@@ -13,13 +13,14 @@ class single_raxml_run:
     '''
     Class that represents a single run of RAxML
     '''
-    def __init__(self, msa_path, starting_tree_object, starting_tree_type, starting_tree_ind, params_config, type):
+    def __init__(self, msa_path, starting_tree_object, starting_tree_type, starting_tree_ind, params_config, type, msa_type):
         self.msa_path = msa_path
         self.starting_tree_object = starting_tree_object
         self.starting_tree_type = starting_tree_type
         self.starting_tree_ind = starting_tree_ind
         self.params_config = params_config
         self.type = type
+        self.msa_type = msa_type
 
     def set_run_results(self, results):
         self.results = results
@@ -73,23 +74,22 @@ def generate_tree_type_raxml_runs(msa_path, n_tree_objects_per_msa, msa_type, tr
                    :n_tree_objects_per_msa]
     for starting_tree_ind,tree_object in enumerate(tree_objects):
         runs.append(single_raxml_run(msa_path=msa_path, starting_tree_object=tree_object,
-                                     starting_tree_type=tree_type, starting_tree_ind = starting_tree_ind, params_config={}, type="default")) #Add default_run
+                                     starting_tree_type=tree_type, starting_tree_ind = starting_tree_ind, params_config={}, type="default", msa_type = msa_type)) #Add default_run
         for params_config in grid_points:
             runs.append(single_raxml_run(msa_path=msa_path, starting_tree_object=tree_object,
-                                         starting_tree_type=tree_type,starting_tree_ind = starting_tree_ind, params_config=params_config, type="non-default"))
+                                         starting_tree_type=tree_type,starting_tree_ind = starting_tree_ind, params_config=params_config, type="non-default", msa_type= msa_type))
     return runs
 
 
 def generate_all_raxml_runs_per_msa(msa_paths, spr_radius_grid_str, spr_cutoff_grid_str,
                                     n_parsimony_tree_objects_per_msa,
-                                    n_random_tree_objects_per_msa, curr_run_directory, seed):
+                                    n_random_tree_objects_per_msa, curr_run_directory, seed, msa_type):
 
     runs = {}
     param_grid_str = {"spr_radius": spr_radius_grid_str, "spr_cutoff": spr_cutoff_grid_str}
     param_grid_obj = get_param_obj(param_grid_str)
     for msa_path in msa_paths:
         msa_runs = {}
-        msa_type = get_msa_type(msa_path)
         msa_parsimony_raxml_runs = generate_tree_type_raxml_runs(msa_path, n_parsimony_tree_objects_per_msa, msa_type,
                                                              "pars", curr_run_directory, param_grid_obj, seed)
         for i, msa_run in enumerate(msa_parsimony_raxml_runs):
@@ -105,8 +105,7 @@ def generate_all_raxml_runs_per_msa(msa_paths, spr_radius_grid_str, spr_cutoff_g
     return runs
 
 
-def generate_test_msa_raxml_run(test_msa_path,curr_run_directory, seed):
-    msa_type = get_msa_type(test_msa_path)
+def generate_test_msa_raxml_run(test_msa_path,curr_run_directory, seed, msa_type):
     msa_parsimony_raxml_runs = generate_tree_type_raxml_runs(test_msa_path, 1, msa_type,
                                                              "pars", curr_run_directory, {}, seed)
     return msa_parsimony_raxml_runs[0]

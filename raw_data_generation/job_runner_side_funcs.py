@@ -38,6 +38,7 @@ def main_parser():
     parser.add_argument('--max_n_tasks_per_job',type=int, default=-1)
     parser.add_argument('--waiting_time_between_iterations',type=int, default = WAITING_TIME_UPDATE)
     parser.add_argument('--waiting_time_between_job_submissions', type=int, default=4)
+    parser.add_argument('--msa_type', default = 'AA')
     return parser
 
 

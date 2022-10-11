@@ -8,7 +8,7 @@ sys.path.append(PROJECT_ROOT_DIRECRTORY)
 
 from side_code.raxml import extract_param_from_raxmlNG_log, raxml_search
 from side_code.file_handling import create_or_clean_dir, unify_text_files
-from side_code.MSA_manipulation import get_msa_type
+#from side_code.MSA_manipulation import get_msa_type
 from msa_runs import generate_test_msa_raxml_run
 from side_code.basic_trees_manipulation import *
 from job_runner_side_funcs import job_parser, get_job_related_files_paths
@@ -30,7 +30,7 @@ def single_tree_RAxML_run(curr_run_directory, single_raxml_run_obj, tmp_starting
     '''
     run_directory = os.path.join(curr_run_directory, "current_single_tree")
     create_or_clean_dir(run_directory)
-    msa_type = get_msa_type(single_raxml_run_obj.msa_path)
+    msa_type = single_raxml_run_obj.msa_type
     prefix = "default_params" if single_raxml_run_obj.params_config == {} else "non_default_params"
     curr_param_run_directory = os.path.join(run_directory, prefix)
     create_or_clean_dir(curr_param_run_directory)
@@ -50,7 +50,7 @@ def raxml_run_on_test_msa(args, tmp_starting_tree_path):
     '''
     test_msa_folder = os.path.join(args.curr_job_folder, "test_msa_results")
     os.mkdir(test_msa_folder)
-    test_raxml_run = generate_test_msa_raxml_run(args.test_msa, test_msa_folder, seed=SEED)
+    test_raxml_run = generate_test_msa_raxml_run(args.test_msa, test_msa_folder, seed=SEED, msa_type = args.msa_type)
     with open(tmp_starting_tree_path, 'w') as TMP_STARTING_TREE_PATH:
         TMP_STARTING_TREE_PATH.write(test_raxml_run.starting_tree_object.write(format=1))
     total_test_time = 0
