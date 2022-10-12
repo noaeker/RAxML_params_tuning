@@ -91,12 +91,12 @@ def main():
         job_tasks_dict_per_MSA = pickle.load(LOCAL_TASKS_PATH)
     job_done_dict = {}
     tmp_starting_tree_path = os.path.join(args.curr_job_folder, "tmp_tree")
-    total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
-    logging.info(f"Total test time is: {total_test_time}")
     for MSA in job_tasks_dict_per_MSA:
         logging.info(f"Working on MSA: {MSA}")
         MSA_tasks = job_tasks_dict_per_MSA[MSA]
         msa_job_done_dict = {}
+        total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
+        logging.info(f"Total test time is: {total_test_time}")
         for i, task_key in (enumerate(MSA_tasks)):
             if os.path.exists(job_local_stop_running_path):  # break out of the loop if all tasks are done
                 break
@@ -110,6 +110,9 @@ def main():
             logging.debug(f"Current task results: {results}")
             raxml_run.set_run_results(results)
             msa_job_done_dict[task_key] = raxml_run
+            if i%args.time_between_tests==0:
+                total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
+                logging.info(f"Total test time is: {total_test_time}")
         job_done_dict[MSA] = msa_job_done_dict
         with open(job_local_done_dump_path, "wb") as LOCAL_DONE_DUMP:
             pickle.dump(job_done_dict, LOCAL_DONE_DUMP)

@@ -113,7 +113,8 @@ def terminate_current_job(job_ind, job_tracking_dict):
 
 
 
-def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout):
+def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout, csv_path):
+    data_changed_flag = 0
     for job_ind in list(job_tracking_dict.keys()):
         if is_job_done(job_tracking_dict[job_ind]["job_log_folder"], started_file=job_tracking_dict[job_ind]["job_started_file"], job_start_time=job_tracking_dict[job_ind]["job_start_time"], timeout= timeout):
             if os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]):
@@ -126,8 +127,10 @@ def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout
                     logging.info(f"Current tasks dict size is {len(current_tasks)}")
                     logging.info(f"Sanity check: total is {len(current_results)+len(current_tasks)}")
                     terminate_current_job(job_ind, job_tracking_dict)  # fully terminate current job
+                    data_changed_flag = 1
                 except Exception as e:
                     logging.info(f"Couldn't update file although job is done, e = {e}")
+
         else: #else, try to update it's results
             if os.path.exists(job_tracking_dict[job_ind]["job_local_done_dump"]) and os.path.getsize(
                     job_tracking_dict[job_ind]["job_local_done_dump"]) > 0:
@@ -137,6 +140,9 @@ def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout
                                              current_tasks)
                 except Exception as e:
                     logging.debug(f"Couldn't update file, e = {e}")
+    if data_changed_flag:
+        logging.info(f"Writing all results to csv in {csv_path}")
+        global_results_to_csv(current_results, csv_path)
 
 
     # if job is done, remove it from dictionary
@@ -178,7 +184,7 @@ def finish_all_running_jobs(job_tracking_dict):
             pass
 
 
-def current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results, all_jobs_results_folder,
+def current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results, all_jobs_results_folder, csv_path,
                            args):
     '''
     '''
@@ -213,7 +219,7 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results
                 time.sleep(args.waiting_time_between_job_submissions) # wait 3 seconds between job sendings
             number_of_new_job_sent = len(tasks_per_job)
             job_first_index += number_of_new_job_sent
-        check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout= args.timeout)
+        check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout= args.timeout, csv_path = csv_path)
         time.sleep(args.waiting_time_between_iterations)
     logging.info("Done with the current msa tasks bunch")
     logging.info(f"Current job_tracking_dict keys are {job_tracking_dict.keys()}" )
@@ -302,12 +308,13 @@ def main():
         # Perform pipeline on current MSA, making sure that all tasks in current_tasks_pool are performed.
         curr_iterartion_results_folder = os.path.join(all_jobs_results_folder,f"iter_{i}")
         os.mkdir(curr_iterartion_results_folder)
-        current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results,curr_iterartion_results_folder,
-                               args) # finishes when tasks are done
+        current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results,curr_iterartion_results_folder, csv_path = global_csv_path,
+                               args=args) # finishes when tasks are done
 
 
         # Final procedures
         logging.info(f"Current results size is {len(current_results)} and will be saved to path: {global_csv_path} ")
+        logging.info("Updating all results to csv")
         global_results_to_csv(current_results, global_csv_path)
         target_msas_list = remaining_MSAs
         pickle.dump(target_msas_list , open(file_paths_path, "wb")) # Done with current filess
