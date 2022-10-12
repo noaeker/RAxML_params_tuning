@@ -89,18 +89,21 @@ def generate_all_raxml_runs_per_msa(msa_paths, spr_radius_grid_str, spr_cutoff_g
     param_grid_str = {"spr_radius": spr_radius_grid_str, "spr_cutoff": spr_cutoff_grid_str}
     param_grid_obj = get_param_obj(param_grid_str)
     for msa_path in msa_paths:
-        msa_runs = {}
-        msa_parsimony_raxml_runs = generate_tree_type_raxml_runs(msa_path, n_parsimony_tree_objects_per_msa, msa_type,
-                                                             "pars", curr_run_directory, param_grid_obj, seed)
-        for i, msa_run in enumerate(msa_parsimony_raxml_runs):
-            msa_runs[f"{msa_path}_parsimony_{i}"]  = msa_run
-        create_or_clean_dir(curr_run_directory)
-        msa_random_raxml_runs = generate_tree_type_raxml_runs(msa_path, n_random_tree_objects_per_msa, msa_type,
-                                                          "rand", curr_run_directory, param_grid_obj, seed)
-        for i, msa_run in enumerate(msa_random_raxml_runs):
-            msa_runs[f"{msa_path}_random_{i}"] = msa_run
-        create_or_clean_dir(curr_run_directory)
-        runs[msa_path] = msa_runs
+        try:
+            msa_runs = {}
+            msa_parsimony_raxml_runs = generate_tree_type_raxml_runs(msa_path, n_parsimony_tree_objects_per_msa, msa_type,
+                                                                 "pars", curr_run_directory, param_grid_obj, seed)
+            for i, msa_run in enumerate(msa_parsimony_raxml_runs):
+                msa_runs[f"{msa_path}_parsimony_{i}"]  = msa_run
+            create_or_clean_dir(curr_run_directory)
+            msa_random_raxml_runs = generate_tree_type_raxml_runs(msa_path, n_random_tree_objects_per_msa, msa_type,
+                                                              "rand", curr_run_directory, param_grid_obj, seed)
+            for i, msa_run in enumerate(msa_random_raxml_runs):
+                msa_runs[f"{msa_path}_random_{i}"] = msa_run
+            create_or_clean_dir(curr_run_directory)
+            runs[msa_path] = msa_runs
+        except:
+            logging.info(f"Couldn't run on MSA: {msa_path}")
 
     return runs
 
