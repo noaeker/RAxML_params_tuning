@@ -34,7 +34,7 @@ SPR_RADIUS_GRID =  "1"#"1_30_10"
 SPR_CUTOFF_GRID = "0.5"#"0.1_10_10"
 CSV_SEP = "\t"
 CSV_SUFFIX = ".tsv"
-N_MSAS_PER_BUNCH = 2
+N_MSAS_PER_BUNCH = -1
 MSAs_POOL_SIZE = 100
 
 COLUMNS_TO_INCLUDE_CSV = ["msa_folder","original_alignment_path","msa_name","elapsed_running_time", "msa_type", "n_loci", "n_seq", "run_name",

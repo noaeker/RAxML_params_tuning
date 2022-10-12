@@ -297,8 +297,12 @@ def main():
         i += 1
         logging.info(f"iteration {i} starts, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         random.seed(SEED)
-        current_target_MSAs = target_msas_list[:args.n_MSAs_per_bunch]
-        logging.info(f"Current target MSAs are: {current_target_MSAs}")
+        if args.n_MSAs_per_bunch>0:
+            logging.info("Sampling {args.n_MSAs_per_bunch} from the entire set of MSAs")
+            current_target_MSAs = target_msas_list[:args.n_MSAs_per_bunch]
+        else:
+            current_target_MSAs = target_msas_list
+        logging.info(f"Current target MSAs are of length: {len(current_target_MSAs)}")
         remaining_MSAs = target_msas_list[args.n_MSAs_per_bunch:]
         create_or_clean_dir(trees_run_directory)
         current_tasks = generate_all_raxml_runs_per_msa(current_target_MSAs, spr_radius_grid_str=args.spr_radius_grid,
