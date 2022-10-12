@@ -153,18 +153,20 @@ def  check_jobs_status(job_tracking_dict, current_results, current_tasks,timeout
 
 
 
-def assign_MSA_tasks_over_available_jobs(current_tasks_per_msa, number_of_jobs_to_send): # load tasks file
+def assign_MSA_tasks_over_available_jobs(current_tasks_per_msa, number_of_jobs_to_send, max_n_MSAs_per_job, prev_running_MSAs): # load tasks file
     n_tasks = len(current_tasks_per_msa)
     if n_tasks == 0:
         return []
     else:
+        logging.info(f"Giving {max_n_MSAs_per_job} for each available job")
         tasks_per_job = []
-        MSAs = list(current_tasks_per_msa.keys())
-        MSAs_ind_per_job = np.array_split(range(len(MSAs)), min(number_of_jobs_to_send, len(current_tasks_per_msa)))
+        relevant_MSAs_list=  [msa for msa in current_tasks_per_msa.keys() if msa not in prev_running_MSAs]+prev_running_MSAs
+        current_running_MSAs = relevant_MSAs_list[:max_n_MSAs_per_job*number_of_jobs_to_send]
+        MSAs_ind_per_job = np.array_split(range(len(current_running_MSAs)), min(number_of_jobs_to_send, len(current_tasks_per_msa)))
         for MSAs_group in MSAs_ind_per_job:
-            curr_job_tasks = {MSAs[ind]: current_tasks_per_msa[MSAs[ind]] for ind in MSAs_group}
+            curr_job_tasks = {current_running_MSAs[ind]: current_tasks_per_msa[current_running_MSAs[ind]] for ind in MSAs_group}
             tasks_per_job.append(curr_job_tasks)
-        return tasks_per_job
+        return tasks_per_job, current_running_MSAs
 
 
 
@@ -203,13 +205,14 @@ def current_tasks_pipeline(trimmed_test_msa_path, current_tasks, current_results
     job_first_index = 0
     max_n_MSAs_per_job = args.max_n_tasks_per_job if args.max_n_tasks_per_job>0 else ceil(len(current_tasks)/args.max_n_parallel_jobs)
     logging.info(f"Maximal number of MSAs per job is {max_n_MSAs_per_job}")
+    prev_running_MSAs = []
     while len(current_tasks) > 0:  # Make sure all current tasks are performed
         number_of_available_jobs_to_send = args.max_n_parallel_jobs - len(job_tracking_dict)
         if number_of_available_jobs_to_send > 0:  # Available new jobs.
             logging.info(f"## Currently {len(job_tracking_dict)} jobs are running  ,  {number_of_available_jobs_to_send} available jobs are about to be sent!")
             logging.info(f"Remaining MSAs to be fully done: {len(current_tasks)}")
-            tasks_per_job = assign_MSA_tasks_over_available_jobs(current_tasks,
-                                                                 number_of_available_jobs_to_send)  # Partitioning of tasks over jobs
+            tasks_per_job, prev_running_MSAs = assign_MSA_tasks_over_available_jobs(current_tasks,
+                                                                 number_of_available_jobs_to_send, max_n_MSAs_per_job, prev_running_MSAs)  # Partitioning of tasks over jobs
             for i, MSAs_tasks in enumerate(tasks_per_job):
                 job_ind = job_first_index + i
                 logging.info(f"Submitted job number {job_ind}, which will work {len(MSAs_tasks)} MSAs")
