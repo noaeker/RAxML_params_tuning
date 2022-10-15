@@ -95,11 +95,19 @@ def main():
         logging.info(f"Working on MSA: {MSA}")
         MSA_tasks = job_tasks_dict_per_MSA[MSA]
         msa_job_done_dict = {}
+        first_total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
+        logging.info(f"Total test time1 is: {first_total_test_time}")
         total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
-        logging.info(f"Total test time is: {total_test_time}")
+        logging.info(f"Total test time2 is: {total_test_time}")
+        start_time = time.time()
         for i, task_key in (enumerate(MSA_tasks)):
             if os.path.exists(job_local_stop_running_path):  # break out of the loop if all tasks are done
                 break
+            end_time = time.time() # check currnet time
+            if (end_time-start_time)>args.time_between_tests:
+                logging.info(f"{args.time_between_tests} second have passed, re-performing the test")
+                total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
+                logging.info(f"Total test time is: {total_test_time}")
             logging.info(f"Performing task number {i + 1}/{len(MSA_tasks)}, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
             raxml_run = MSA_tasks[task_key]
             with open(tmp_starting_tree_path, 'w') as TMP_STARTING_TREE_PATH:
@@ -107,12 +115,10 @@ def main():
 
             results = single_tree_RAxML_run(args.curr_job_folder, raxml_run, tmp_starting_tree_path)
             results["test_norm_const"] = total_test_time
+            results["job_ind"] = args.job_ind
             logging.debug(f"Current task results: {results}")
             raxml_run.set_run_results(results)
             msa_job_done_dict[task_key] = raxml_run
-            if i%args.time_between_tests==0:
-                total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
-                logging.info(f"Total test time is: {total_test_time}")
         job_done_dict[MSA] = msa_job_done_dict
         with open(job_local_done_dump_path, "wb") as LOCAL_DONE_DUMP:
             pickle.dump(job_done_dict, LOCAL_DONE_DUMP)

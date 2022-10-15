@@ -20,6 +20,21 @@ library(lubridate)
 ```
 
 ```{r}
+test_features = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/global_csv_new_msa_new_msa2022_10_16_48_.tsv")
+```
+```{r}
+test_features
+```
+
+```{r}
+test_features %>% group_by(msa_path) %>% summarise (d = (max(test_norm_const)-min(test_norm_const))/min(test_norm_const)) %>% arrange(-d)
+```
+```{r}
+test_features %>% filter (msa_path=='/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00903.fasta') %>% distinct (starting_tree_type, test_norm_const)
+```
+
+
+```{r}
 ML_edited_features =  read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/ML_edited_features.tsv")
 raw_final_data = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/raw_final_performance.tsv")
 model_performance = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/final_performance_comp.tsv")
