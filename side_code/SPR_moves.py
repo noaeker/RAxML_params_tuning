@@ -22,6 +22,9 @@ def get_all_edges(main_tree_root_pointer_cp):
             edges_list.append(edge)
     return edges_list
 
+
+
+
 def get_all_possible_spr_moves(starting_tree, min_rearr_dist = -1, max_rearr_dist = np.inf):
     main_tree_root_pointer_cp = starting_tree.copy()
     edges_list = get_all_edges(main_tree_root_pointer_cp)
@@ -98,4 +101,31 @@ def get_random_spr_moves_vs_distances(starting_tree,starting_tree_ll, n_iteratio
 
 
 
+def get_spr_moves_vs_distances(starting_tree,starting_tree_ll, n_iterations,curr_run_directory, msa_path, msa_type):
+    main_tree_root_pointer_cp = starting_tree.copy()
+    edges_list = get_all_edges(main_tree_root_pointer_cp)
+    distances = []
+    ll_improvements = []
+    i = 0
+    while len(distances)<n_iterations:
+            np.random.seed(SEED+i)
+            i+=1
+            prune_edge, rgft_edge = np.random.choice(edges_list, size=2, replace= False)
+            curr_rearr_dist = get_distance_between_edges(starting_tree,prune_edge,rgft_edge)
+            move=(prune_edge, rgft_edge)
+            if not ((prune_edge.node_a == rgft_edge.node_a) or (prune_edge.node_b == rgft_edge.node_b) or (
+                    prune_edge.node_b == rgft_edge.node_a) or (prune_edge.node_a == rgft_edge.node_b)):
+                neighbour = generate_neighbour(starting_tree,move)
+                neighbour_ll, tree_alpha,tree_path = EVAL_tree_object_ll(neighbour, curr_run_directory, msa_path, msa_type)
+                ll_improvements.append(neighbour_ll-starting_tree_ll)
+                distances.append(curr_rearr_dist)
+    return distances, ll_improvements
 
+
+def main():
+    tree = Tree('(A:1,(B:1,(C:1,D:1):0.5):0.5);')
+    print(tree)
+
+
+if __name__ == "__main__":
+    main()

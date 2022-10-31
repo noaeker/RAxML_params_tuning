@@ -19,31 +19,22 @@ library(survminer)
 library(lubridate)
 ```
 
-```{r}
-test_features = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/global_csv_new_msa_new_msa2022_10_16_48_.tsv")
-```
-```{r}
-test_features
-```
 
-```{r}
-test_features %>% group_by(msa_path) %>% summarise (d = (max(test_norm_const)-min(test_norm_const))/min(test_norm_const)) %>% arrange(-d)
-```
-```{r}
-test_features %>% filter (msa_path=='/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00903.fasta') %>% distinct (starting_tree_type, test_norm_const)
-```
+
 
 
 ```{r}
 ML_edited_features =  read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/ML_edited_features.tsv")
-raw_final_data = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/raw_final_performance.tsv")
-model_performance = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/final_performance_comp.tsv")
 
 ```
-
 ```{r}
-model_performance<- model_performance %>% mutate (time_imprv = curr_sample_total_time/total_actual_time, accuracy_diff =diff-curr_sample_err )
+model_performance = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/final_performance_comp.tsv")
+model_performance<- model_performance %>% mutate (time_imprv = 20/total_actual_time, accuracy_diff =diff-mean_default_diff )
 ```
+
+
+
+
 
 Summary statistics
 
@@ -51,12 +42,15 @@ Summary statistics
 ML_edited_features %>% distinct (msa_path)
 ML_edited_features  %>% distinct (spr_radius)
 ML_edited_features  %>% distinct (spr_cutoff)
-per_msa_features<- ML_edited_features %>% distinct(msa_path, feature_n_loci, feature_n_seq )
+per_msa_features<- ML_edited_features %>% distinct(msa_path, feature_n_loci_mean, feature_n_seq_mean )
 
-per_msa_features %>%  ggplot(aes(x=feature_n_seq)) + geom_histogram(color="darkblue", fill="purple")+
+per_msa_features %>%  ggplot(aes(x=feature_n_seq_mean)) + geom_histogram(color="darkblue", fill="purple")+
   labs(title="Number of sequences",x="Number of sequences", y = "Count")+theme(axis.text=element_text(size=15))
-per_msa_features %>%  ggplot(aes(x=feature_n_loci)) + geom_histogram(color="darkblue", fill="orange")+
+per_msa_features %>%  ggplot(aes(x=feature_n_loci_mean)) + geom_histogram(color="darkblue", fill="orange")+
   labs(title="Number of MSA positions",x="Number of MSA positions", y = "Count")+theme(axis.text=element_text(size=15))
+```
+```{r}
+hist(model_performance$n_parsimony_trees_used)
 ```
 
 Efficiency
@@ -66,6 +60,15 @@ model_performance %>% ggplot(aes(x=time_imprv)) + geom_histogram(color="darkblue
   labs(title="Running-time improvement between default cofnfiguration to ML-based tree search",x="Running-time improvement", y = "Count")+theme(axis.text=element_text(size=14),axis.title=element_text(size=14,face="bold"))
 summary(model_performance %>% pull(time_imprv))
 ```
+
+
+```{r}
+model_performance %>% filter (mean_default_status>=0.9 & mean_default_status<1)
+model_performance %>% filter (mean_default_status<0.9)
+model_performance %>% filter (status==1)
+```
+
+
 Accuracy
 
 ```{r}
@@ -74,10 +77,11 @@ model_performance %>% ggplot(aes(x=accuracy_diff)) + geom_histogram(color="darkb
 
 summary(model_performance %>% pull(diff))
 
-summary(model_performance %>% pull(curr_sample_err))
+summary(model_performance %>% pull(mean_default_diff))
 
 summary(ML_edited_features %>% pull(delta_ll_from_overall_msa_best_topology))
 ```
+
 Overall performance
 
 ```{r}
@@ -175,6 +179,9 @@ ML_edited_features %>% filter (msa_path=="/groups/pupko/noaeker/data/ABC_DR/PAND
 ```{r}
 tree_features_analysis = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/tree_comparisons.tsv")
 ```
+
+
+
 ```{r}
 tree_features_analysis %>% head()
 ```

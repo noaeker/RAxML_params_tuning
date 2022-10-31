@@ -7,10 +7,17 @@ from sklearn.metrics import matthews_corrcoef, roc_auc_score, average_precision_
 import numpy as np
 import os
 import lightgbm
+from sklearn.feature_selection import RFECV
+from sklearn.model_selection import StratifiedKFold, GroupKFold
 from sklearn.metrics import classification_report
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 
-def classifier(X_train, y_train, n_jobs, path="error", use_lightgbm=False):
+
+
+
+
+
+def classifier(X_train,train_MSAs, y_train, n_jobs, path="error", use_lightgbm=False, do_rfe = False):
     if use_lightgbm:
         path = path + "_lightgbm"
     if os.path.exists(path):
@@ -18,73 +25,85 @@ def classifier(X_train, y_train, n_jobs, path="error", use_lightgbm=False):
         return pickle.load(open(path, "rb"))
 
     logging.info(f"Building a new classifier model")
-    if not use_lightgbm:
-        param_grid = {
-            'bootstrap': [True, False],
-            'max_depth': [80, 90, 100, 110],
-            'min_samples_leaf': [3, 4, 5],
-            'min_samples_split': [8, 10, 12],
-            'n_estimators': [100, 200, 300, 1000]
-        }
-        error_model = RandomForestClassifier()
-    else:
-        param_grid = {'boosting_type': ['gbdt', 'dart', 'rf', 'goss'],
-                      'reg_lambda': [2000.0, 100.0, 500.0, 10000.0, 1200.0, 0.0, 0.5, 1.5, 3],
-                      'reg_alpha': [10.0, 100.0, 0., 1.0, 0.5, 3.0],
-                      'num_leaves': [100, 50],
-                      'bagging_fraction': [0.1, 0.3, 0.5, 0.75, 0.99],
-                      'subsample': [0.1, 0.3, 0.5, 0.75, 0.99]}
-        error_model = lightgbm.LGBMClassifier()
-    if LOCAL_RUN:
-        param_grid = {}
-    grid_search = GridSearchCV(estimator=error_model, param_grid=param_grid,
-                               cv=5, n_jobs=n_jobs, pre_dispatch='1*n_jobs', verbose=2)
-    grid_search.fit(X_train, y_train.ravel())
-    best_classifier = grid_search.best_estimator_
 
-    # gbm_classifier = lightgbm.LGBMClassifier()
-    # GS_res_gbm = GridSearchCV(gbm_classifier, lgbm_grid_param_space).fit(X_train, y_train.ravel())
-    # clf_gbm = GS_res_gbm.best_estimator_
-    # gbm_classifier.fit(X_train, y_train)
+    param_grid = {
+    'learning_rate': [0.005, 0.01],
+    'n_estimators': [8,16,24],
+    'num_leaves': [6,8,12,16], # large num_leaves helps improve accuracy but might lead to over-fitting
+    'boosting_type' : ['gbdt', 'dart'], # for better accuracy -> try dart
+    'objective' : ['binary'],
+    'max_bin':[255, 510], # large max_bin helps improve accuracy but might slow down training progress
+    'random_state' : [500],
+    'colsample_bytree' : [0.64, 0.65, 0.66],
+    'subsample' : [0.7,0.75],
+    'reg_alpha' : [1,1.2],
+    'reg_lambda' : [1,1.2,1.4],
+    'metric': ['auc']
+    }
+    model = lightgbm.LGBMClassifier()
+    if False:#LOCAL_RUN:
+        param_grid = {}
+    group_splitter = list(GroupKFold(n_splits=3).split(X_train, y_train.ravel(), groups=train_MSAs))
+    if do_rfe:
+        selector = RFECV(model, step=3, cv=group_splitter ,n_jobs=n_jobs)
+        selector = selector.fit(X_train, y_train.ravel())
+        model = selector.estimator
+        feature_names = selector.feature_names_in_
+        X_train = X_train[feature_names]
+        logging.info(f"Number of features after feature selection: {len(selector.support_)}")
+    #grid_search = RandomizedSearchCV(estimator= model, param_distributions=param_grid,
+    #                           cv=group_splitter, n_jobs=n_jobs, pre_dispatch='1*n_jobs', verbose=2)
+    #grid_search.fit(X_train, y_train.ravel())
+    #best_classifier = grid_search.best_estimator_
+    best_classifier = model.fit(X_train, y_train.ravel())
     pickle.dump(best_classifier, open(path, "wb"))
     return best_classifier
 
 
-def regressor(X_train, y_train, n_jobs, path="gbm_time", use_lightgbm=False):
+def regressor(X_train,train_MSAs, y_train, n_jobs, path="gbm_time", use_lightgbm=False,do_rfe = False):
     if use_lightgbm:
         path = path + "_lightgbm"
     if os.path.exists(path):
         logging.info(f"Using existing regressor model in {path}")
         return pickle.load(open(path, "rb"))
     logging.info(f"Building a new regressor model")
-    if not use_lightgbm:
-        param_grid = {
-            'bootstrap': [True, False],
-            'max_depth': [80, 90, 100, 110],
-            'min_samples_leaf': [3, 4, 5],
-            'min_samples_split': [8, 10, 12],
-            'n_estimators': [100, 200, 300, 1000]
-        }
-        model = RandomForestRegressor()
-    else:
-        param_grid = {'boosting_type': ['gbdt', 'dart', 'rf', 'goss'],
-                      'reg_lambda': [2000.0, 100.0, 500.0, 10000.0, 1200.0, 0.0, 0.5, 1.5, 3],
-                      'reg_alpha': [10.0, 100.0, 0., 1.0, 0.5, 3.0],
-                      'num_leaves': [100, 50],
-                      # 'bagging_fraction': [0.1, 0.3, 0.5, 0.75, 0.99],
-                      'subsample': [0.1, 0.3, 0.5, 0.75, 0.99]}
+    param_grid =  {
+    'learning_rate': [0.005, 0.01],
+    'n_estimators': [8,16,24],
+    'num_leaves': [6,8,12,16], # large num_leaves helps improve accuracy but might lead to over-fitting
+    'boosting_type' : ['gbdt', 'dart'], # for better accuracy -> try dart
+    'max_bin':[255, 510], # large max_bin helps improve accuracy but might slow down training progress
+    'random_state' : [500],
+    'colsample_bytree' : [0.64, 0.65, 0.66],
+    'subsample' : [0.7,0.75],
+    'reg_alpha' : [1,1.2],
+    'reg_lambda' : [1,1.2,1.4]
+    }
 
-        model = lightgbm.LGBMRegressor()
+    model = lightgbm.LGBMRegressor()
 
-    if LOCAL_RUN:
+    if False:
         param_grid = {}
-    grid_search = GridSearchCV(estimator=model, param_grid=param_grid,
-                               cv=3, n_jobs=n_jobs, pre_dispatch='1*n_jobs', verbose=2)
-    grid_search.fit(X_train, y_train.ravel())
-    best_regressor = grid_search.best_estimator_
+    group_splitter = list(GroupKFold(n_splits=3).split(X_train, y_train.ravel(), groups=train_MSAs))
+    if do_rfe:
+
+        selector = RFECV(model, step=3, cv=group_splitter, n_jobs=n_jobs)
+        selector = selector.fit(X_train, y_train.ravel())
+        model = selector.estimator
+        feature_names = selector.feature_names_in_
+        X_train = X_train[feature_names]
+        logging.info(f"Number of features after feature selection: {len(selector.support_)}")
+
+    #grid_search = RandomizedSearchCV(estimator=model, param_distributions=param_grid,
+    #                           cv=group_splitter, n_jobs=n_jobs, pre_dispatch='1*n_jobs', verbose=2)
+    #grid_search.fit(X_train, y_train.ravel())
+    #best_regressor = grid_search.best_estimator_
+    best_regressor = model.fit(X_train, y_train.ravel())
     # Calculate the absolute errors
     pickle.dump(best_regressor, open(path, "wb"))
     return best_regressor
+
+
 
 def print_model_statistics(model, train_data,test_data,y_test,is_classification, vi_path, name):
     var_impt = variable_importance(train_data,model)
