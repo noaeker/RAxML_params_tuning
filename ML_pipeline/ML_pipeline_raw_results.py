@@ -10,9 +10,7 @@ from side_code.config import *
 from ML_pipeline.ML_pipeline_procedures import get_MSA_clustering_and_threshold_results,get_average_results_on_default_configurations_per_msa,try_different_tree_selection_metodologies, edit_raw_data_for_ML
 from ML_pipeline.ML_algorithms_and_hueristics import classifier, regressor, print_model_statistics, train_test_validation_splits, \
     variable_importance
-from ML_pipeline.ML_config import *
 import pandas as pd
-from pandas.api.types import is_numeric_dtype
 import os
 import argparse
 import numpy as np
@@ -42,19 +40,16 @@ def get_ML_ready_data(full_data, data_feature_names, search_feature_names, test_
     train_data, test_data, validation_data = train_test_validation_splits(
         full_data, test_pct=test_pct, val_pct= val_pct)
     X_train = train_data[data_feature_names + search_feature_names]
-    train_MSAs = train_data['msa_path']
-    y_train_err = train_data[Y_TEST_ERROR]
-    y_train_time = train_data[Y_TEST_TIME]
+    y_train_err = train_data["is_global_max"]
+    y_train_time = train_data["normalized_relative_time"]
     X_test = test_data[data_feature_names + search_feature_names]
-    test_MSAs = test_data['msa_path']
-    y_test_err = test_data[Y_TEST_ERROR]
-    y_test_time = test_data[Y_TEST_TIME]
+    y_test_err = test_data["is_global_max"]
+    y_test_time = test_data["normalized_relative_time"]
     X_val = validation_data[data_feature_names + search_feature_names]
-    validation_MSAs = validation_data['msa_path']
-    y_val_err = validation_data[Y_TEST_ERROR]
-    y_val_time = validation_data[Y_TEST_TIME]
-    return {"X_train": X_train,"train_MSAs": train_MSAs, "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test": X_test,
-            "y_test_err": y_test_err, "y_test_time": y_test_time,"test_MSAs": test_MSAs, "X_val": X_val, "y_val_err": y_val_err, "y_val_time": y_val_time, "val_MSAs": validation_MSAs,
+    y_val_err = validation_data["is_global_max"]
+    y_val_time = validation_data["normalized_relative_time"]
+    return {"X_train": X_train, "train_MSAs": train_data["msa_path"], "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test": X_test,
+            "y_test_err": y_test_err, "y_test_time": y_test_time, "X_val": X_val, "y_val_err": y_val_err, "y_val_time": y_val_time,
             "full_test_data": test_data, "full_train_data" : train_data, "full_validation_data": validation_data}
 
 
@@ -83,30 +78,33 @@ def get_file_paths(args):
 
 
 
-def generate_basic_data_dict(data_for_ML,args):
+def generate_basic_data_dict(data_for_ML, args):
     logging.info("Removing columns with NA")
     data_for_ML = data_for_ML.dropna(axis=1)  # remove columns with NAs
-    all_MSA_features = BASIC_ANALYSIS_FEATURES
-    for col in all_MSA_features:
+    msa_features = [col for col in data_for_ML.columns if col in ["pypythia_msa_difficulty"] or
+                    (col.startswith("feature_")  and col not in ["feature_msa_path", "feature_msa_name",
+                                                                "feature_msa_type"])]
+    for col in msa_features:
         data_for_ML[col] = pd.to_numeric(data_for_ML[col])
-    logging.info(f"MSA features are: {all_MSA_features}\n Tree search features are: {tree_search_features}")
-    data_dict = get_ML_ready_data(data_for_ML, all_MSA_features, tree_search_features, test_pct=args.test_pct,
+    logging.info(f"Features are: {msa_features}")
+    search_features = ['spr_radius', 'spr_cutoff', 'starting_tree_bool', "starting_tree_ll"]
+    data_dict = get_ML_ready_data(data_for_ML, msa_features, search_features, test_pct=args.test_pct,
                                   val_pct=args.val_pct)
     return data_dict
 
 
 
 def generate_single_tree_models(data_dict, file_paths, args):
-    time_model = regressor(data_dict["X_train"],data_dict["train_MSAs"], data_dict["y_train_time"], args.n_jobs, file_paths["time_model_path"],
-                           args.lightgbm)
+    time_model = regressor(X=data_dict["X_train"], groups =data_dict["train_MSAs"],  y=data_dict["y_train_time"], n_jobs=args.n_jobs, path = file_paths["time_model_path"])
     print_model_statistics(model=time_model, train_data=data_dict["X_train"], test_data=data_dict["X_test"],
                            y_test=data_dict["y_test_time"], is_classification=False, vi_path=file_paths["time_vi"],
                            name="Time regression model")
-    error_model = classifier(data_dict["X_train"],data_dict["train_MSAs"], data_dict["y_train_err"], args.n_jobs,
-                             file_paths["error_model_path"], args.lightgbm)
+    error_model = classifier(X = data_dict["X_train"], groups= data_dict["train_MSAs"], y = data_dict["y_train_err"], n_jobs=args.n_jobs,
+                             path = file_paths["error_model_path"])
     print_model_statistics(model=error_model, train_data=data_dict["X_train"], test_data=data_dict["X_test"],
                            y_test=data_dict["y_test_err"], is_classification=True, vi_path=file_paths["error_vi"],
                            name="Error classification model")
+
     return time_model, error_model
 
 def generate_tree_groups_model_on_validation_data(file_paths, data_dict, time_model, error_model, args):
@@ -123,11 +121,12 @@ def generate_tree_groups_model_on_validation_data(file_paths, data_dict, time_mo
                                                                                             enriched_validation_data,max_starting_trees= args.max_starting_trees,clusters_max_dist_options = args.clusters_max_dist_options)
         validation_data_algorithms_performance_df.to_csv(file_paths["val_performance_for_each_methodology"], sep=CSV_SEP)
 
-    features_columns = FINAL_ANALYSIS_FEATURES
-    final_ML_validation_data = validation_data_algorithms_performance_df[features_columns]
+    final_ML_features = [col for col in validation_data_algorithms_performance_df.columns if col.endswith('_mean') and col.startswith('feature')] + [
+        "clusters_max_dist", "sum_of_predicted_success_probability", "total_time_predicted","n_random_trees_used","n_parsimony_trees_used"]
+    final_ML_validation_data = validation_data_algorithms_performance_df[final_ML_features]
     logging.info("About to generate a final error model trained on validation data")
-    total_error_model = classifier(final_ML_validation_data,validation_data_algorithms_performance_df["msa_path"], validation_data_algorithms_performance_df["status"], 1,
-                       file_paths["required_accuracy_model_path"])
+    total_error_model = classifier(X = final_ML_validation_data, groups = validation_data_algorithms_performance_df["msa_path"], y=validation_data_algorithms_performance_df["status"], n_jobs = 1,
+                                   path = file_paths["required_accuracy_model_path"])
     return final_ML_validation_data,total_error_model
 
 
@@ -148,14 +147,14 @@ def apply_tree_groups_model_on_test_data(validation_data_algorithms_performance_
 
         test_data_algorithms_performance_df.to_csv(file_paths["test_performance_for_each_methodology"], sep=CSV_SEP)
 
-    features_columns = FINAL_ANALYSIS_FEATURES
-    test_data_for_final_ML = test_data_algorithms_performance_df[features_columns]
+
+    test_data_for_final_ML = test_data_algorithms_performance_df[[col for col in test_data_algorithms_performance_df.columns if col.endswith('_mean')  and col.startswith('feature')]+["clusters_max_dist","sum_of_predicted_success_probability","total_time_predicted","n_random_trees_used","n_parsimony_trees_used"]]
     test_data_algorithms_performance_df['predicted_total_accuracy'] = total_error_model.predict_proba(test_data_for_final_ML)[:, 1]
     print_model_statistics(model=total_error_model,train_data=validation_data_algorithms_performance_df, test_data=test_data_for_final_ML, y_test=test_data_algorithms_performance_df["status"],vi_path= file_paths["final_error_vi"],
                            is_classification=True, name="Final Error classification model")
     test_data_algorithms_performance_df["max_accuracy"] = test_data_algorithms_performance_df.groupby("msa_path")['predicted_total_accuracy'].transform(np.max)
     test_performance_df= test_data_algorithms_performance_df[test_data_algorithms_performance_df.predicted_total_accuracy>=test_data_algorithms_performance_df.max_accuracy*args.accuracy_frac]
-    test_performance_df = test_performance_df.sort_values("feature_total_time_predicted").groupby('msa_path').head(1)
+    test_performance_df = test_performance_df.sort_values("total_time_predicted").groupby('msa_path').head(1)
     test_performance_df.to_csv(file_paths["performance_on_test_set"], sep=CSV_SEP)
     return test_performance_df
 
@@ -177,7 +176,7 @@ def main():
                         default=np.linspace(0,1,5))
     parser.add_argument('--n_jobs', action='store', type=int,
                         default=1)
-    parser.add_argument('--accuracy_frac', action = 'store', default = 0.9 )
+    parser.add_argument('--accuracy_frac', action = 'store', default = 0.7 )
     parser.add_argument('--lightgbm', action='store_true', default=True)
     args = parser.parse_args()
     file_paths = get_file_paths(args)
@@ -187,14 +186,14 @@ def main():
         os.remove(file_paths["log_file"])
     logging.basicConfig(filename=file_paths["log_file"], level=logging_level)
     features_data = features_data.loc[~features_data.msa_path.str.contains("single-gene_alignments")]
+    relevant_features = [col for col in features_data.columns if col in ["pypythia_msa_difficulty"] or
+                    (col.startswith("feature_")  and col not in ["feature_msa_path", "feature_msa_name",
+                                                                "feature_msa_type"])]
 
     if os.path.exists(file_paths["ML_edited_features_path"]) and os.path.exists(file_paths["ML_edited_default_data_path"]):
         logging.info(f"Using existing enriched features data in {file_paths['ML_edited_features_path']}")
         enriched_features_data = pd.read_csv(file_paths["ML_edited_features_path"], sep=CSV_SEP)
         enriched_default_data = pd.read_csv(file_paths["ML_edited_default_data_path"], sep=CSV_SEP)
-
-    MSA_features = [col for col in enriched_features_data.columns if col.starts_with('feature_') and np.sum(enriched_features_data[col].groupby('msa_path').var) ]
-    tree_features = []
     else:
         logging.info(f"Enriching features data in {file_paths['features_path']} and saving to {file_paths['ML_edited_features_path']}")
         edited_data = edit_raw_data_for_ML(features_data, epsilon)
@@ -218,7 +217,7 @@ def main():
     #aggregated_default_results = default_data_performance.groupby(by=["msa_path"]).mean().reset_index()
 
     raw_comp = performance_on_test_set.merge(default_data_performance, how = 'left', on="msa_path")
-    aggregated_comp =raw_comp.groupby(by=["msa_path","feature_clusters_max_dist","feature_n_parsimony_trees_used","feature_n_random_trees_used","feature_sum_of_predicted_success_probability","status","diff","feature_total_time_predicted","total_actual_time"]).agg(mean_default_diff = ('default_final_err',np.mean),mean_default_status = ('default_status', np.mean)).reset_index()
+    aggregated_comp =raw_comp.groupby(by=["msa_path","clusters_max_dist","n_parsimony_trees_used","n_random_trees_used","sum_of_predicted_success_probability","status","diff","total_time_predicted","total_actual_time"]).agg(mean_default_diff = ('default_final_err',np.mean),mean_default_status = ('default_status', np.mean)).reset_index()
 
     aggregated_comp.to_csv(file_paths["final_comparison_path"], sep=CSV_SEP)
 

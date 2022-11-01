@@ -24,9 +24,26 @@ library(lubridate)
 
 
 ```{r}
-ML_edited_features =  read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/ML_edited_features.tsv")
+ML_edited_features =  read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/ML_edited_features_good.tsv")
+```
+```{r}
+prev_ML_edited_features = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/ML_edited_features.tsv")
+```
+
+
+```{r}
+ML_edited_features %>% distinct (msa_path,feature_pypythia_msa_difficulty,feature_pypythia_msa_difficulty_averaged_over_MSAs) %>% head(30)
+
+prev_ML_edited_features %>% distinct (msa_path,feature_pypythia_msa_difficulty) %>% head(30)
 
 ```
+
+
+```{r}
+ML_edited_features$feature_n_seq_mean
+```
+
+
 ```{r}
 model_performance = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/final_performance_comp.tsv")
 model_performance<- model_performance %>% mutate (time_imprv = 20/total_actual_time, accuracy_diff =diff-mean_default_diff )
@@ -79,7 +96,7 @@ summary(model_performance %>% pull(diff))
 
 summary(model_performance %>% pull(mean_default_diff))
 
-summary(ML_edited_features %>% pull(delta_ll_from_overall_msa_best_topology))
+
 ```
 
 Overall performance

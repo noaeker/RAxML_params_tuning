@@ -6,16 +6,20 @@ import pandas as pd
 import numpy as np
 from sklearn.cluster import AgglomerativeClustering
 from pandas.api.types import is_numeric_dtype
-from ML_pipeline.ML_config import *
 
 import os
 
 
+def scale_if_needed(vec):
+    if is_numeric_dtype(vec):
+        if np.var(vec)>0:
+            return (vec - vec.mean()) / vec.std()
+    else:
+        return vec
 
 
 
 def edit_raw_data_for_ML(data, epsilon):
-    #All features
     data["msa_name"] = data["msa_path"].apply(lambda s: remove_env_path_prefix(s))
     data["is_global_max"] = (data["delta_ll_from_overall_msa_best_topology"] <= epsilon).astype('int')
     # data["is_global_max"] = data.groupby('msa_path').transform(lambda x: x<= x.quantile(0.1))["delta_ll_from_overall_msa_best_topology"]
@@ -23,7 +27,7 @@ def edit_raw_data_for_ML(data, epsilon):
     mean_default_running_time = \
         data[data["type"] == "default"].groupby('msa_path')['relative_time'].mean().reset_index().rename(
             columns={'relative_time': 'mean_default_time'})
-    data["feature_starting_tree_bool"] = data["starting_tree_type"] == "pars"
+    data["starting_tree_bool"] = data["starting_tree_type"] == "pars"
     data = data.merge(mean_default_running_time, on='msa_path')
     data["normalized_relative_time"] = data["relative_time"] / data["mean_default_time"]
     data["feature_diff_vs_best_tree"] = \
@@ -33,15 +37,13 @@ def edit_raw_data_for_ML(data, epsilon):
     data["feature_seq_to_unique_loci"] = data["feature_n_seq"] / data["feature_n_unique_sites"]
     non_default_data = data[data["type"] != "default"].copy()
     default_data= data[data["type"] == "default"].copy()
+    relevant_columns = [col for col in non_default_data.columns if col.startswith('feature') and is_numeric_dtype(non_default_data[col]) ]
     mean_transformations = non_default_data.groupby('msa_path').transform(lambda vec: np.mean(vec))
-    averaged_columns = []
-    for col in TREE_FEATURES_LIST:
-        name = col+"_averaged_per_entire_MSA"
-        averaged_columns.append(name)
-        non_default_data[name] = mean_transformations[col]
-    #std_transformations = non_default_data.groupby('msa_path').transform(lambda vec :(vec - vec.mean()) / vec.std()+0.01)
-    #for col in TREE_FEATURES_LIST:
-    #    non_default_data[col] = std_transformations[col]
+    for col in relevant_columns:
+        non_default_data[col+"_averaged_over_MSAs"] = mean_transformations[col]
+    std_transformations = non_default_data.groupby('msa_path').transform(lambda vec :(vec - vec.mean()) / vec.std())
+    for col in relevant_columns:
+        non_default_data[col] = std_transformations[col]
     return {"non_default": non_default_data, "default": default_data}
 
 
@@ -112,7 +114,7 @@ def get_best_parsimony_config_per_cluster(curr_run_directory, best_configuration
 
 
 
-def get_best_configuration_per_starting_tree(curr_msa_data_per_tree):
+def  get_best_configuration_per_starting_tree(curr_msa_data_per_tree):
     result = []
     for starting_tree_ind in curr_msa_data_per_tree['starting_tree_ind'].unique():
         for starting_tree_type in curr_msa_data_per_tree['starting_tree_type'].unique():
@@ -126,34 +128,38 @@ def get_best_configuration_per_starting_tree(curr_msa_data_per_tree):
 def get_MSA_clustering_and_threshold_results(curr_run_directory, msa_data,clusters_max_dist_options,max_starting_trees):
 
     MSA_results = []
-    msa_data['predicted_success_probabilities'] = msa_data[
+    msa_columns = [col for col in msa_data.columns if col.endswith('mean')]
+    curr_msa_data_per_tree = msa_data[
+        ["msa_path", "starting_tree_ind", "starting_tree_object", "spr_radius", "spr_cutoff", "starting_tree_type",
+         "predicted_failure_probabilities", "delta_ll_from_overall_msa_best_topology", "tree_clusters_ind",
+         "is_global_max", "predicted_time", "normalized_relative_time"] + msa_columns]
+    curr_msa_data_per_tree['predicted_success_probabilities'] = curr_msa_data_per_tree[
         'predicted_failure_probabilities'].apply(lambda x: 1 - x)
-    best_configuration_per_starting_tree = get_best_configuration_per_starting_tree(msa_data)
-    clustering_const = 2 * (np.max(msa_data["feature_n_seq"])) - 3
+    best_configuration_per_starting_tree = get_best_configuration_per_starting_tree(curr_msa_data_per_tree)
+    clustering_const = 2 * (np.max(curr_msa_data_per_tree["feature_n_seq_mean"])) - 3
     best_parsimony_configuration_per_cluster_and_size = get_best_parsimony_config_per_cluster(curr_run_directory,
                                                                                               best_configuration_per_starting_tree.loc[
                                                                                                   best_configuration_per_starting_tree.starting_tree_type == "pars"],
                                                                                               normalizing_const=clustering_const,
-                                                                              max_dist_options=clusters_max_dist_options)
+                                                                                              max_dist_options=clusters_max_dist_options)
     for max_dist in best_parsimony_configuration_per_cluster_and_size:
         possible_configurations = pd.concat(
             [best_parsimony_configuration_per_cluster_and_size[max_dist], best_configuration_per_starting_tree.loc[
                 best_configuration_per_starting_tree.starting_tree_type == "rand"]]).sort_values('predicted_failure_probabilities')
         for n_trees in range(1,min(max_starting_trees, len(possible_configurations.index))+1):
-            curr_method_chosen_starting_trees = possible_configurations.head(n_trees)
-            features_columns = MSA_FEATURES_LIST+AVERAGED_FEATURES
-            curr_tree_selection_metrics = curr_method_chosen_starting_trees.groupby(["msa_path"]+features_columns).agg(
-                feature_total_time_predicted=('predicted_time', np.sum), total_actual_time=('normalized_relative_time', np.sum),
-                feature_sum_of_predicted_success_probability=('predicted_success_probabilities', np.sum),
+            curr_method_chosen_starting_trees = possible_configurations .head(n_trees)
+            curr_tree_selection_metrics = (curr_method_chosen_starting_trees.groupby(["msa_path"] + msa_columns).agg(
+                total_time_predicted=('predicted_time', np.sum), total_actual_time=('normalized_relative_time', np.sum),
+                sum_of_predicted_success_probability=('predicted_success_probabilities', np.sum),
                 status=('is_global_max', np.max),
-                diff=('delta_ll_from_overall_msa_best_topology', np.min)).reset_index().copy()
+                diff=('delta_ll_from_overall_msa_best_topology', np.min)).reset_index()).copy()
             curr_tree_selection_metrics['n_parsimony_clusters'] = len(
                 best_parsimony_configuration_per_cluster_and_size[max_dist].index)
-            curr_tree_selection_metrics["feature_clusters_max_dist"] = max_dist
-            curr_tree_selection_metrics["feature_n_trees_used"] = len(curr_method_chosen_starting_trees.index)
-            curr_tree_selection_metrics["feature_n_parsimony_trees_used"] = len(curr_method_chosen_starting_trees.loc[
+            curr_tree_selection_metrics["clusters_max_dist"] = max_dist
+            curr_tree_selection_metrics["n_trees_used"] = len(curr_method_chosen_starting_trees.index)
+            curr_tree_selection_metrics["n_parsimony_trees_used"] = len(curr_method_chosen_starting_trees.loc[
                                                                             curr_method_chosen_starting_trees.starting_tree_type == "pars"].index)
-            curr_tree_selection_metrics["feature_n_random_trees_used"] = len(curr_method_chosen_starting_trees.loc[
+            curr_tree_selection_metrics["n_random_trees_used"] = len(curr_method_chosen_starting_trees.loc[
                                                                          curr_method_chosen_starting_trees.starting_tree_type == "rand"].index)
             MSA_results.append(curr_tree_selection_metrics)
     return MSA_results
@@ -165,7 +171,6 @@ def try_different_tree_selection_metodologies(curr_run_directory, data,clusters_
     all_msa_validation_performance = []
     msa_paths =  data["msa_path"].unique()
     for msa_path in msa_paths:
-        print(msa_path)
         msa_data = data.loc[data.msa_path==msa_path]
         curr_msa_results = get_MSA_clustering_and_threshold_results(curr_run_directory, msa_data,clusters_max_dist_options,max_starting_trees)
         all_msa_validation_performance.extend(curr_msa_results)
