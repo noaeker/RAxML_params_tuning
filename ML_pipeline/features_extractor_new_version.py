@@ -264,9 +264,13 @@ def main():
     log_file_path = os.path.join(args.curr_job_folder, "features.log")
     logging.basicConfig(filename=log_file_path, level=logging.INFO)
     curr_job_raw_data = pd.read_csv(args.curr_job_raw_path, sep=CSV_SEP)
-    raw_data_with_features = enrich_raw_data(curr_run_directory=args.existing_msas_folder, raw_data=curr_job_raw_data,
-                                             iterations=args.iterations, cpus_per_job=args.cpus_per_job,
-                                             perform_topology_tests=args.perform_topology_tests, args = args, output_path=args.features_output_path)
+    try:
+        raw_data_with_features = enrich_raw_data(curr_run_directory=args.existing_msas_folder, raw_data=curr_job_raw_data,
+                                                 iterations=args.iterations, cpus_per_job=args.cpus_per_job,
+                                                 perform_topology_tests=args.perform_topology_tests, args = args, output_path=args.features_output_path)
+
+    except:
+        raw_data_with_features = pd.DataFrame()
     logging.info(f'Writing enriched data to {args.features_output_path}',args.features_output_path)
     raw_data_with_features.to_csv(args.features_output_path, sep=CSV_SEP)
 

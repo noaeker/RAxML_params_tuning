@@ -13,7 +13,7 @@ from ML_pipeline.ML_pipeline_procedures import get_average_results_on_default_co
 from ML_pipeline.ML_algorithms_and_hueristics import ML_model, print_model_statistics, train_test_validation_splits, \
     variable_importance
 from ML_pipeline.knapsack import knapsack_on_test_set
-from ML_pipeline.multi_tree_model import get_multitree_performance_on_test_set
+from ML_pipeline.multi_tree_model import get_multitree_performance_on_test_set_per_threshold
 import pandas as pd
 import os
 import argparse
@@ -51,10 +51,10 @@ def get_file_paths(args):
     "performance_on_test_set":f"{args.baseline_folder}/overall_performance_on_test_set{CSV_SUFFIX}",
      "time_model_path": f"{args.baseline_folder}/time.model",
      "final_comparison_path": f"{args.baseline_folder}/final_performance_comp{CSV_SUFFIX}",
+            "final_comparison_path_agg": f"{args.baseline_folder}/final_performance_comp_agg{CSV_SUFFIX}",
      "log_file": f"{args.baseline_folder}/ML_log_file.log","time_vi": f"{args.baseline_folder}/time_vi{CSV_SUFFIX}",
             "error_vi": f"{args.baseline_folder}/error_vi{CSV_SUFFIX}",
             "final_error_vi": f"{args.baseline_folder}/final_error_vi{CSV_SUFFIX}",
-            "agg_validation_tree_selection_results": f"{args.baseline_folder}/agg_tree_selection{CSV_SUFFIX}",
             "ML_edited_default_data_path": f"{args.baseline_folder}/ML_edited_default_data{CSV_SUFFIX}"
             }
 
@@ -98,7 +98,7 @@ def train_multi_tree_models(file_paths, time_model, error_model, data_dict, tota
             performance_on_test_set = knapsack_on_test_set(args.baseline_folder,data_dict,time_model,error_model)
 
         elif args.tree_choosing_method=='ML':
-            performance_on_test_set =get_multitree_performance_on_test_set(data_dict,args,time_model,error_model,total_MSA_level_features,file_paths)
+            performance_on_test_set =get_multitree_performance_on_test_set_per_threshold(data_dict, args, time_model, error_model, total_MSA_level_features, file_paths)
 
 
         performance_on_test_set.to_csv(file_paths["performance_on_test_set"], sep = CSV_SEP)
@@ -152,8 +152,9 @@ def main():
         default_data_performance = pd.read_csv(file_paths["default_path"], sep=CSV_SEP)
 
     raw_comp = performance_on_test_set.merge(default_data_performance, how = 'left', on="msa_path")
-    aggregated_comp =raw_comp.groupby(by=["msa_path","clusters_max_dist","max_accuracy","feature_msa_pypythia_msa_difficulty","predicted_total_accuracy_calibrated","predicted_total_accuracy","predicted_iid_single_tree_failure_probability","n_parsimony_trees_used","n_random_trees_used","status","diff","total_time_predicted","total_actual_time"]).agg(mean_default_diff = ('default_final_err',np.mean),mean_default_status = ('default_status', np.mean)).reset_index()
-    #overall_results = aggregated_comp.groupby
+    aggregated_comp =raw_comp.groupby(by=['accuracy_metric','threshold','MSAs_included',"msa_path","clusters_max_dist","max_accuracy","feature_msa_pypythia_msa_difficulty","predicted_total_accuracy_calibrated","predicted_total_accuracy","iid_expected_success_prob","n_parsimony_trees_used","n_random_trees_used","status","diff","total_time_predicted","total_actual_time"]).agg(mean_default_diff = ('default_final_err',np.mean),mean_default_status = ('default_status', np.mean)).reset_index()
+    overall_results = aggregated_comp.groupby(['accuracy_metric','threshold','MSAs_included']).agg(mean_status = ('status', np.mean), mean_default_status = ('mean_default_status', np.mean), mean_time = ("total_actual_time",np.mean), mean_LL_diff = ('diff',np.mean), mean_default_diff = ('mean_default_diff',np.mean) )
+    overall_results.to_csv(file_paths["final_comparison_path_agg"], sep = CSV_SEP)
     aggregated_comp.to_csv(file_paths["final_comparison_path"], sep=CSV_SEP)
 
 

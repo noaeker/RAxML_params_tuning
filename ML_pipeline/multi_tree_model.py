@@ -7,6 +7,7 @@ import os
 import argparse
 import numpy as np
 import pickle
+from sklearn.preprocessing import PolynomialFeatures
 
 
 def get_MSA_clustering_and_threshold_results(curr_run_directory, msa_data, clusters_max_dist_options,
@@ -43,7 +44,7 @@ def get_MSA_clustering_and_threshold_results(curr_run_directory, msa_data, clust
         possible_configurations = pd.concat(
             [best_parsimony_configuration_per_cluster_and_size[max_dist], best_configuration_per_starting_tree.loc[
                 best_configuration_per_starting_tree.starting_tree_type == "rand"]])
-        possible_configurations = possible_configurations.sort_values(by="failure_score", ascending=False)
+        possible_configurations = possible_configurations.sort_values(by="predicted_uncalibrated_success_probability", ascending=False)
         possible_configurations["clusters_max_dist"] = max_dist
         possible_configurations["total_time_predicted"] = possible_configurations["predicted_time"].cumsum()
         possible_configurations["total_actual_time"] = possible_configurations["normalized_relative_time"].cumsum()
@@ -101,23 +102,27 @@ def generate_multi_tree_data(full_data, X, time_model, error_model, args, total_
                                                                    )
     multi_tree_data_df["predicted_iid_single_tree_failure_probability"] = np.exp(
         multi_tree_data_df["sum_of_log_failure_probability_calibrated"])
+    multi_tree_data_df["predicted_iid_success_probabilities"] =multi_tree_data_df["predicted_iid_single_tree_failure_probability"].apply(lambda x: 1-x)
     final_ML_features = total_MSA_level_features + [
-        "clusters_max_dist", "sum_of_predicted_success_probability_uncalibrated",
+        "clusters_max_dist", #"sum_of_predicted_success_probability_uncalibrated",
         "sum_of_predicted_success_probability_calibrated",
-        "predicted_iid_single_tree_failure_probability", "total_time_predicted", "n_random_trees_used",
+        "predicted_iid_success_probabilities", "total_time_predicted", "n_random_trees_used",
         "n_parsimony_trees_used"]
+        #["predicted_iid_success_probabilities","feature_msa_pypythia_msa_difficulty","clusters_max_dist","n_random_trees_used","n_parsimony_trees_used"]
+
     multitree_X = multi_tree_data_df[final_ML_features]
+    #poly = PolynomialFeatures(2)
+    #multitree_X = poly.fit_transform(multitree_X)
     groups = multi_tree_data_df["msa_path"]
     multitree_Y = multi_tree_data_df["status"]
-    logging.info("About to generate a final error model trained on validation data")
     data_dict = {'full_multitree_data': multi_tree_data_df, 'multitree_X': multitree_X, 'multitree_Y': multitree_Y,
                  'groups': groups}
     pickle.dump(data_dict, open(out_path, "wb"))
     return data_dict
 
 
-def get_multitree_performance_on_test_set(data_dict, args, time_model, error_model, total_MSA_level_features,
-                                          file_paths):
+def get_multitree_performance_on_test_set_per_threshold(data_dict, args, time_model, error_model, total_MSA_level_features,
+                                                        file_paths, thredhols = [0.8,0.85,0.9,0.95,0.98,0.99, 0.999, 0.9999,0.999999999999]):
     val_multi_tree_dict = generate_multi_tree_data(data_dict["full_validation_data"],
                                                    data_dict["X_val"], time_model, error_model,
                                                    args, total_MSA_level_features,
@@ -125,7 +130,8 @@ def get_multitree_performance_on_test_set(data_dict, args, time_model, error_mod
     total_error_model = ML_model(X_train=val_multi_tree_dict["multitree_X"],
                                  groups=val_multi_tree_dict["groups"],
                                  y_train=val_multi_tree_dict["multitree_Y"], n_jobs=1,
-                                 path=file_paths["required_accuracy_model_path"], classifier=True)
+                                 path=file_paths["required_accuracy_model_path"],classifier= True,  calibrate= True
+                                 )
     test_multi_tree_dict = generate_multi_tree_data(data_dict["full_test_data"],
                                                     data_dict["X_test"], time_model,
                                                     error_model,
@@ -143,11 +149,21 @@ def get_multitree_performance_on_test_set(data_dict, args, time_model, error_mod
                            test_X=test_multi_tree_dict["multitree_X"],
                            y_test=test_multi_tree_dict["multitree_Y"],
                            vi_path=file_paths["final_error_vi"],
-                           is_classification=True, name="Final Error classification model")
-    test_full_data["max_accuracy"] = test_full_data.groupby("msa_path")[
-        'predicted_total_accuracy_calibrated'].transform(np.max)
-    test_full_data = test_full_data[
-        (test_full_data.predicted_total_accuracy_calibrated >= 0.8)]
+                           is_classification=True, name="Final Error classification model", feature_importance = True)
+    test_full_data["iid_expected_success_prob"] = test_full_data["predicted_iid_single_tree_failure_probability"].apply(lambda x: 1-x)
+    accuracy_metrics = ['predicted_total_accuracy_calibrated','predicted_total_accuracy','iid_expected_success_prob']
+    all_test_results = []
+    for metric in accuracy_metrics:
+        for threhold in thredhols:
+            current_test_data_results = test_full_data.copy()
+            current_test_data_results['accuracy_metric']= metric
+            current_test_data_results['threshold'] = threhold
+            current_test_data_results["max_accuracy"] = current_test_data_results.groupby("msa_path")[
+                metric].transform(np.max)
+            current_test_data_results = current_test_data_results[
+                (current_test_data_results[metric] >= threhold) ]
+            current_performance_on_test_set = current_test_data_results.sort_values("total_time_predicted").groupby('msa_path').head(1)
+            current_performance_on_test_set["MSAs_included"] = len(current_performance_on_test_set.index)
+            all_test_results.append(current_performance_on_test_set)
+    return pd.concat(all_test_results)
 
-    performance_on_test_set = test_full_data.sort_values("total_time_predicted").groupby('msa_path').head(1)
-    return performance_on_test_set

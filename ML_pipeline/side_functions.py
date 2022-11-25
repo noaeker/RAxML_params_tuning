@@ -17,7 +17,7 @@ def get_ML_parser():
     parser.add_argument('--max_starting_trees', action='store', type=int,
                         default=40)
     parser.add_argument('--clusters_max_dist_options', action='store', type=float,
-                        default=np.linspace(0,1,10))
+                        default=np.linspace(0,1,10)) #np.linspace(0,1,10)
     parser.add_argument('--n_jobs', action='store', type=int,
                         default=4)
     parser.add_argument('--accuracy_frac', action='store', default=0.86)

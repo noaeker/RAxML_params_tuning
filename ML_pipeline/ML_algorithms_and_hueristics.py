@@ -13,6 +13,10 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV,GroupKFold
 from sklearn.feature_selection import RFECV
 from sklearn.calibration import CalibratedClassifierCV, calibration_curve
+from sklearn.linear_model import SGDClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+from sklearn.linear_model import LogisticRegression
 
 
 
@@ -25,14 +29,18 @@ def RFE(model,X,y,group_splitter,n_jobs):
     logging.info(f"Number of features after feature selection: {X_new.shape[1]} out of {(X.shape[1])}")
     return selector,X_new, model
 
-def ML_model(X_train, groups, y_train, n_jobs, path, classifier):
+def ML_model(X_train, groups, y_train, n_jobs, path, classifier = False, model = 'lightgbm', calibrate = True):
     if os.path.exists(path):
         model = pickle.load(open(path,"rb"))
         return model
     else:
         if classifier:
-            model = lightgbm.LGBMClassifier()
-            param_grid = CLASSIFICATION_PARAM_GRID
+            if model=='Logistic':
+                model =LogisticRegression()#make_pipeline(StandardScaler(),SGDClassifier(max_iter=1000, tol=1e-3, loss = 'modified_huber'))#make_pipeline(StandardScaler(),SGDClassifier(max_iter=1000, tol=1e-3))
+                param_grid = {}
+            else:
+                model = lightgbm.LGBMClassifier()
+                param_grid = CLASSIFICATION_PARAM_GRID
         else:
             model = lightgbm.LGBMRegressor()
             param_grid = REGRESSION_PARAM_GRID
@@ -42,11 +50,11 @@ def ML_model(X_train, groups, y_train, n_jobs, path, classifier):
                                    cv=group_splitter, n_jobs=n_jobs, pre_dispatch='1*n_jobs', verbose=2)
         grid_search.fit(X_train, y_train.ravel())
         best_model = grid_search.best_estimator_
-    if classifier:
+    if classifier and calibrate:
         calibrated_model = CalibratedClassifierCV(base_estimator=best_model, cv=group_splitter, method = 'isotonic')
         calibrated_model.fit(X_train, y_train.ravel())
     else:
-        calibrated_model = None
+        calibrated_model = best_model
     model = {'best_model': best_model,'calibrated_model': calibrated_model, 'selector': selector}
     pickle.dump(model, open(path, "wb"))
     return model
@@ -65,10 +73,11 @@ def calibration_plot(model, test_data, y_test):
     pyplot.show()
 
 
-def print_model_statistics(model, test_X, y_test, is_classification, vi_path, name):
-    var_impt = variable_importance(test_X.columns,model['best_model'])
-    var_impt.to_csv(vi_path, sep=CSV_SEP)
-    logging.info(f"{name} variable importance: \n {var_impt}")
+def print_model_statistics(model, test_X, y_test, is_classification, vi_path, name,feature_importance = True):
+    if feature_importance:
+        var_impt = variable_importance(test_X.columns,model['best_model'])
+        var_impt.to_csv(vi_path, sep=CSV_SEP)
+        logging.info(f"{name} variable importance: \n {var_impt}")
     predicted = model['best_model'].predict((model['selector']).transform(test_X))
     test_metrics = model_metrics(y_test, predicted, is_classification= is_classification)
     logging.info(f"{name} metrics: \n {test_metrics}")

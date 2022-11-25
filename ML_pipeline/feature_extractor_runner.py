@@ -84,6 +84,7 @@ def main():
     counts = raw_data['msa_path'].value_counts()
     idx = counts[counts < args.min_n_observations].index
     raw_data = raw_data[~raw_data['msa_path'].isin(idx)]
+
     #non_existing_msa_paths = [(msa_path) for msa_path in raw_data['msa_path'] if get_msa_name(get_msa_name) not in existing_msa_names]
     #if LOCAL_RUN:
     #    np.random.seed(SEED)
