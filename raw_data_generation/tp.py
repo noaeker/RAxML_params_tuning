@@ -70,10 +70,11 @@ def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
             file_path_list = file_path_list[:args.MSAs_pool_size]
     logging.info("There are overall {nMSAs} available MSAs ".format(nMSAs=len(file_path_list)))
     file_path_list_full = remove_MSAs_with_not_enough_seq_and_locis(file_path_list, args.min_n_seq, args.max_n_seq, args.min_n_loci)
-    test_msa_path = file_path_list_full[0]
-    trim_MSA(test_msa_path, trimmed_test_msa_path, number_of_sequences=10, max_n_loci=500, loci_shift=0)
-    logging.debug("Alignment files are " + str(file_path_list))
-    random.seed(SEED)
+    if not os.path.exists(trimmed_test_msa_path):
+        test_msa_path = file_path_list_full[0]
+        trim_MSA(test_msa_path, trimmed_test_msa_path, number_of_sequences=10, max_n_loci=500, loci_shift=0)
+        logging.debug("Alignment files are " + str(file_path_list))
+        random.seed(SEED)
     file_path_list = random.sample(file_path_list_full, min(args.n_MSAs, len(file_path_list_full)))
     logging.info(
         "Using {} MSAs with at least {} sequences and {} positions".format(len(file_path_list), args.min_n_seq,
@@ -277,8 +278,8 @@ def main():
     file_paths_path = os.path.join(specific_shared_results_folder, f"global_file_paths_{run_prefix}")
     trimmed_test_msa_path = os.path.join(specific_shared_results_folder, "TEST_MSA")
     trees_run_directory = os.path.join(all_jobs_results_folder, 'starting_trees_generation')
-    if not args.use_existing_global_data or not os.path.exists(specific_shared_results_folder):
-        create_or_clean_dir(specific_shared_results_folder)
+    if not args.use_existing_global_data:
+        create_dir_if_not_exists(specific_shared_results_folder)
         target_msas_list = generate_file_path_list_and_test_msa(args, trimmed_test_msa_path)
         logging.info("Generating glboal results, file paths and tasks from beggining")
         pickle.dump(target_msas_list, open(file_paths_path, "wb"))
