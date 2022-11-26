@@ -26,7 +26,7 @@ def main_parser():
     parser.add_argument('--spr_cutoff_grid', action='store', type=str, default=SPR_CUTOFF_GRID)
     parser.add_argument('--trim_msa',action='store_true')
     parser.add_argument('--remove_output_files',action='store_true', default= True)
-    parser.add_argument('--use_existing_global_data',action='store_true', default= True)
+    parser.add_argument('--use_existing_global_data',action='store_true')
     parser.add_argument('--existing_global_data_to_use', type=str, default = "pandit_tuning")
     parser.add_argument('--max_n_parallel_jobs', action='store', type=int, default=N_JOBS)
     parser.add_argument('--print_commands_to_log', action='store_true')
