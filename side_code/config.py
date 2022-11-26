@@ -20,8 +20,8 @@ N_CPUS_RAXML = 1
 N_MSAS =890
 N_JOBS = 2
 N_TASKS_PER_JOB = 300
-MIN_N_SEQ = 10
-MAX_N_SEQ = 100
+MIN_N_SEQ = 1
+MAX_N_SEQ = 1000
 N_PARSIMONY_RAXML_SEARCH = 1#15
 N_RANDOM_RAXML_SEARCH = 1#15
 MIN_N_LOCI = 1
@@ -35,7 +35,7 @@ SPR_CUTOFF_GRID = "0.5"#"0.1_10_10"
 CSV_SEP = "\t"
 CSV_SUFFIX = ".tsv"
 N_MSAS_PER_BUNCH = -1
-MSAs_POOL_SIZE = 100
+MSAs_POOL_SIZE = 1000
 
 COLUMNS_TO_INCLUDE_CSV = ["msa_folder","original_alignment_path","msa_name","elapsed_running_time", "msa_type", "n_loci", "n_seq", "run_name",
                          "spr_cutoff","spr_radius","starting_tree_ll","final_ll","rf_from_curr_starting_tree_best_topology","curr_starting_tree_best_ll",
@@ -73,7 +73,7 @@ elif LOCAL_RUN:
     LOCAL_DATA_GENERATION = f"{RESULTS_FOLDER}/local_data_generation"
     READY_RAW_DATA = f"{RESULTS_FOLDER}/ready_raw_data"
     MSAs_CSV_PATH = "/Users/noa/Workspace/data/sampled_datasets.csv"
-    GENERAL_MSA_DIR = '/Users/noa/Workspace/data/new_MSAs'#"/Users/noa/Workspace/data/single-gene_alignments"
+    GENERAL_MSA_DIR = '/Users/noa/Workspace/data/new_MSAs/Selectome_msas'#"/Users/noa/Workspace/data/single-gene_alignments"
     PROJECT_ROOT_DIRECRTORY = "/Users/noa/Workspace/RAxML_params_tuning"
     MAIN_CODE_PATH = f"{PROJECT_ROOT_DIRECRTORY}/raw_data_generation/tune_params.py"
     SAMPLING_MAIN_CODE_PATH = f"{PROJECT_ROOT_DIRECRTORY}/raw_data_sampling_analysis.py"

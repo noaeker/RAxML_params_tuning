@@ -290,6 +290,11 @@ def main():
 
     with open(file_paths_path, "rb") as FILE_PATHS:
         target_msas_list = pickle.load(FILE_PATHS)
+        if args.use_existing_global_data:
+            logging.info(f"Removing existing msas in {args.old_msas_path}")
+            existing_msas_data = pd.read_csv(args.old_msas_path, sep = CSV_SEP)
+            existing_msas = existing_msas_data["msa_path"].unique()
+            target_msas_list = [p for p in target_msas_list if p not in existing_msas]
     total_msas_done = 0
     total_msas_overall = len(target_msas_list)
     logging.info(f"Number of target MSAs: {total_msas_overall}, at each iteration {args.n_MSAs_per_bunch} are handled")

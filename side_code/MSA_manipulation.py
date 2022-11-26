@@ -134,6 +134,8 @@ def get_alignment_data(msa_path):
         except:
             try:
                 data = list(SeqIO.parse(file, 'fasta'))
+                if len(data)==0:
+                    raise Exception("zero value")
             except:
                 try:
                     data = list(SeqIO.parse(file, 'phylip-relaxed'))
