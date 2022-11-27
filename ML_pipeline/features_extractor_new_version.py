@@ -103,7 +103,7 @@ def msa_features_pipeline(msa_path, existing_msa_features_path, args):
         return existing_msa_features
     logging.info("Calculating MSA general features from beggining")
     msa_general_features = pd.DataFrame.from_dict(
-        {msa_path: get_msa_stats(get_local_path(msa_path),args)}, orient='index')
+        {msa_path: get_msa_stats(get_local_path(msa_path),args)}, orient='index').reset_index()
     pickle.dump(msa_general_features, open(existing_msa_features_path, 'wb'))
     return msa_general_features
 
@@ -280,11 +280,11 @@ def enrich_raw_data(curr_run_directory, raw_data, iterations, cpus_per_job, perf
             logging.info("no data to process")
             continue
         tree_features = tree_features_pipeline(msa_path, msa_folder, msa_data, existing_tree_features_path, args)
-        processed_msa_data = processed_msa_data.merge(tree_features, right_index=True,
-                                                      on=["starting_tree_ind", "starting_tree_type"])
+        processed_msa_data = processed_msa_data.merge(tree_features, right_on=["starting_tree_ind", "starting_tree_type"],
+                                                      left_on=["starting_tree_ind", "starting_tree_type"])
         msa_features = msa_features_pipeline(msa_path, existing_msa_features_path, args)
         logging.info(f"MSA features: {msa_features}")
-        processed_msa_data = processed_msa_data.merge(msa_features, right_index=True, left_on=["msa_path"])
+        processed_msa_data = processed_msa_data.merge(msa_features, right_on=["msa_path"], left_on=["msa_path"])
 
         pickle.dump(processed_msa_data, open(msa_final_dataset_path, "wb"))
         enriched_datasets.append(processed_msa_data)
