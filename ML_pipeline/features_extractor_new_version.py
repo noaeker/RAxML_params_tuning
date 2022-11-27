@@ -255,7 +255,7 @@ def process_all_msa_RAxML_runs(curr_run_directory, processed_dataset_path, msa_d
     return msa_data
 
 
-def enrich_raw_data(curr_run_directory, raw_data, iterations, cpus_per_job, perform_topology_tests, args, output_path):
+def enrich_raw_data(curr_run_directory, raw_data, iterations, cpus_per_job, perform_topology_tests, args):
     '''
 
     :param curr_run_directory:
@@ -289,7 +289,6 @@ def enrich_raw_data(curr_run_directory, raw_data, iterations, cpus_per_job, perf
         pickle.dump(processed_msa_data, open(msa_final_dataset_path, "wb"))
         enriched_datasets.append(processed_msa_data)
         enriched_data = pd.concat(enriched_datasets)
-        enriched_data.to_csv(output_path)
     logging.info(f"Number of unique MSAs in final result is {len(enriched_data['msa_path'].unique())}")
     return enriched_data
 
@@ -302,7 +301,7 @@ def main():
     curr_job_raw_data = pd.read_csv(args.curr_job_raw_path, sep=CSV_SEP)
     raw_data_with_features = enrich_raw_data(curr_run_directory=args.existing_msas_folder, raw_data=curr_job_raw_data,
                                                      iterations=args.iterations, cpus_per_job=args.cpus_per_job,
-                                                     perform_topology_tests=args.perform_topology_tests, args = args, output_path=args.features_output_path)
+                                                     perform_topology_tests=args.perform_topology_tests, args = args)
 
     #raw_data_with_features = pd.DataFrame()
     logging.info(f'Writing enriched data to {args.features_output_path}',args.features_output_path)
