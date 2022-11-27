@@ -100,6 +100,7 @@ def main():
         if len(existing_csv_paths) > prev_number_of_jobs_done:
             prev_number_of_jobs_done = len(existing_csv_paths)
             logging.info(f"total jobs done = {len(existing_csv_paths)}")
+            add_csvs_content(existing_csv_paths, features_out_path)
     all_csv_paths = [jobs_dict[job_ind]["current_feature_output_path"] for job_ind in jobs_dict]
     logging.info(f"done with all jobs! writing to csv in {features_out_path}")
     time.sleep(60)
