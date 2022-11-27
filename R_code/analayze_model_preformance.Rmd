@@ -21,11 +21,20 @@ library(lubridate)
 
 
 ```{r}
-model_performance = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/All_data/final_performance_comp.tsv")
+model_performance = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/final_performance_comp.tsv")
 model_performance<- model_performance %>% mutate (time_imprv = 20/total_actual_time, accuracy_diff =diff-mean_default_diff )
 ```
 
 
+```{r}
+library(lme4)
+library(lmerTest)
+
+mixed1 = lmer(d ~(is_polyploid)+(1|network)+(1|original_name), data =all_binary_species_level_no_null)
+print(summary(mixed1))
+
+model_performance %>% arrange(-diff)
+```
 
 
 
@@ -54,17 +63,29 @@ Accuracy
 model_performance %>% ggplot(aes(x=accuracy_diff)) + geom_histogram(color="darkblue", fill="pink")+
   labs(title="Log-likelihood difference between default cofnfiguration to ML-based tree search",x="Log-likelihood diff", y = "Count")+theme(axis.text=element_text(size=14),axis.title=element_text(size=14,face="bold"))
 
-summary(model_performance %>% pull(diff))
+summary(model_performance  %>% pull(diff))
 
 summary(model_performance %>% pull(mean_default_diff))
 
 
 ```
+```{r}
+model_performance %>% filter (status==0) %>% arrange(-diff)
+```
 
 
 
+```{r}
+performance_on_test_set<- read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/test_methodology_performance.tsv") 
 
 
+performance_on_test_set %>% filter (msa_path=='/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF01709.fasta') %>% select (sum_of_predicted_success_probability, n_parsimony_trees_used, n_random_trees_used, diff, n_parsimony_clusters) %>% arrange(diff )
+```
+
+
+```{r}
+performance_on_test_set %>% ggplot(aes(x=sum_of_predicted_success_probability, y=diff))+geom_point()
+```
 
 
 

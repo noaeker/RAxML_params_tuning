@@ -125,7 +125,7 @@ def main():
         os.remove(file_paths["log_file"])
     logging.basicConfig(filename=file_paths["log_file"], level=logging_level)
     features_data = features_data.loc[~features_data.msa_path.str.contains("single-gene_alignments")]
-
+    logging.info(f"Number of MSAs in feature data is {len(features_data['msa_path'].unique())}")
 
     logging.info(f"Enriching features data in {file_paths['features_path']} and saving to {file_paths['ML_edited_features_path']}")
     edited_data = edit_raw_data_for_ML(features_data, epsilon)

@@ -1,7 +1,7 @@
 from side_code.config import *
 from side_code.file_handling import create_or_clean_dir, delete_dir_content, unify_text_files
 from side_code.code_submission import execute_command_and_write_to_log
-from side_code.basic_trees_manipulation import get_tree_string, generate_tree_object_from_newick
+from side_code.basic_trees_manipulation import get_tree_string, generate_multiple_tree_object_from_newick
 import os
 import time
 import re
@@ -274,6 +274,9 @@ def raxml_optimize_trees_for_given_msa(full_data_path, ll_on_data_prefix, tree_f
     trees_ll_on_data = extract_param_from_raxmlNG_log(raxml_log_file, "ll")
     tree_alpha = extract_param_from_raxmlNG_log(raxml_log_file, "alpha")
     optimized_trees_final_path = optimized_trees_path if os.path.exists(optimized_trees_path) else best_tree_path
+    #with open(optimized_trees_final_path) as TREES_PATH:
+    #    newicks = TREES_PATH.read().split("\n")
+    #    newicks = [t for t in newicks if len(t) > 0]
     return trees_ll_on_data, tree_alpha, optimized_trees_final_path
 
 
@@ -360,15 +363,3 @@ def au_test(curr_run_directory, per_tree_clusters_data, ML_tree, msa_path, cpus_
 
 
 
-def EVAL_tree_object_ll(tree_object, curr_run_directory, msa_path, msa_type, opt_brlen=False):
-    tmp_folder = os.path.join(curr_run_directory, "ll_evaluation_on_trees")
-    create_or_clean_dir(tmp_folder)
-    trees_path = os.path.join(tmp_folder, "tree_object_evaluation")
-    with open(trees_path, 'w') as BEST_TREE:
-        newick = (tree_object.write(format=1))
-        BEST_TREE.write(newick)
-    trees_ll, tree_alpha, tree_path = raxml_optimize_trees_for_given_msa(msa_path, "trees_eval", trees_path,
-                                                                         tmp_folder, msa_type, opt_brlen=opt_brlen
-                                                                         )
-    tree_object = generate_tree_object_from_newick(tree_path)
-    return trees_ll, tree_alpha, tree_object

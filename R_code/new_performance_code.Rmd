@@ -8,8 +8,44 @@ This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute
 Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
 
 ```{r}
-plot(cars)
+library(tidyverse)
+library(survival)
+library(survminer)
+library(cmprsk)
+library(tidyverse)
+library(caret)
+library(survival)
+library(survminer)
+library(lubridate)
 ```
+
+```{r}
+data<-read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/all_features.tsv")
+```
+
+
+```{r}
+summary (data %>% pull (feature_msa_pypythia_msa_difficulty))
+```
+
+```{r}
+performance_data<-read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/final_performance_comp_agg.tsv")
+```
+```{r}
+performance_data
+
+performance_data %>% ggplot(aes(x=threshold, y = mean_status, color = accuracy_metric)) +expand_limits(y = 0)+geom_point()+ geom_line()+geom_abline(slope=1, intercept = 0, color = 'black') 
+
+
+performance_data %>% ggplot(aes(y=mean_status-mean_default_status, x = mean_time, color = accuracy_metric)) +expand_limits(y = 0)+ geom_line()
+
+performance_data %>% ggplot(aes(y=mean_LL_diff-mean_default_diff, x = mean_time, color = accuracy_metric)) +expand_limits(y = 0)+ geom_line()
+```
+```{r}
+performance_data
+```
+
+
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
 

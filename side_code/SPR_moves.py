@@ -1,6 +1,5 @@
 
 from side_code.basic_trees_manipulation import Edge,generate_tree_object_from_newick
-from side_code.raxml import EVAL_tree_object_ll
 from side_code.config import *
 import numpy as np
 from ete3 import Tree
@@ -94,7 +93,7 @@ def get_random_spr_moves_vs_distances(starting_tree,starting_tree_ll, n_iteratio
             if not ((prune_edge.node_a == rgft_edge.node_a) or (prune_edge.node_b == rgft_edge.node_b) or (
                     prune_edge.node_b == rgft_edge.node_a) or (prune_edge.node_a == rgft_edge.node_b)):
                 neighbour = generate_neighbour(starting_tree,move)
-                neighbour_ll, tree_alpha,tree_path = EVAL_tree_object_ll(neighbour, curr_run_directory, msa_path, msa_type)
+                neighbour_ll, tree_alpha,tree_path = EVAL_tree_objects_ll(neighbour, curr_run_directory, msa_path, msa_type)
                 ll_improvements.append(neighbour_ll-starting_tree_ll)
                 distances.append(curr_rearr_dist)
     return distances, ll_improvements
@@ -116,7 +115,7 @@ def get_spr_moves_vs_distances(starting_tree,starting_tree_ll, n_iterations,curr
             if not ((prune_edge.node_a == rgft_edge.node_a) or (prune_edge.node_b == rgft_edge.node_b) or (
                     prune_edge.node_b == rgft_edge.node_a) or (prune_edge.node_a == rgft_edge.node_b)):
                 neighbour = generate_neighbour(starting_tree,move)
-                neighbour_ll, tree_alpha,tree_path = EVAL_tree_object_ll(neighbour, curr_run_directory, msa_path, msa_type)
+                neighbour_ll, tree_alpha,tree_path = EVAL_tree_objects_ll(neighbour, curr_run_directory, msa_path, msa_type)
                 ll_improvements.append(neighbour_ll-starting_tree_ll)
                 distances.append(curr_rearr_dist)
     return distances, ll_improvements
