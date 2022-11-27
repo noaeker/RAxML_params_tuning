@@ -187,19 +187,20 @@ def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_
     tree_extra_features = pd.DataFrame(extensions)
 
 
-    #distances = np.array(RF_distances(curr_run_directory, trees_path_a=trees_path, trees_path_b=None,
-    #                                  name="RF"))
-    #X = np.zeros((len(trees_features_data.index), len(trees_features_data.index)))
-    #triu = np.triu_indices(len(trees_features_data.index), 1)
-    #X[triu] = distances
-    #X = X.T
-    #X[triu] = X.T[triu]
-    #y = trees_features_data["starting_tree_ll"]
+    distances = np.array(RF_distances(curr_run_directory, trees_path_a=trees_path, trees_path_b=None,
+                                      name="RF"))
+    X = np.zeros((len(trees_features_data.index), len(trees_features_data.index)))
+    triu = np.triu_indices(len(trees_features_data.index), 1)
+    X[triu] = distances
+    X = X.T
+    X[triu] = X.T[triu]
+    y = trees_features_data["starting_tree_ll"]
     #neigh = KNeighborsRegressor(n_neighbors=2, weights= 'distance', metric = 'precomputed')
     #regressor  = neigh.fit(X,y)
     #output = regressor.predict(X)
-    #mds = MDS(random_state=0, n_components= 2)
-    #X_transform = mds.fit_transform(X)
+    mds = MDS(random_state=0, n_components= 1)
+    X_transform = mds.fit_transform(X)
+    trees_features_data["mds"] = list(X_transform[:, 0])
     #data = pd.DataFrame({'x':X[:, 0],'y': X[:, 1] })
     #plt.figure()
     #sns.scatterplot(x='x', y='y', data = data, hue= trees_features_data["starting_tree_type"])
