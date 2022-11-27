@@ -118,12 +118,20 @@ def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_tr
     rf_values = []
     parsimony_LL_differences = [tree_LL-pars_LL for pars_LL in all_parsimony_trees_LL]
     random_LL_differences = [tree_LL - rand_LL for rand_LL in all_random_trees_LL]
+
     for parsimony_tree in all_parsimony_trees:
         rf_values.append(
             rf_distance(curr_run_directory, tree_object.write(format=1), parsimony_tree, name="tree_vs_parsimony_rf"))
+
     corcoeff, pval = spearmanr(parsimony_LL_differences, rf_values)
     LL_rf_corr =  0 if math.isnan(corcoeff) else corcoeff
-    all_tree_features = {"feature_tree_MAD": mad_tree_parameter(curr_tree_path), 'feature_tree_parsimony_dist_vs_LL_imprv_corr':LL_rf_corr }
+    affinity = [1-val for val in rf_values]
+    if np.sum(affinity)==0:
+        LL_neighbour_score = tree_LL
+    else:
+        LL_neighbour_score = np.dot(np.array(affinity), np.array(all_parsimony_trees_LL))/np.sum(affinity)
+
+    all_tree_features = {"feature_tree_MAD": mad_tree_parameter(curr_tree_path), 'feature_tree_parsimony_dist_vs_LL_imprv_corr':LL_rf_corr, 'feature_tree_LL_neighbour_score': LL_neighbour_score }
     multidimensional_features = {'feature_tree_branch_lengths' : BL_metrics["BL_list"], "feature_tree_distances_between_taxa":tree_distances, "feature_tree_parsimony_rf_values" : rf_values, "feature_LL_diff_vs_parsimony": parsimony_LL_differences,"feature_LL_diff_vs_random": random_LL_differences}
     for feature in multidimensional_features:
         all_tree_features.update(get_summary_statistics_dict(feature, multidimensional_features[feature]))
