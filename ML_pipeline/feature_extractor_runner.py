@@ -85,13 +85,11 @@ def main():
     idx = counts[counts < args.min_n_observations].index
     raw_data = raw_data[~raw_data['msa_path'].isin(idx)]
 
-
-    #non_existing_msa_paths = [(msa_path) for msa_path in raw_data['msa_path'] if get_msa_name(get_msa_name) not in existing_msa_names]
-    #if LOCAL_RUN:
-    #   np.random.seed(SEED)
-    #   msa_names = list(np.unique(raw_data["msa_path"]))
-    #   msas_sample = np.random.choice(msa_names, size=4, replace=False)
-    #   raw_data = raw_data[raw_data["msa_path"].isin(msas_sample)]
+    if LOCAL_RUN:
+      np.random.seed(SEED)
+      msa_names = list(np.unique(raw_data["msa_path"]))
+      msas_sample = np.random.choice(msa_names, size=1, replace=False)
+      raw_data = raw_data[raw_data["msa_path"].isin(msas_sample)]
     jobs_dict = distribute_MSAS_over_jobs(raw_data, all_jobs_running_folder,existing_msas_data_path, args)
     prev_number_of_jobs_done = 0
     existing_csv_paths = []

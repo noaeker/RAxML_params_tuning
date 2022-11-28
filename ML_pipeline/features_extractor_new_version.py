@@ -104,12 +104,24 @@ def msa_features_pipeline(msa_path, existing_msa_features_path, args):
     logging.info("Calculating MSA general features from beggining")
     msa_general_features = pd.DataFrame.from_dict(
         {msa_path: get_msa_stats(get_local_path(msa_path),args)}, orient='index').reset_index()
-    pickle.dump(msa_general_features, open(existing_msa_features_path, 'wb'))
-    return msa_general_features
+    msa_final_features = msa_general_features[[col for col in msa_general_features.columns if col.startswith("feature")]]
+    msa_final_features["msa_path"] = msa_path
+    pickle.dump(msa_final_features, open(existing_msa_features_path, 'wb'))
+    return msa_final_features
 
-def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_trees_LL,all_random_trees_LL, tree_object, tree_LL):
+def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_trees_LL, tree_object, tree_LL, msa_path, msa_type, spr_iterations = 30):
     tmp_folder = os.path.join(curr_run_directory, 'tmp_working_dir_tree_metrics')
     create_or_clean_dir(tmp_folder)
+    distances, neighbors = get_random_spr_moves_vs_distances(tree_object, n_iterations=spr_iterations)
+    SPR_trees_path = os.path.join(curr_run_directory, 'all_trees_SPR_neighbors')
+    unify_text_files(neighbors, SPR_trees_path, str_given=True)
+    optimized_neighbor_ll, optimized_neighbor_alpha, optimized_neighbor_trees_file = raxml_optimize_trees_for_given_msa(
+        get_local_path(msa_path), "trees_eval_SPR", SPR_trees_path,
+        tmp_folder,msa_type, opt_brlen=False
+    )
+    ll_improvements = [neighbor_LL-tree_LL for neighbor_LL in optimized_neighbor_ll]
+
+    corcoeff_SPR, pval_SPR = spearmanr(ll_improvements, distances)
     curr_tree_path = os.path.join(tmp_folder, "trees_path")
     with open(curr_tree_path, 'w') as TREE:
         TREE.write(tree_object.write(format=1))
@@ -117,7 +129,6 @@ def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_tr
     tree_distances = get_distances_between_leaves(tree_object)
     rf_values = []
     parsimony_LL_differences = [tree_LL-pars_LL for pars_LL in all_parsimony_trees_LL]
-    random_LL_differences = [tree_LL - rand_LL for rand_LL in all_random_trees_LL]
 
     for parsimony_tree in all_parsimony_trees:
         rf_values.append(
@@ -131,26 +142,17 @@ def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_tr
     else:
         LL_neighbour_score = np.dot(np.array(affinity), np.array(all_parsimony_trees_LL))/np.sum(affinity)
 
-    all_tree_features = {"feature_tree_MAD": mad_tree_parameter(curr_tree_path), 'feature_tree_parsimony_dist_vs_LL_imprv_corr':LL_rf_corr, 'feature_tree_LL_neighbour_score': LL_neighbour_score }
-    multidimensional_features = {'feature_tree_branch_lengths' : BL_metrics["BL_list"], "feature_tree_distances_between_taxa":tree_distances, "feature_tree_parsimony_rf_values" : rf_values, "feature_LL_diff_vs_parsimony": parsimony_LL_differences,"feature_LL_diff_vs_random": random_LL_differences}
+    all_tree_features = {"feature_tree_MAD": mad_tree_parameter(curr_tree_path), 'feature_tree_parsimony_dist_vs_LL_imprv_corr':LL_rf_corr, 'feature_tree_LL_neighbour_score': LL_neighbour_score,'feature_corcoeff_SPR': corcoeff_SPR }
+    multidimensional_features = {'feature_tree_branch_lengths' : BL_metrics["BL_list"], "feature_tree_distances_between_taxa":tree_distances, "feature_tree_parsimony_rf_values" : rf_values, "feature_LL_diff_vs_parsimony": parsimony_LL_differences, 'feature_ll_improvements': ll_improvements}
     for feature in multidimensional_features:
         all_tree_features.update(get_summary_statistics_dict(feature, multidimensional_features[feature]))
 
 
-    return all_tree_features
+    return all_tree_features, neighbors
 
 
 
 
-
-#
-# def SPR():
-#     istances, ll_improvements = get_random_spr_moves_vs_distances(optimized_tree_object, optimized_tree_object_ll,
-#                                                                   20, tmp_folder, get_local_path(msa_path),
-#                                                                   args.msa_type)
-#     SPR_feature_metrics = get_summary_statistics_dict("feature_tree_ll_improvements", ll_improvements)
-#     SPR_feature_metrics.update({'feature_tree_max_ll_improvement_radius': distances[np.argmax(ll_improvements)],
-#                                 'feature_tree_min_ll_improvement_radius': distances[np.argmin(ll_improvements)]})
 
 
 def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_tree_features_path, args):
@@ -159,54 +161,56 @@ def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_
     if os.path.exists(existing_tree_features_path):
         existing_tree_features = pickle.load(open(existing_tree_features_path, "rb"))
         return existing_tree_features
-    trees_features_data = msa_raw_data[
+    Basic_tree_features = msa_raw_data[
         ["starting_tree_ind", "starting_tree_type", "starting_tree_object","starting_tree_ll"]].drop_duplicates().reset_index().sort_values(["starting_tree_type","starting_tree_ind"])
 
-    trees_path = os.path.join(curr_run_directory, 'all_trees')
-    unify_text_files(trees_features_data['starting_tree_object'], trees_path, str_given=True)
+    all_starting_trees_path = os.path.join(curr_run_directory, 'all_trees')
+    unify_text_files(Basic_tree_features['starting_tree_object'], all_starting_trees_path, str_given=True)
 
     optimized_tree_object_ll, optimized_tree_object_alpha, optimized_trees_file = raxml_optimize_trees_for_given_msa(
-        get_local_path(msa_path), "trees_eval", trees_path,
+        get_local_path(msa_path), "trees_eval", all_starting_trees_path,
         tmp_folder, args.msa_type, opt_brlen=True
         )
-    trees_features_data["feature_tree_optimized_ll"] = optimized_tree_object_ll
-    trees_features_data["feature_tree_optimized_alpha"] = optimized_tree_object_alpha
-    trees_features_data["feature_optimized_tree_object"] = generate_multiple_tree_object_from_newick(optimized_trees_file)
-    all_parsimony_trees = trees_features_data[trees_features_data["starting_tree_type"] == "pars"][
+    Basic_tree_features["feature_tree_optimized_ll"] = optimized_tree_object_ll
+    Basic_tree_features["feature_tree_optimized_alpha"] = optimized_tree_object_alpha
+    Basic_tree_features["feature_optimized_tree_object"] = generate_multiple_tree_object_from_newick(optimized_trees_file)
+    all_parsimony_trees = Basic_tree_features[Basic_tree_features["starting_tree_type"] == "pars"][
         "starting_tree_object"].drop_duplicates().tolist()
-    all_parsimony_trees_LL = trees_features_data[trees_features_data["starting_tree_type"] == "pars"][
+    all_parsimony_trees_LL = Basic_tree_features[Basic_tree_features["starting_tree_type"] == "pars"][
         "feature_tree_optimized_ll"].drop_duplicates().tolist()
-    all_random_trees_LL = trees_features_data[trees_features_data["starting_tree_type"] == "rand"][
+    all_random_trees_LL = Basic_tree_features[Basic_tree_features["starting_tree_type"] == "rand"][
         "feature_tree_optimized_ll"].drop_duplicates().tolist()
+    Basic_tree_features["feature_parsimony_vs_random_diff"] = np.mean(all_parsimony_trees_LL)-np.mean(all_random_trees_LL)
     extensions = []
-    for index, row in trees_features_data.iterrows():
-        general_tree_metrics = single_tree_metrics(tmp_folder, all_parsimony_trees,all_parsimony_trees_LL = all_parsimony_trees_LL,all_random_trees_LL = all_random_trees_LL, tree_object=row["feature_optimized_tree_object"],tree_LL=row["feature_tree_optimized_ll"] )
+    all_neighbors = []
+    for index, row in Basic_tree_features.iterrows():
+        general_tree_metrics, neighbors = single_tree_metrics(tmp_folder, all_parsimony_trees,all_parsimony_trees_LL, row["feature_optimized_tree_object"], row["starting_tree_ll"], msa_path, args.msa_type, spr_iterations = args.spr_iters)
         general_tree_metrics["starting_tree_ind"] = row["starting_tree_ind"]
         general_tree_metrics["starting_tree_type"] = row["starting_tree_type"]
+        all_neighbors.extend(neighbors)
+
         extensions.append(general_tree_metrics)
-    tree_extra_features = pd.DataFrame(extensions)
+    single_tree_features = pd.DataFrame(extensions)
+    tree_features = Basic_tree_features.merge(single_tree_features, on = ["starting_tree_ind","starting_tree_type"]).drop(["feature_optimized_tree_object"],axis = 1)
+
+    overall_trees_path = os.path.join(curr_run_directory, 'overall_trees')
+    overall_trees = list(Basic_tree_features['starting_tree_object'])+all_neighbors
+    unify_text_files(overall_trees, overall_trees_path, str_given=True)
 
 
-    distances = np.array(RF_distances(curr_run_directory, trees_path_a=trees_path, trees_path_b=None,
+    distances = np.array(RF_distances(curr_run_directory, trees_path_a=all_starting_trees_path, trees_path_b=None,
                                       name="RF"))
-    X = np.zeros((len(trees_features_data.index), len(trees_features_data.index)))
-    triu = np.triu_indices(len(trees_features_data.index), 1)
+    X = np.zeros((len(overall_trees), len(overall_trees)))
+    triu = np.triu_indices(len(Basic_tree_features.index), 1)
     X[triu] = distances
     X = X.T
     X[triu] = X.T[triu]
-    y = trees_features_data["starting_tree_ll"]
-    #neigh = KNeighborsRegressor(n_neighbors=2, weights= 'distance', metric = 'precomputed')
-    #regressor  = neigh.fit(X,y)
-    #output = regressor.predict(X)
-    mds = MDS(random_state=0, n_components= 1)
+    mds = MDS(random_state=0, n_components= 3)
     X_transform = mds.fit_transform(X)
-    trees_features_data["mds"] = list(X_transform[:, 0])
-    #data = pd.DataFrame({'x':X[:, 0],'y': X[:, 1] })
-    #plt.figure()
-    #sns.scatterplot(x='x', y='y', data = data, hue= trees_features_data["starting_tree_type"])
-    #plt.savefig(f"{os.path.join(curr_run_directory,'MDS')}.jpg")
-    #plt.close()
-    tree_features = trees_features_data.merge(tree_extra_features, on = ["starting_tree_ind","starting_tree_type"]).drop(["feature_optimized_tree_object"],axis = 1)
+    tree_features["feature_mds_0"] = list(X_transform[:len(Basic_tree_features['starting_tree_object']), 0])
+    tree_features["feature_mds_1"] = list(X_transform[:len(Basic_tree_features['starting_tree_object']), 1])
+    tree_features["feature_mds_2"] = list(X_transform[:len(Basic_tree_features['starting_tree_object']), 2])
+    tree_features = tree_features[[col for col in tree_features.columns if col.startswith('feature')]+["starting_tree_ind", "starting_tree_type"]]
     pickle.dump(tree_features, open(existing_tree_features_path, 'wb'))
     return tree_features
 
@@ -255,7 +259,7 @@ def process_all_msa_RAxML_runs(curr_run_directory, processed_dataset_path, msa_d
     return msa_data
 
 
-def enrich_raw_data(curr_run_directory, raw_data, iterations, cpus_per_job, perform_topology_tests, args):
+def enrich_raw_data(curr_run_directory, raw_data, cpus_per_job, perform_topology_tests, args):
     '''
 
     :param curr_run_directory:
@@ -300,7 +304,7 @@ def main():
     logging.basicConfig(filename=log_file_path, level=logging.INFO)
     curr_job_raw_data = pd.read_csv(args.curr_job_raw_path, sep=CSV_SEP)
     raw_data_with_features = enrich_raw_data(curr_run_directory=args.existing_msas_folder, raw_data=curr_job_raw_data,
-                                                     iterations=args.iterations, cpus_per_job=args.cpus_per_job,
+                                                     cpus_per_job=args.cpus_per_job,
                                                      perform_topology_tests=args.perform_topology_tests, args = args)
 
     #raw_data_with_features = pd.DataFrame()

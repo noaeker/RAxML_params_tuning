@@ -115,7 +115,7 @@ def main():
     args = parser.parse_args()
     file_paths = get_file_paths(args)
     features_data = pd.read_csv(file_paths["features_path"], sep=CSV_SEP)
-
+    features_data = features_data.rename({'starting_tree_object_x':'starting_tree_object'})
     #msa_names = list(np.unique(features_data["msa_path"]))
     #np.random.seed(SEED)
     #chosen_msas= np.random.choice(msa_names, size=int(len(msa_names) * (0.2)), replace=False)

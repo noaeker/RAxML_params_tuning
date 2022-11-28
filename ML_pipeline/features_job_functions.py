@@ -19,6 +19,7 @@ def features_main_parser():
     parser.add_argument('--queue', type=str, default="pupkolab")
     parser.add_argument('--perform_topology_tests', action='store_true', default=False)
     parser.add_argument('--msa_type', default='AA')
+    parser.add_argument('--spr_iters',type=int, default=30)
     return parser
 
 
