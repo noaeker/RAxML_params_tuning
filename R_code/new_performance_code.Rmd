@@ -42,7 +42,7 @@ performance_data %>% ggplot(aes(y=mean_status-mean_default_status, x = mean_time
 performance_data %>% ggplot(aes(y=mean_LL_diff-mean_default_diff, x = mean_time, color = accuracy_metric)) +expand_limits(y = 0)+ geom_line()
 ```
 ```{r}
-performance_data
+performance_data %>% filter (accuracy_metric='') %>%  ggplot(x = )
 ```
 
 

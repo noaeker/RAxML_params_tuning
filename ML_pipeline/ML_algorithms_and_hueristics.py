@@ -80,7 +80,7 @@ def print_model_statistics(model, test_X, y_test, is_classification, vi_path, na
         logging.info(f"{name} variable importance: \n {var_impt}")
     predicted = model['best_model'].predict((model['selector']).transform(test_X))
     if is_classification:
-        predicted_proba = model['best_model'].predict_proba((model['selector']).transform(test_X)[:, 1])
+        predicted_proba = model['best_model'].predict_proba((model['selector']).transform(test_X))[:, 1]
     else:
         predicted_proba = predicted
     test_metrics = model_metrics(y_test, predicted,predicted_proba, is_classification= is_classification)
@@ -92,7 +92,7 @@ def print_model_statistics(model, test_X, y_test, is_classification, vi_path, na
 
 def model_metrics(y_test, predictions,prob_predictions, is_classification):
     if is_classification:
-        return {'AUC' :roc_auc_score(y_test, prob_predictions),'accuracy_score':accuracy_score(y_test, predictions),'precision':precision_score(y_test, predictions),'recall':recall_score(y_test, predictions), 'mcc': matthews_corrcoef(y_test, predictions)}
+        return {'AUC' :roc_auc_score(y_test, prob_predictions),'average_precision': average_precision_score(y_test, prob_predictions),'accuracy_score':accuracy_score(y_test, predictions),'precision':precision_score(y_test, predictions),'recall':recall_score(y_test, predictions), 'mcc': matthews_corrcoef(y_test, predictions)}
     return {"r2": r2_score(y_test, predictions), "MAE": mean_absolute_error(y_test, predictions),
             "MSE": mean_squared_error(y_test, predictions)
             }

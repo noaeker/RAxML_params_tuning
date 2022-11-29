@@ -125,11 +125,13 @@ def main():
         os.remove(file_paths["log_file"])
     logging.basicConfig(filename=file_paths["log_file"], level=logging_level)
     features_data = features_data.loc[~features_data.msa_path.str.contains("single-gene_alignments")]
+    features_data = features_data[[col for col in features_data.columns if 'feature_ll_improvements' not in col and 'feature_corcoeff_SPR' not in col ]]
     logging.info(f"Number of MSAs in feature data is {len(features_data['msa_path'].unique())}")
 
     logging.info(f"Enriching features data in {file_paths['features_path']} and saving to {file_paths['ML_edited_features_path']}")
     edited_data = edit_raw_data_for_ML(features_data, epsilon)
     enriched_features_data = edited_data["non_default"]
+    logging.info(f"Number of positive samples: {len(enriched_features_data.loc[enriched_features_data.is_global_max==1].index)}, Number of negative samples {len(enriched_features_data.loc[enriched_features_data.is_global_max==0].index)}")
     enriched_default_data = edited_data["default"]
     #enriched_features_data.to_csv(file_paths["ML_edited_features_path"], sep=CSV_SEP)
     #enriched_default_data.to_csv(file_paths["ML_edited_default_data_path"], sep=CSV_SEP)
