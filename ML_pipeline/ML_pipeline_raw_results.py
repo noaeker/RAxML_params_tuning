@@ -153,11 +153,13 @@ def main():
         logging.info(f"Using existing default data in {file_paths['default_path']}")
         default_data_performance = pd.read_csv(file_paths["default_path"], sep=CSV_SEP)
 
-    raw_comp = performance_on_test_set.merge(default_data_performance, how = 'left', on="msa_path")
-    aggregated_comp =raw_comp.groupby(by=['accuracy_metric','threshold','MSAs_included',"msa_path","clusters_max_dist","max_accuracy","feature_msa_pypythia_msa_difficulty","predicted_total_accuracy_calibrated","predicted_total_accuracy","iid_expected_success_prob","n_parsimony_trees_used","n_random_trees_used","status","diff","total_time_predicted","total_actual_time"]).agg(mean_default_diff = ('default_final_err',np.mean),mean_default_status = ('default_status', np.mean)).reset_index()
-    overall_results = aggregated_comp.groupby(['accuracy_metric','threshold','MSAs_included']).agg(mean_status = ('status', np.mean), mean_default_status = ('mean_default_status', np.mean), mean_time = ("total_actual_time",np.mean), mean_LL_diff = ('diff',np.mean), mean_default_diff = ('mean_default_diff',np.mean) )
-    overall_results.to_csv(file_paths["final_comparison_path_agg"], sep = CSV_SEP)
-    aggregated_comp.to_csv(file_paths["final_comparison_path"], sep=CSV_SEP)
+
+    default_results_agg_per_MSA = default_data_performance.groupby('msa_path').aggregate(mean_default_status = ('default_status', np.mean), mean_default_diff = ('default_final_err',np.mean))
+    raw_comp = performance_on_test_set.merge(default_results_agg_per_MSA, how = 'left', on="msa_path")
+
+    aggregated_results = raw_comp.groupby(['metric','threshold','MSAs_included']).agg(mean_status = ('status', np.mean), mean_default_status = ('mean_default_status', np.mean), mean_time = ("total_actual_time",np.mean),mean_LL_diff = ('diff',np.mean), mean_default_diff = ('mean_default_diff',np.mean) )
+    aggregated_results.to_csv(file_paths["final_comparison_path_agg"], sep = CSV_SEP)
+    raw_comp.to_csv(file_paths["final_comparison_path"], sep=CSV_SEP)
 
 
 

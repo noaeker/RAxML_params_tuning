@@ -38,6 +38,7 @@ def edit_raw_data_for_ML(data, epsilon):
     data["feature_seq_to_loci"] = data["feature_msa_n_seq"] / data["feature_msa_n_loci"]
     data["feature_seq_to_unique_loci"] = data["feature_msa_n_seq"] / data["feature_msa_n_unique_sites"]
     non_default_data = data[data["type"] != "default"].copy()
+    non_default_data["found_best_score"] = non_default_data.groupby("msa_path")['is_global_max'].transform(np.max)
     default_data= data[data["type"] == "default"].copy()
     numerical_columns = [col for col in non_default_data.columns if
                          col.startswith('feature') and is_numeric_dtype(non_default_data[col])]
@@ -134,8 +135,8 @@ def  get_best_configuration_per_starting_tree(curr_msa_data_per_tree):
                                                             "log_failure_calibrated"] /
                                                         starting_tree_data[
                                                             "predicted_time"]) * -1
-            starting_tree_data =  starting_tree_data.sort_values(by="failure_score", ascending=False).head(1)
-            #starting_tree_data = starting_tree_data.sort_values('predicted_time').head(1)
+            #starting_tree_data =  starting_tree_data.sort_values(by="failure_score", ascending=False).head(1)
+            starting_tree_data = starting_tree_data.sort_values('predicted_time').head(1)
             result.append(starting_tree_data)
     return pd.concat(result)
 

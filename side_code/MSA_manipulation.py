@@ -9,6 +9,7 @@ import random
 import re
 import pandas as pd
 import re
+from sklearn.decomposition import PCA
 
 def get_msa_name(msa_path, general_msa_dir):
     return msa_path.replace(general_msa_dir, "").replace(os.path.sep,

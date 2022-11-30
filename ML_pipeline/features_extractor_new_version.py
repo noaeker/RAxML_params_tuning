@@ -18,6 +18,7 @@ from side_code.MSA_manipulation import get_alignment_data, alignment_list_to_df,
 from side_code.config import *
 from ML_pipeline.features_job_functions import feature_job_parser
 from sklearn.manifold import MDS
+from sklearn.decomposition import PCA
 from shutil import rmtree
 import pandas as pd
 import pickle
@@ -151,6 +152,40 @@ def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_tr
     return all_tree_features, neighbors
 
 
+def mds_and_pca(tree_features, X, starting_trees, mds_n_components, metric, pca_n_components):
+    mds = MDS(random_state=0, n_components=mds_n_components, metric=True, dissimilarity='precomputed')
+    X_transform = mds.fit_transform(X)
+    tree_features[f"feature_mds_{metric}_stress_{mds_n_components}"] = mds.stress_
+    for i in range(mds_n_components):
+        tree_features[f"feature_mds_{metric}_{i}_{mds_n_components}"] = list(X_transform[:len(starting_trees), i])
+    pca = PCA(n_components=pca_n_components)
+    pca_transformed_x = pca.fit_transform(X_transform)
+    for i in range(pca_n_components):
+        tree_features[f"feature_mds_{metric}_pca_{i}_{mds_n_components}"] = list(pca_transformed_x[:len(starting_trees), i])
+
+
+
+
+
+
+def enrich_with_MDS_features(curr_run_directory, tree_features,starting_trees, all_neighbors,all_starting_trees_path): #starting_trees = Basic_tree_features['starting_tree_object']
+    overall_trees_path = os.path.join(curr_run_directory, 'overall_trees')
+    overall_trees = starting_trees + all_neighbors
+    unify_text_files(overall_trees, overall_trees_path, str_given=True)
+
+    distances = np.array(RF_distances(curr_run_directory, trees_path_a=overall_trees_path, trees_path_b=None,
+                                      name="RF"))
+    X = np.zeros((len(overall_trees), len(overall_trees)))
+    triu = np.triu_indices(len(overall_trees), 1)
+    X[triu] = distances
+    X = X.T
+    X[triu] = X.T[triu]
+    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 3, metric = True, pca_n_components = 3)
+    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 3, metric = False, pca_n_components = 3)
+    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 20, metric = True, pca_n_components = 3)
+    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 20, metric = False, pca_n_components = 3)
+
+
 
 
 
@@ -192,24 +227,8 @@ def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_
         extensions.append(general_tree_metrics)
     single_tree_features = pd.DataFrame(extensions)
     tree_features = Basic_tree_features.merge(single_tree_features, on = ["starting_tree_ind","starting_tree_type"]).drop(["feature_optimized_tree_object"],axis = 1)
-
-    overall_trees_path = os.path.join(curr_run_directory, 'overall_trees')
-    overall_trees = list(Basic_tree_features['starting_tree_object'])+all_neighbors
-    unify_text_files(overall_trees, overall_trees_path, str_given=True)
-
-
-    distances = np.array(RF_distances(curr_run_directory, trees_path_a=all_starting_trees_path, trees_path_b=None,
-                                      name="RF"))
-    X = np.zeros((len(overall_trees), len(overall_trees)))
-    triu = np.triu_indices(len(Basic_tree_features.index), 1)
-    X[triu] = distances
-    X = X.T
-    X[triu] = X.T[triu]
-    mds = MDS(random_state=0, n_components= 3)
-    X_transform = mds.fit_transform(X)
-    tree_features["feature_mds_0"] = list(X_transform[:len(Basic_tree_features['starting_tree_object']), 0])
-    tree_features["feature_mds_1"] = list(X_transform[:len(Basic_tree_features['starting_tree_object']), 1])
-    tree_features["feature_mds_2"] = list(X_transform[:len(Basic_tree_features['starting_tree_object']), 2])
+    enrich_with_MDS_features(curr_run_directory, tree_features, list(Basic_tree_features['starting_tree_object']),
+                             all_neighbors, all_starting_trees_path)
     tree_features = tree_features[[col for col in tree_features.columns if col.startswith('feature')]+["starting_tree_ind", "starting_tree_type"]]
     pickle.dump(tree_features, open(existing_tree_features_path, 'wb'))
     return tree_features
