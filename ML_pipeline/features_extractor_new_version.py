@@ -117,14 +117,15 @@ def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_tr
     distances, neighbors = get_random_spr_moves_vs_distances(tree_object, n_iterations=spr_iterations)
     SPR_trees_path = os.path.join(curr_run_directory, 'all_trees_SPR_neighbors')
     unify_text_files(neighbors, SPR_trees_path, str_given=True)
-    optimized_neighbor_ll, optimized_neighbor_alpha, optimized_neighbor_trees_file = raxml_optimize_trees_for_given_msa(
-        get_local_path(msa_path), "trees_eval_SPR", SPR_trees_path,
-        tmp_folder,msa_type, opt_brlen=False
-    )
-    ll_improvements = [neighbor_LL-tree_LL for neighbor_LL in optimized_neighbor_ll]
+    if estimate_ll_scores:
+        optimized_neighbor_ll, optimized_neighbor_alpha, optimized_neighbor_trees_file = raxml_optimize_trees_for_given_msa(
+            get_local_path(msa_path), "trees_eval_SPR", SPR_trees_path,
+            tmp_folder,msa_type, opt_brlen=False
+        )
+        ll_improvements = [neighbor_LL-tree_LL for neighbor_LL in optimized_neighbor_ll]
 
-    corcoeff_SPR, pval_SPR = spearmanr(ll_improvements, distances)
-    curr_tree_path = os.path.join(tmp_folder, "trees_path")
+        corcoeff_SPR, pval_SPR = spearmanr(ll_improvements, distances)
+        curr_tree_path = os.path.join(tmp_folder, "trees_path")
     with open(curr_tree_path, 'w') as TREE:
         TREE.write(tree_object.write(format=1))
     BL_metrics = tree_branch_length_metrics(tree_object)

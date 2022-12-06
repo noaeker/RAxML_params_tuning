@@ -300,7 +300,7 @@ def main():
     with open(file_paths_path, "rb") as FILE_PATHS:
         target_msas_list = pickle.load(FILE_PATHS)
         if args.use_existing_global_data:
-            logging.info(f"Removing existing msas in {args.old_msas_path}")
+            logging.info(f"Removing existing msas in {args.old_msas_folder}")
             target_msas_list = [p for p in target_msas_list if p not in existing_msas]
     total_msas_done = 0
     total_msas_overall = len(target_msas_list)
