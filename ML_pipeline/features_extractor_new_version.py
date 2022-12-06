@@ -111,7 +111,7 @@ def msa_features_pipeline(msa_path, existing_msa_features_path, args):
     pickle.dump(msa_final_features, open(existing_msa_features_path, 'wb'))
     return msa_final_features
 
-def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_trees_LL, tree_object, tree_LL, msa_path, msa_type, spr_iterations = 10):
+def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_trees_LL, tree_object, tree_LL, msa_path, msa_type, spr_iterations = 50):
     tmp_folder = os.path.join(curr_run_directory, 'tmp_working_dir_tree_metrics')
     create_or_clean_dir(tmp_folder)
     distances, neighbors = get_random_spr_moves_vs_distances(tree_object, n_iterations=spr_iterations)
@@ -148,7 +148,6 @@ def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_tr
     multidimensional_features = {'feature_tree_branch_lengths' : BL_metrics["BL_list"], "feature_tree_distances_between_taxa":tree_distances, "feature_tree_parsimony_rf_values" : rf_values, "feature_LL_diff_vs_parsimony": parsimony_LL_differences, 'feature_ll_improvements': ll_improvements}
     for feature in multidimensional_features:
         all_tree_features.update(get_summary_statistics_dict(feature, multidimensional_features[feature]))
-
 
     return all_tree_features, neighbors
 
@@ -236,9 +235,9 @@ def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_
     single_tree_features = pd.DataFrame(extensions)
     tree_features = Basic_tree_features.merge(single_tree_features, on = ["starting_tree_ind","starting_tree_type"]).drop(["feature_optimized_tree_object"],axis = 1)
     enrich_with_MDS_features(curr_run_directory, tree_features, list(Basic_tree_features['starting_tree_object']),
-                             [], all_starting_trees_path, suffix= 'only_base')
+                             [],  suffix= 'only_base')
     enrich_with_MDS_features(curr_run_directory, tree_features, list(Basic_tree_features['starting_tree_object']),
-                             all_neighbors, all_starting_trees_path, suffix = 'spr_enriched')
+                             all_neighbors, suffix = 'spr_enriched')
     tree_features = tree_features[[col for col in tree_features.columns if col.startswith('feature')]+["starting_tree_ind", "starting_tree_type"]]
     pickle.dump(tree_features, open(existing_tree_features_path, 'wb'))
     return tree_features
