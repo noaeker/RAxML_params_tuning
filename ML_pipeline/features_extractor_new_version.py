@@ -117,36 +117,35 @@ def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_tr
     distances, neighbors = get_random_spr_moves_vs_distances(tree_object, n_iterations=spr_iterations)
     SPR_trees_path = os.path.join(curr_run_directory, 'all_trees_SPR_neighbors')
     unify_text_files(neighbors, SPR_trees_path, str_given=True)
-    if estimate_ll_scores:
-        optimized_neighbor_ll, optimized_neighbor_alpha, optimized_neighbor_trees_file = raxml_optimize_trees_for_given_msa(
-            get_local_path(msa_path), "trees_eval_SPR", SPR_trees_path,
-            tmp_folder,msa_type, opt_brlen=False
-        )
-        ll_improvements = [neighbor_LL-tree_LL for neighbor_LL in optimized_neighbor_ll]
+    # optimized_neighbor_ll, optimized_neighbor_alpha, optimized_neighbor_trees_file = raxml_optimize_trees_for_given_msa(
+    #     get_local_path(msa_path), "trees_eval_SPR", SPR_trees_path,
+    #     tmp_folder,msa_type, opt_brlen=False
+    # )
+    # ll_improvements = [neighbor_LL-tree_LL for neighbor_LL in optimized_neighbor_ll]
 
-        corcoeff_SPR, pval_SPR = spearmanr(ll_improvements, distances)
-        curr_tree_path = os.path.join(tmp_folder, "trees_path")
+    #corcoeff_SPR, pval_SPR = spearmanr(ll_improvements, distances)
+    curr_tree_path = os.path.join(tmp_folder, "trees_path")
     with open(curr_tree_path, 'w') as TREE:
         TREE.write(tree_object.write(format=1))
     BL_metrics = tree_branch_length_metrics(tree_object)
     tree_distances = get_distances_between_leaves(tree_object)
     rf_values = []
-    parsimony_LL_differences = [tree_LL-pars_LL for pars_LL in all_parsimony_trees_LL]
+    #parsimony_LL_differences = [tree_LL-pars_LL for pars_LL in all_parsimony_trees_LL]
 
     for parsimony_tree in all_parsimony_trees:
         rf_values.append(
             rf_distance(curr_run_directory, tree_object.write(format=1), parsimony_tree, name="tree_vs_parsimony_rf"))
-
-    corcoeff, pval = spearmanr(parsimony_LL_differences, rf_values)
-    LL_rf_corr =  0 if math.isnan(corcoeff) else corcoeff
+    #
+    # corcoeff, pval = spearmanr(parsimony_LL_differences, rf_values)
+    # LL_rf_corr =  0 if math.isnan(corcoeff) else corcoeff
     affinity = [1-val for val in rf_values]
     if np.sum(affinity)==0:
         LL_neighbour_score = tree_LL
     else:
         LL_neighbour_score = np.dot(np.array(affinity), np.array(all_parsimony_trees_LL))/np.sum(affinity)
 
-    all_tree_features = {"feature_tree_MAD": mad_tree_parameter(curr_tree_path), 'feature_tree_parsimony_dist_vs_LL_imprv_corr':LL_rf_corr, 'feature_tree_LL_neighbour_score': LL_neighbour_score,'feature_corcoeff_SPR': corcoeff_SPR }
-    multidimensional_features = {'feature_tree_branch_lengths' : BL_metrics["BL_list"], "feature_tree_distances_between_taxa":tree_distances, "feature_tree_parsimony_rf_values" : rf_values, "feature_LL_diff_vs_parsimony": parsimony_LL_differences, 'feature_ll_improvements': ll_improvements}
+    all_tree_features = {"feature_tree_MAD": mad_tree_parameter(curr_tree_path), 'feature_tree_LL_neighbour_score': LL_neighbour_score} #'feature_corcoeff_SPR': corcoeff_SPR ,'feature_tree_parsimony_dist_vs_LL_imprv_corr':LL_rf_corr,"feature_LL_diff_vs_parsimony": parsimony_LL_differences,'feature_ll_improvements': ll_improvements
+    multidimensional_features = {'feature_tree_branch_lengths' : BL_metrics["BL_list"], "feature_tree_distances_between_taxa":tree_distances, "feature_tree_parsimony_rf_values" : rf_values}
     for feature in multidimensional_features:
         all_tree_features.update(get_summary_statistics_dict(feature, multidimensional_features[feature]))
 
@@ -312,10 +311,17 @@ def enrich_raw_data(curr_run_directory, raw_data, cpus_per_job, perform_topology
         if not len(processed_msa_data.index) > 0:
             logging.info("no data to process")
             continue
+        st = time.time()
         tree_features = tree_features_pipeline(msa_path, msa_folder, msa_data, existing_tree_features_path, args)
+        ed = time.time()
+        processed_msa_data['tree_features_running_time'] = ed-st
         processed_msa_data = processed_msa_data.merge(tree_features, right_on=["starting_tree_ind", "starting_tree_type"],
                                                       left_on=["starting_tree_ind", "starting_tree_type"])
+
+        st = time.time()
         msa_features = msa_features_pipeline(msa_path, existing_msa_features_path, args)
+        ed = time.time()
+        processed_msa_data['msa_features_running_time'] = ed-st
         logging.info(f"MSA features: {msa_features}")
         processed_msa_data = processed_msa_data.merge(msa_features, right_on=["msa_path"], left_on=["msa_path"])
 
