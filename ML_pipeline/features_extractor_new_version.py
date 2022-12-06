@@ -32,6 +32,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import seaborn as sns
 from scipy.stats import spearmanr
+import time
 
 
 def pct_25(values):
@@ -110,7 +111,7 @@ def msa_features_pipeline(msa_path, existing_msa_features_path, args):
     pickle.dump(msa_final_features, open(existing_msa_features_path, 'wb'))
     return msa_final_features
 
-def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_trees_LL, tree_object, tree_LL, msa_path, msa_type, spr_iterations = 30):
+def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_trees_LL, tree_object, tree_LL, msa_path, msa_type, spr_iterations = 10):
     tmp_folder = os.path.join(curr_run_directory, 'tmp_working_dir_tree_metrics')
     create_or_clean_dir(tmp_folder)
     distances, neighbors = get_random_spr_moves_vs_distances(tree_object, n_iterations=spr_iterations)
@@ -152,23 +153,30 @@ def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_tr
     return all_tree_features, neighbors
 
 
-def mds_and_pca(tree_features, X, starting_trees, mds_n_components, metric, pca_n_components):
+def mds_and_pca(tree_features, X, starting_trees, mds_n_components, metric, pca_n_components, suffix):
+    st = time.time()
     mds = MDS(random_state=0, n_components=mds_n_components, metric=True, dissimilarity='precomputed')
+    et = time.time()
+    tree_features[f"feature_mds_{metric}_time_{mds_n_components}_{suffix}"] = et-st
     X_transform = mds.fit_transform(X)
-    tree_features[f"feature_mds_{metric}_stress_{mds_n_components}"] = mds.stress_
+    tree_features[f"feature_mds_{metric}_stress_{mds_n_components}_{suffix}"] = mds.stress_
+
     for i in range(mds_n_components):
-        tree_features[f"feature_mds_{metric}_{i}_{mds_n_components}"] = list(X_transform[:len(starting_trees), i])
+        tree_features[f"feature_mds_{metric}_{i}_{mds_n_components}_{suffix}"] = list(X_transform[:len(starting_trees), i])
+    st = time.time()
     pca = PCA(n_components=pca_n_components)
+    et = time.time()
+    tree_features[f"feature_mds_{metric}_pca_time_{mds_n_components}_{suffix}"] = et - st
     pca_transformed_x = pca.fit_transform(X_transform)
     for i in range(pca_n_components):
-        tree_features[f"feature_mds_{metric}_pca_{i}_{mds_n_components}"] = list(pca_transformed_x[:len(starting_trees), i])
+        tree_features[f"feature_mds_{metric}_pca_{i}_{mds_n_components}_{suffix}"] = list(pca_transformed_x[:len(starting_trees), i])
 
 
 
 
 
 
-def enrich_with_MDS_features(curr_run_directory, tree_features,starting_trees, all_neighbors,all_starting_trees_path): #starting_trees = Basic_tree_features['starting_tree_object']
+def enrich_with_MDS_features(curr_run_directory, tree_features,starting_trees, all_neighbors,suffix): #starting_trees = Basic_tree_features['starting_tree_object']
     overall_trees_path = os.path.join(curr_run_directory, 'overall_trees')
     overall_trees = starting_trees + all_neighbors
     unify_text_files(overall_trees, overall_trees_path, str_given=True)
@@ -180,10 +188,10 @@ def enrich_with_MDS_features(curr_run_directory, tree_features,starting_trees, a
     X[triu] = distances
     X = X.T
     X[triu] = X.T[triu]
-    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 3, metric = True, pca_n_components = 3)
-    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 3, metric = False, pca_n_components = 3)
-    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 20, metric = True, pca_n_components = 3)
-    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 20, metric = False, pca_n_components = 3)
+    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 3, metric = True, pca_n_components = 3, suffix = suffix)
+    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 3, metric = False, pca_n_components = 3,suffix = suffix)
+    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 10, metric = True, pca_n_components = 10,suffix = suffix)
+    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 10, metric = False, pca_n_components = 10,suffix = suffix)
 
 
 
@@ -228,7 +236,9 @@ def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_
     single_tree_features = pd.DataFrame(extensions)
     tree_features = Basic_tree_features.merge(single_tree_features, on = ["starting_tree_ind","starting_tree_type"]).drop(["feature_optimized_tree_object"],axis = 1)
     enrich_with_MDS_features(curr_run_directory, tree_features, list(Basic_tree_features['starting_tree_object']),
-                             all_neighbors, all_starting_trees_path)
+                             [], all_starting_trees_path, suffix= 'only_base')
+    enrich_with_MDS_features(curr_run_directory, tree_features, list(Basic_tree_features['starting_tree_object']),
+                             all_neighbors, all_starting_trees_path, suffix = 'spr_enriched')
     tree_features = tree_features[[col for col in tree_features.columns if col.startswith('feature')]+["starting_tree_ind", "starting_tree_type"]]
     pickle.dump(tree_features, open(existing_tree_features_path, 'wb'))
     return tree_features

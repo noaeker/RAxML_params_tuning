@@ -43,11 +43,15 @@ def get_ML_ready_data(full_data, data_feature_names, search_feature_names, test_
 def get_file_paths(args):
     return {"features_path": f"{args.baseline_folder}/all_features{CSV_SUFFIX}",
      "ML_edited_features_path": f"{args.baseline_folder}/ML_edited_features{CSV_SUFFIX}",
+            "edited_data": f"{args.baseline_folder}/edited_data",
      "default_path": f"{args.baseline_folder}/default_sampling{CSV_SUFFIX}",
+            "default_by_params_path": f"{args.baseline_folder}/default_by_params_sampling{CSV_SUFFIX}",
      "error_model_path": f"{args.baseline_folder}/error.model",
      "required_accuracy_model_path": f"{args.baseline_folder}/accuracy.model",
-    "validation_multi_tree_data": f"{args.baseline_folder}/validation_multi_tree_data_dict",
-            "test_multi_tree_data": f"{args.baseline_folder}/test_multi_tree_data_dict",
+    "validation_multi_tree_data": f"{args.baseline_folder}/validation_multi_tree_data{CSV_SUFFIX}",
+            "test_multi_tree_data": f"{args.baseline_folder}/test_multi_tree_data{CSV_SUFFIX}",
+            "validation_single_tree_data": f"{args.baseline_folder}/validation_single_tree_data{CSV_SUFFIX}",
+            "test_single_tree_data": f"{args.baseline_folder}/test_single_tree_data{CSV_SUFFIX}",
     "performance_on_test_set":f"{args.baseline_folder}/overall_performance_on_test_set{CSV_SUFFIX}",
      "time_model_path": f"{args.baseline_folder}/time.model",
      "final_comparison_path": f"{args.baseline_folder}/final_performance_comp{CSV_SUFFIX}",
@@ -93,12 +97,7 @@ def generate_single_tree_models(data_dict, file_paths, args):
 def train_multi_tree_models(file_paths, time_model, error_model, data_dict, total_MSA_level_features, args):
     if not os.path.exists(file_paths["performance_on_test_set"]):
         logging.info(f"Starting ML model from scratch {file_paths['performance_on_test_set']}")
-
-        if args.tree_choosing_method=='knapsack':
-            performance_on_test_set = knapsack_on_test_set(args.baseline_folder,data_dict,time_model,error_model)
-
-        elif args.tree_choosing_method=='ML':
-            performance_on_test_set =get_multitree_performance_on_test_set_per_threshold(data_dict, args, time_model, error_model, total_MSA_level_features, file_paths)
+        performance_on_test_set =get_multitree_performance_on_test_set_per_threshold(data_dict, args, time_model, error_model, total_MSA_level_features, file_paths)
 
 
         performance_on_test_set.to_csv(file_paths["performance_on_test_set"], sep = CSV_SEP)
@@ -106,6 +105,25 @@ def train_multi_tree_models(file_paths, time_model, error_model, data_dict, tota
         logging.info(f"Using existing test performance in {file_paths['performance_on_test_set']}")
         performance_on_test_set = pd.read_csv(file_paths["performance_on_test_set"], sep = CSV_SEP)
     return performance_on_test_set
+
+
+def get_default_performance(enriched_default_data,args,performance_on_test_set, out_path):
+    if not os.path.exists(out_path):
+        logging.info(f"Generating default data from beggining")
+        default_data_performance = get_average_results_on_default_configurations_per_msa(enriched_default_data[
+                                                                                             enriched_default_data.msa_path.isin(
+                                                                                                 list(
+                                                                                                     performance_on_test_set[
+                                                                                                         "msa_path"].unique()))],
+                                                                                         n_sample_points=args.n_sample_points,
+                                                                                         seed=SEED)
+        default_data_performance.to_csv(out_path, sep=CSV_SEP)
+
+    else:
+        logging.info(f"Using existing default data in {out_path}")
+        default_data_performance = pd.read_csv(out_path, sep=CSV_SEP)
+
+    return default_data_performance
 
 
 
@@ -124,40 +142,48 @@ def main():
     if os.path.exists(file_paths["log_file"]):
         os.remove(file_paths["log_file"])
     logging.basicConfig(filename=file_paths["log_file"], level=logging_level)
+
+
+
     features_data = features_data.loc[~features_data.msa_path.str.contains("single-gene_alignments")]
-    features_data = features_data[[col for col in features_data.columns if 'feature_ll_improvements' not in col and 'feature_corcoeff_SPR' not in col ]]
-    logging.info(f"Number of MSAs in feature data is {len(features_data['msa_path'].unique())}")
 
-    logging.info(f"Enriching features data in {file_paths['features_path']} and saving to {file_paths['ML_edited_features_path']}")
-    edited_data = edit_raw_data_for_ML(features_data, epsilon)
-    enriched_features_data = edited_data["non_default"]
-    logging.info(f"Number of positive samples: {len(enriched_features_data.loc[enriched_features_data.is_global_max==1].index)}, Number of negative samples {len(enriched_features_data.loc[enriched_features_data.is_global_max==0].index)}")
-    enriched_default_data = edited_data["default"]
-    #enriched_features_data.to_csv(file_paths["ML_edited_features_path"], sep=CSV_SEP)
-    #enriched_default_data.to_csv(file_paths["ML_edited_default_data_path"], sep=CSV_SEP)
+    mds_included_features = [f'feature_mds_False_pca_{i}_3' for i in range(3)]+['feature_mds_False_stress_3']
+    excluded_features = [col for col in features_data.columns if 'feature_ll_improvements' in col or 'feature_corcoeff_SPR' in col or 'mds' in col]
 
-    data_dict = generate_basic_data_dict(enriched_features_data, args)
+    if os.path.exists(file_paths["edited_data"]):
+        edited_data = pickle.load(open(file_paths["edited_data"],'rb'))
+    else:
+        features_data = features_data[[col for col in features_data.columns if col not in excluded_features or col in mds_included_features]]
+        #features_data = features_data.loc[features_data.starting_tree_type == 'rand']
+        logging.info(f"Number of MSAs in feature data is {len(features_data['msa_path'].unique())}")
+
+        logging.info(f"Enriching features data in {file_paths['features_path']} and saving to {file_paths['ML_edited_features_path']}")
+        edited_data = edit_raw_data_for_ML(features_data, epsilon)
+        with open(file_paths["edited_data"],"wb") as EDITED_DATA:
+            pickle.dump(edited_data,EDITED_DATA)
+        enriched_features_data = edited_data["non_default"]
+        logging.info(f"Number of positive samples: {len(enriched_features_data.loc[enriched_features_data.is_global_max==1].index)}, Number of negative samples {len(enriched_features_data.loc[enriched_features_data.is_global_max==0].index)}")
+        #enriched_default_data = edited_data["default"]
+        #enriched_default_data_by_params = edited_data["default_by_params"]
+        enriched_features_data.to_csv(file_paths["ML_edited_features_path"], sep=CSV_SEP)
+        #enriched_default_data.to_csv(file_paths["ML_edited_default_data_path"], sep=CSV_SEP)
+
+    data_dict = generate_basic_data_dict(edited_data["non_default"], args)
     time_model, error_model = generate_single_tree_models(data_dict, file_paths, args)
 
 
     total_MSA_level_features = edited_data["MSA_level_columns"]+edited_data["averaged_MSA_level_columns"]
     performance_on_test_set = train_multi_tree_models(file_paths, time_model, error_model, data_dict, total_MSA_level_features, args)
-    if not os.path.exists(file_paths["default_path"]):
-        logging.info(f"Generating default data from beggining")
-        default_data_performance = get_average_results_on_default_configurations_per_msa(enriched_default_data[enriched_default_data.msa_path.isin(list(performance_on_test_set["msa_path"].unique()))],
-                                                                                         n_sample_points=args.n_sample_points,
-                                                                                         seed=SEED)
-        default_data_performance.to_csv(file_paths["default_path"], sep=CSV_SEP)
-
-    else:
-        logging.info(f"Using existing default data in {file_paths['default_path']}")
-        default_data_performance = pd.read_csv(file_paths["default_path"], sep=CSV_SEP)
 
 
+    default_data_performance = get_default_performance(edited_data["default"],args,performance_on_test_set, out_path = file_paths["default_path"])
+    default_by_params_data_performance = get_default_performance(edited_data["default_by_params"], args, performance_on_test_set, out_path= file_paths["default_by_params_path"])
     default_results_agg_per_MSA = default_data_performance.groupby('msa_path').aggregate(mean_default_status = ('default_status', np.mean), mean_default_diff = ('default_final_err',np.mean))
-    raw_comp = performance_on_test_set.merge(default_results_agg_per_MSA, how = 'left', on="msa_path")
+    default_params_results_agg_per_MSA = default_by_params_data_performance.groupby('msa_path').aggregate(
+        mean_default_params_status=('default_status', np.mean), mean_default_params_diff=('default_final_err', np.mean))
 
-    aggregated_results = raw_comp.groupby(['metric','threshold','MSAs_included']).agg(mean_status = ('status', np.mean), mean_default_status = ('mean_default_status', np.mean), mean_time = ("total_actual_time",np.mean),mean_LL_diff = ('diff',np.mean), mean_default_diff = ('mean_default_diff',np.mean) )
+    raw_comp = performance_on_test_set.merge(default_results_agg_per_MSA, how = 'left', on="msa_path").merge(default_params_results_agg_per_MSA, how='left', on="msa_path")
+    aggregated_results = raw_comp.groupby(['metric','threshold','MSAs_included']).agg(mean_status = ('status', np.mean), mean_default_status = ('mean_default_status', np.mean),mean_default_params_status = ('mean_default_params_status', np.mean), mean_time = ("total_actual_time",np.mean),mean_LL_diff = ('diff',np.mean), mean_default_diff = ('mean_default_diff',np.mean),mean_default_params_diff = ('mean_default_params_diff', np.mean) )
     aggregated_results.to_csv(file_paths["final_comparison_path_agg"], sep = CSV_SEP)
     raw_comp.to_csv(file_paths["final_comparison_path"], sep=CSV_SEP)
 

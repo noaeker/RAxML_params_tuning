@@ -29,9 +29,13 @@ def edit_raw_data_for_ML(data, epsilon):
     mean_default_running_time = \
         data[data["type"] == "default"].groupby('msa_path')['relative_time'].mean().reset_index().rename(
             columns={'relative_time': 'mean_default_time'})
-    data["starting_tree_bool"] = data["starting_tree_type"] == "pars"
+    default_config_per_tree = data[data["type"] == "default"][['msa_path','starting_tree_type','starting_tree_ind','spr_radius','spr_cutoff', 'delta_ll_from_overall_msa_best_topology']].drop_duplicates().reset_index().rename(
+            columns={'spr_radius': 'spr_radius_default','spr_cutoff': 'spr_cutoff_default', 'delta_ll_from_overall_msa_best_topology': 'default_delta_ll'})
     data = data.merge(mean_default_running_time, on='msa_path')
+    data = data.merge(default_config_per_tree, on = ['msa_path','starting_tree_type','starting_tree_ind'])
+    data["equal_to_default_config"] = (data["spr_cutoff"] ==data["spr_cutoff_default"]) & (data["spr_radius"]==data["spr_radius_default"])
     data["normalized_relative_time"] = data["relative_time"] / data["mean_default_time"]
+    data["starting_tree_bool"] = data["starting_tree_type"] == "pars"
     data["feature_diff_vs_best_tree"] = \
         data[['msa_path',"feature_tree_optimized_ll"]].groupby(['msa_path']).transform(lambda x: ((x - x.max())) / x.max())
     data["feature_brlen_opt_effect"] = data["feature_tree_optimized_ll"] - data["starting_tree_ll"]
@@ -40,11 +44,15 @@ def edit_raw_data_for_ML(data, epsilon):
     non_default_data = data[data["type"] != "default"].copy()
     non_default_data["found_best_score"] = non_default_data.groupby("msa_path")['is_global_max'].transform(np.max)
     default_data= data[data["type"] == "default"].copy()
+    default_by_params = non_default_data[non_default_data["equal_to_default_config"]].copy()
     numerical_columns = [col for col in non_default_data.columns if
                          col.startswith('feature') and is_numeric_dtype(non_default_data[col])]
     changing_features = non_default_data[numerical_columns + ['msa_path']].groupby('msa_path').apply(
         lambda x: np.var(x)).sum(axis=0)
+    #mds_included_features = [f'feature_mds_False_pca_{i}_3' for i in range(3)] + ['feature_mds_False_stress_3']
     starting_tree_level_columns =changing_features[changing_features > 0.001].index
+    #
+    starting_tree_level_columns = [col for col in starting_tree_level_columns ]
     MSA_level_columns = [col for col in numerical_columns if col not in starting_tree_level_columns]
     mean_transformations = non_default_data.groupby('msa_path').transform(lambda vec: np.mean(vec))
     averaged_cols = []
@@ -55,7 +63,7 @@ def edit_raw_data_for_ML(data, epsilon):
     std_transformations = non_default_data.groupby('msa_path').transform(lambda vec: (vec - vec.mean()) / vec.std())
     for col in starting_tree_level_columns:
         non_default_data[col] = std_transformations[col]
-    return {"non_default": non_default_data, "default": default_data,"MSA_level_columns": MSA_level_columns,"averaged_MSA_level_columns":averaged_cols  }
+    return {"non_default": non_default_data, "default": default_data,"default_by_params": default_by_params,"MSA_level_columns": MSA_level_columns,"averaged_MSA_level_columns":averaged_cols  }
 
 
 
@@ -137,6 +145,7 @@ def  get_best_configuration_per_starting_tree(curr_msa_data_per_tree):
                                                             "predicted_time"]) * -1
             #starting_tree_data =  starting_tree_data.sort_values(by="failure_score", ascending=False).head(1)
             starting_tree_data = starting_tree_data.sort_values('predicted_time').head(1)
+            #starting_tree_data = starting_tree_data.loc[starting_tree_data.equal_to_default_config]
             result.append(starting_tree_data)
     return pd.concat(result)
 

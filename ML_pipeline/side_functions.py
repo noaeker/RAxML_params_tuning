@@ -20,6 +20,6 @@ def get_ML_parser():
                         default=[0]) #np.linspace(0,1,10)
     parser.add_argument('--n_jobs', action='store', type=int,
                         default=4)
-    parser.add_argument('--accuracy_frac', action='store', default=0.86)
     parser.add_argument('--lightgbm', action='store_true', default=True)
+    parser.add_argument('--fast_run', action='store_true', default=False)
     return parser

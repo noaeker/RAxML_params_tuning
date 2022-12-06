@@ -1,10 +1,11 @@
 from side_code.config import *
 from ML_pipeline.ML_config import *
+import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 import pickle
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, accuracy_score, roc_auc_score
-from sklearn.metrics import matthews_corrcoef, roc_auc_score, average_precision_score, accuracy_score,precision_score, recall_score
+from sklearn.metrics import matthews_corrcoef, roc_auc_score, average_precision_score, accuracy_score,precision_score, recall_score, PrecisionRecallDisplay
 import numpy as np
 import os
 import lightgbm
@@ -44,7 +45,7 @@ def ML_model(X_train, groups, y_train, n_jobs, path, classifier = False, model =
         else:
             model = lightgbm.LGBMRegressor()
             param_grid = REGRESSION_PARAM_GRID
-        group_splitter = list(GroupKFold(n_splits=5).split(X_train, y_train.ravel(), groups=groups))
+        group_splitter = list(GroupKFold(n_splits=2).split(X_train, y_train.ravel(), groups=groups))
         selector, X_train, model = RFE(model, X_train, y_train, group_splitter, n_jobs)
         grid_search = GridSearchCV(estimator= model, param_grid=param_grid,
                                    cv=group_splitter, n_jobs=n_jobs, pre_dispatch='1*n_jobs', verbose=2)
@@ -92,6 +93,8 @@ def print_model_statistics(model, test_X, y_test, is_classification, vi_path, na
 
 def model_metrics(y_test, predictions,prob_predictions, is_classification):
     if is_classification:
+        #PrecisionRecallDisplay.from_predictions(y_test, prob_predictions)
+        #plt.show()
         return {'AUC' :roc_auc_score(y_test, prob_predictions),'average_precision': average_precision_score(y_test, prob_predictions),'accuracy_score':accuracy_score(y_test, predictions),'precision':precision_score(y_test, predictions),'recall':recall_score(y_test, predictions), 'mcc': matthews_corrcoef(y_test, predictions)}
     return {"r2": r2_score(y_test, predictions), "MAE": mean_absolute_error(y_test, predictions),
             "MSE": mean_squared_error(y_test, predictions)
