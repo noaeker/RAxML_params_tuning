@@ -39,7 +39,7 @@ def main_parser():
     parser.add_argument('--waiting_time_between_iterations',type=int, default = WAITING_TIME_UPDATE)
     parser.add_argument('--waiting_time_between_job_submissions', type=int, default=4)
     parser.add_argument('--msa_type', default = 'AA',type=str)
-    parser.add_argument('--old_msas_path', type=str)
+    parser.add_argument('--old_msas_folder', type=str)
     parser.add_argument('--test_msa_type', default = 'AA')
     parser.add_argument('--time_between_tests',type=int, default=300)
     return parser

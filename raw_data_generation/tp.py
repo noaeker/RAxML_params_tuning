@@ -288,12 +288,19 @@ def main():
     date_str = f'{run_prefix}{now.year}_{now.month}_{now.hour}_{now.minute}'
     global_csv_path = os.path.join(all_runs_csv_outputs_folder, f'global_csv_{run_prefix}_{date_str}_{CSV_SUFFIX}')
 
+    csv_files_in_folder = [os.path.join(args.old_msas_folder, f) for f in
+                           os.listdir(args.old_msas_folder) if f.endswith(CSV_SUFFIX)]
+    dfs_in_folder = [pd.read_csv(f, sep=CSV_SEP) for f in csv_files_in_folder]
+    logging.info(f"Combining CSV files: {csv_files_in_folder}")
+    if len(dfs_in_folder)>0:
+        existing_msas = pd.concat(dfs_in_folder, sort=False)["msa_path"].unique()
+    else:
+        existing_msas = []
+
     with open(file_paths_path, "rb") as FILE_PATHS:
         target_msas_list = pickle.load(FILE_PATHS)
         if args.use_existing_global_data:
             logging.info(f"Removing existing msas in {args.old_msas_path}")
-            existing_msas_data = pd.read_csv(args.old_msas_path, sep = CSV_SEP)
-            existing_msas = existing_msas_data["msa_path"].unique()
             target_msas_list = [p for p in target_msas_list if p not in existing_msas]
     total_msas_done = 0
     total_msas_overall = len(target_msas_list)
