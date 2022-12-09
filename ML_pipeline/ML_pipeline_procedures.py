@@ -26,24 +26,27 @@ def edit_raw_data_for_ML(data, epsilon):
     data["is_global_max"] = (data["delta_ll_from_overall_msa_best_topology"] <= epsilon).astype('int')
     # data["is_global_max"] = data.groupby('msa_path').transform(lambda x: x<= x.quantile(0.1))["delta_ll_from_overall_msa_best_topology"]
     data["relative_time"] = data["elapsed_running_time"] / data["test_norm_const"]
-    mean_default_running_time = \
-        data[data["type"] == "default"].groupby('msa_path')['relative_time'].mean().reset_index().rename(
-            columns={'relative_time': 'mean_default_time'})
+    # mean_default_running_time = \
+    #     data[data["type"] == "default"].groupby('msa_path')['relative_time'].mean().reset_index().rename(
+    #         columns={'relative_time': 'mean_default_time'})
     default_config_per_tree = data[data["type"] == "default"][['msa_path','starting_tree_type','starting_tree_ind','spr_radius','spr_cutoff', 'delta_ll_from_overall_msa_best_topology']].drop_duplicates().reset_index().rename(
             columns={'spr_radius': 'spr_radius_default','spr_cutoff': 'spr_cutoff_default', 'delta_ll_from_overall_msa_best_topology': 'default_delta_ll'})
-    data = data.merge(mean_default_running_time, on='msa_path')
-    data = data.merge(default_config_per_tree, on = ['msa_path','starting_tree_type','starting_tree_ind'])
-    data["equal_to_default_config"] = (data["spr_cutoff"] ==data["spr_cutoff_default"]) & (data["spr_radius"]==data["spr_radius_default"])
-    data["normalized_relative_time"] = data["relative_time"] / data["mean_default_time"]
-    data["starting_tree_bool"] = data["starting_tree_type"] == "pars"
-    data["feature_diff_vs_best_tree"] = \
-        data[['msa_path',"feature_tree_optimized_ll"]].groupby(['msa_path']).transform(lambda x: ((x - x.max())) / x.max())
-    data["feature_brlen_opt_effect"] = data["feature_tree_optimized_ll"] - data["starting_tree_ll"]
-    data["feature_seq_to_loci"] = data["feature_msa_n_seq"] / data["feature_msa_n_loci"]
-    data["feature_seq_to_unique_loci"] = data["feature_msa_n_seq"] / data["feature_msa_n_unique_sites"]
     non_default_data = data[data["type"] != "default"].copy()
+    non_default_data = non_default_data.merge(default_config_per_tree, on = ['msa_path','starting_tree_type','starting_tree_ind'])
+    non_default_data["equal_to_default_config"] = (non_default_data["spr_cutoff"] ==non_default_data["spr_cutoff_default"]) & (non_default_data["spr_radius"]==non_default_data["spr_radius_default"])
+    non_default_data["relative_time"] = non_default_data["elapsed_running_time"] / non_default_data["test_norm_const"]
+    mean_default_by_params_running_time = \
+        non_default_data[non_default_data["equal_to_default_config"]].groupby('msa_path')['relative_time'].mean().reset_index().rename(
+            columns={'relative_time': 'mean_default_time'})
+    non_default_data = non_default_data.merge(mean_default_by_params_running_time, on='msa_path')
+    non_default_data["normalized_relative_time"] = non_default_data["relative_time"] / non_default_data["mean_default_time"]
+    non_default_data["starting_tree_bool"] = non_default_data["starting_tree_type"] == "pars"
+    #data["feature_diff_vs_best_tree"] = \
+    #    data[['msa_path',"feature_tree_optimized_ll"]].groupby(['msa_path']).transform(lambda x: ((x - x.max())) / x.max())
+    #data["feature_brlen_opt_effect"] = data["feature_tree_optimized_ll"] - data["starting_tree_ll"]
+    #non_default_data["feature_seq_to_loci"] = non_default_data["feature_msa_n_seq"] / non_default_data["feature_msa_n_loci"]
+    non_default_data["feature_seq_to_unique_loci"] = non_default_data["feature_msa_n_seq"] / non_default_data["feature_msa_n_unique_sites"]
     non_default_data["found_best_score"] = non_default_data.groupby("msa_path")['is_global_max'].transform(np.max)
-    default_data= data[data["type"] == "default"].copy()
     default_by_params = non_default_data[non_default_data["equal_to_default_config"]].copy()
     numerical_columns = [col for col in non_default_data.columns if
                          col.startswith('feature') and is_numeric_dtype(non_default_data[col])]
@@ -63,7 +66,7 @@ def edit_raw_data_for_ML(data, epsilon):
     std_transformations = non_default_data.groupby('msa_path').transform(lambda vec: (vec - vec.mean()) / vec.std())
     for col in starting_tree_level_columns:
         non_default_data[col] = std_transformations[col]
-    return {"non_default": non_default_data, "default": default_data,"default_by_params": default_by_params,"MSA_level_columns": MSA_level_columns,"averaged_MSA_level_columns":averaged_cols  }
+    return {"non_default": non_default_data, "default_by_params": default_by_params,"MSA_level_columns": MSA_level_columns,"averaged_MSA_level_columns":averaged_cols  }
 
 
 
@@ -135,19 +138,9 @@ def get_best_parsimony_config_per_cluster(curr_run_directory, best_configuration
 
 
 def  get_best_configuration_per_starting_tree(curr_msa_data_per_tree):
-    result = []
-    for starting_tree_ind in curr_msa_data_per_tree['starting_tree_ind'].unique():
-        for starting_tree_type in curr_msa_data_per_tree['starting_tree_type'].unique():
-            starting_tree_data = curr_msa_data_per_tree.loc[(curr_msa_data_per_tree.starting_tree_ind==starting_tree_ind)&(curr_msa_data_per_tree.starting_tree_type==starting_tree_type)]
-            starting_tree_data["failure_score"] = (starting_tree_data[
-                                                            "log_failure_calibrated"] /
-                                                        starting_tree_data[
-                                                            "predicted_time"]) * -1
-            #starting_tree_data =  starting_tree_data.sort_values(by="failure_score", ascending=False).head(1)
-            starting_tree_data = starting_tree_data.sort_values('predicted_time').head(1)
-            #starting_tree_data = starting_tree_data.loc[starting_tree_data.equal_to_default_config]
-            result.append(starting_tree_data)
-    return pd.concat(result)
+    return (curr_msa_data_per_tree.sort_values('predicted_time').groupby(['starting_tree_ind']).head(1))
+
+
 
 
 

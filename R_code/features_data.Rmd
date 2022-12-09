@@ -20,89 +20,54 @@ library(lubridate)
 ```
 
 
+
 ```{r}
-features = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/ML_edited_features.tsv")
-```
-```{r}
-all_features<- read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/all_features.tsv")
-```
-```{r}
-all_features
+all_features<- read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/ready/ML_edited_features.tsv")
 ```
 
-
+Take a look at the features
 
 ```{r}
-all_features %>% distinct (feature_msa_pypythia_msa_difficulty, feature_mds_False_stress_20) %>% ggplot(aes(x=feature_msa_pypythia_msa_difficulty, y=feature_mds_False_stress_20))+geom_point()
-
-all_features %>% distinct (feature_msa_pypythia_msa_difficulty, feature_mds_False_stress_3) %>% ggplot(aes(x=feature_msa_pypythia_msa_difficulty, y=feature_mds_False_stress_3))+geom_point()
-
+all_features %>% distinct (msa_path)
 ```
-Parsimony vs. Random
+Parsimony vs. Random behaviour
 
 ```{r}
-features %>% group_by(msa_path,starting_tree_ind,starting_tree_type) %>% summarise(is_global_max = mean(is_global_max)) %>% ggplot(aes(x= is_global_max, color =starting_tree_type))+geom_histogram()
+all_features %>% group_by(msa_path,starting_tree_ind,starting_tree_type) %>% summarise(is_global_max = mean(is_global_max)) %>% ggplot(aes(x= is_global_max, color =starting_tree_type))+geom_density()
 
 
-features %>% group_by(msa_path,starting_tree_ind,starting_tree_type) %>% summarise(mean_delta_ll = mean(delta_ll_from_overall_msa_best_topology)) %>% ggplot(aes(x= mean_delta_ll, fill =starting_tree_type))+geom_histogram()
 
 
 ```
 ```{r}
-features %>% filter (starting_tree_type=='pars') %>% select (feature_mds_False_pca_0_3,feature_mds_False_pca_1_3,feature_mds_False_pca_2_3, delta_ll_from_overall_msa_best_topology, is_global_max) %>% ggplot(aes( x =feature_mds_False_pca_0_3,color=as.factor(is_global_max), ))+geom_density()
-
-features %>% filter (starting_tree_type=='pars') %>% select (feature_mds_False_pca_0_3,feature_mds_False_pca_1_3,feature_mds_False_pca_2_3, delta_ll_from_overall_msa_best_topology, is_global_max) %>% ggplot(aes( x =feature_mds_False_pca_1_3,y = delta_ll_from_overall_msa_best_topology ))+geom_point()
-
-features %>% filter (starting_tree_type=='pars') %>% select (feature_mds_False_pca_0_3,feature_mds_False_pca_1_3,feature_mds_False_pca_2_3, delta_ll_from_overall_msa_best_topology, is_global_max) %>% ggplot(aes( x =feature_mds_False_pca_1_3,y = delta_ll_from_overall_msa_best_topology ))+geom_point()
-
-
+all_features  %>% group_by (msa_path,starting_tree_type,feature_msa_pypythia_msa_difficulty) %>% summarise(is_global_max = max(is_global_max)) %>% pivot_wider(names_from = starting_tree_type, values_from = is_global_max ) %>% mutate (pars_vs_rand = pars-rand) %>% ggplot(aes(y=as.factor(pars_vs_rand), x = feature_msa_pypythia_msa_difficulty))+geom_boxplot()
 ```
 
 
+
+MDS feature
 
 ```{r}
-features %>% filter (starting_tree_type=='rand') %>% select (feature_mds_False_pca_0_3,feature_mds_False_pca_1_3,feature_mds_False_pca_2_3, delta_ll_from_overall_msa_best_topology, is_global_max) %>% ggplot(aes( x =feature_mds_False_pca_0_3,color=as.factor(is_global_max), ))+geom_density()
-
-
+all_features %>% filter (starting_tree_type=='pars') %>% select (feature_mds_False_pca_0_3_spr_enriched, delta_ll_from_overall_msa_best_topology, is_global_max) %>% ggplot(aes( x =feature_mds_False_pca_0_3_spr_enriched,color=as.factor(is_global_max), ))+geom_density()
 ```
-
-
-
-
-```{r}
-data = features %>% filter (starting_tree_type=='pars') %>% select (feature_mds_False_pca_0_3,feature_mds_False_pca_1_3,feature_mds_False_pca_2_3, delta_ll_from_overall_msa_best_topology, is_global_max,feature_msa_pypythia_msa_difficulty)
-logistic_model <- glm(is_global_max ~ feature_msa_pypythia_msa_difficulty *feature_mds_False_pca_0_3*feature_mds_False_pca_1_3*feature_mds_False_pca_2_3, 
-                      data = data, 
-                      family = "binomial")
-summary(logistic_model
-        )
-```
-
-
-
-```{r}
-features %>% distinct (msa_path, feature_msa_pypythia_msa_difficulty)
-all_features %>% distinct(msa_path, feature_msa_pypythia_msa_difficulty)
-```
+Estimate parsimony tree correlation
 
 ```{r}
 
+all_features %>% filter (starting_tree_type=='rand') %>% ggplot(aes(x=normalized_relative_time, color= as.factor(is_global_max)))+ geom_density()
 
+all_features %>% filter (starting_tree_type=='pars') %>% ggplot(aes(x=normalized_relative_time, color= as.factor(is_global_max)))+ geom_density()
 
-all_features %>% group_by(msa_path,starting_tree_ind,starting_tree_type,feature_mds_False_pca_1_3,feature_mds_False_pca_2_3) %>%
-filter(msa_path=='/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF08033.fasta') 
- 
-```
-
-
-
-```{r}
-features %>% distinct (msa_path, feature_msa_pypythia_msa_difficulty)
-features %>% group_by(msa_path,starting_tree_ind,starting_tree_type,feature_mds_True_pca_0_3,feature_mds_True_pca_1_3,feature_mds_True_pca_2_3) %>% summarise(is_global_max = max(delta_ll_from_overall_msa_best_topology<=0.1)) %>% filter (starting_tree_type=='rand') %>% filter(msa_path=='/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF08021.fasta')  %>% ggplot(aes(x=feature_mds_True_pca_1_3, y = feature_mds_True_pca_2_3, color =as.factor(is_global_max), shape = starting_tree_type))+geom_point()
 ```
 ```{r}
-features  %>% mutate(is_global_max = max(delta_ll_from_overall_msa_best_topology<=0.1)) %>% ggplot(aes(x=running_time, y = feature_mds_True_pca_2_3, color =as.factor(is_global_max), shape = starting_tree_type))+geom_point()
+data<-all_features %>% filter (starting_tree_type=='pars') %>% group_by(msa_path) %>% mutate(delta_ll = delta_ll_from_overall_msa_best_topology/max(delta_ll_from_overall_msa_best_topology))
+data %>% ggplot(aes(x = abs(feature_mds_False_pca_0_3_spr_enriched), y = delta_ll))+geom_point()
+data
+
+
 ```
+
+
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
 

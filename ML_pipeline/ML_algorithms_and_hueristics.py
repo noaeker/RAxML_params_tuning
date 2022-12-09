@@ -14,16 +14,35 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV,GroupKFold
 from sklearn.feature_selection import RFECV
 from sklearn.calibration import CalibratedClassifierCV, calibration_curve
+from sklearn.metrics import make_scorer
 from sklearn.linear_model import SGDClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import LogisticRegression
 
 
+def regression_per_group(df):
+    y_pred = list(df.y_pred)
+    y = list(df.y)
+    return r2_score(y, y_pred)
+
+
+def accuracy_per_group(df):
+    y_pred = list(df.y_pred)
+    y = list(df.y)
+    return accuracy_score(y,y_pred)
+
+
+def score_func_classification(y, y_pred, groups, classification):
+    df = pd.DataFrame({'y': y,'y_pred': y_pred,'groups': groups})
+    if classification:
+        return df.groupby(groups).apply(accuracy_per_group).mean()
+    else:
+        return df.groupby(groups).apply(regression_per_group).mean()
 
 
 def RFE(model,X,y,group_splitter,n_jobs):
-    selector = RFECV(model, step=3, cv=group_splitter, n_jobs=n_jobs,min_features_to_select=X.shape[1] )#
+    selector = RFECV(model, step=2, cv=group_splitter, n_jobs=n_jobs, min_features_to_select=X.shape[1] )#min_features_to_select=X.shape[1] X.shape[1]
     selector = selector.fit(X, y.ravel())
     model = selector.estimator
     X_new =  selector.transform(X)
@@ -31,7 +50,7 @@ def RFE(model,X,y,group_splitter,n_jobs):
     return selector,X_new, model
 
 def ML_model(X_train, groups, y_train, n_jobs, path, classifier = False, model = 'lightgbm', calibrate = True):
-    if os.path.exists(path):
+    if path and os.path.exists(path):
         model = pickle.load(open(path,"rb"))
         return model
     else:
@@ -45,7 +64,7 @@ def ML_model(X_train, groups, y_train, n_jobs, path, classifier = False, model =
         else:
             model = lightgbm.LGBMRegressor()
             param_grid = REGRESSION_PARAM_GRID
-        group_splitter = list(GroupKFold(n_splits=2).split(X_train, y_train.ravel(), groups=groups))
+        group_splitter = list(GroupKFold(n_splits=3).split(X_train, y_train.ravel(), groups=groups))
         selector, X_train, model = RFE(model, X_train, y_train, group_splitter, n_jobs)
         grid_search = GridSearchCV(estimator= model, param_grid=param_grid,
                                    cv=group_splitter, n_jobs=n_jobs, pre_dispatch='1*n_jobs', verbose=2)
@@ -57,7 +76,8 @@ def ML_model(X_train, groups, y_train, n_jobs, path, classifier = False, model =
     else:
         calibrated_model = best_model
     model = {'best_model': best_model,'calibrated_model': calibrated_model, 'selector': selector}
-    pickle.dump(model, open(path, "wb"))
+    if path:
+        pickle.dump(model, open(path, "wb"))
     return model
 
 
@@ -74,29 +94,30 @@ def calibration_plot(model, test_data, y_test):
     pyplot.show()
 
 
-def print_model_statistics(model, test_X, y_test, is_classification, vi_path, name,feature_importance = True):
+def print_model_statistics(model, test_X,test_groups, y_test, is_classification, vi_path, name,feature_importance = True):
     if feature_importance:
-        var_impt = variable_importance(test_X.columns,model['best_model'])
-        var_impt.to_csv(vi_path, sep=CSV_SEP)
+        var_impt = variable_importance(model['selector'].get_feature_names_out(),model['best_model'])
+        if vi_path:
+            var_impt.to_csv(vi_path, sep=CSV_SEP)
         logging.info(f"{name} variable importance: \n {var_impt}")
     predicted = model['best_model'].predict((model['selector']).transform(test_X))
     if is_classification:
         predicted_proba = model['best_model'].predict_proba((model['selector']).transform(test_X))[:, 1]
     else:
         predicted_proba = predicted
-    test_metrics = model_metrics(y_test, predicted,predicted_proba, is_classification= is_classification)
+    test_metrics = model_metrics(y_test, predicted,predicted_proba,groups = test_groups, is_classification= is_classification)
     logging.info(f"{name} metrics: \n {test_metrics}")
     #if is_classification:
     #    calibration_plot(model, test_X, y_test)
 
 
 
-def model_metrics(y_test, predictions,prob_predictions, is_classification):
+def model_metrics(y_test, predictions,prob_predictions, is_classification, groups):
     if is_classification:
         #PrecisionRecallDisplay.from_predictions(y_test, prob_predictions)
         #plt.show()
-        return {'AUC' :roc_auc_score(y_test, prob_predictions),'average_precision': average_precision_score(y_test, prob_predictions),'accuracy_score':accuracy_score(y_test, predictions),'precision':precision_score(y_test, predictions),'recall':recall_score(y_test, predictions), 'mcc': matthews_corrcoef(y_test, predictions)}
-    return {"r2": r2_score(y_test, predictions), "MAE": mean_absolute_error(y_test, predictions),
+        return {'avraged_accuracy': score_func_classification(y_test, predictions,groups, classification= True),'AUC' :roc_auc_score(y_test, prob_predictions),'average_precision': average_precision_score(y_test, prob_predictions),'accuracy_score':accuracy_score(y_test, predictions),'precision':precision_score(y_test, predictions),'recall':recall_score(y_test, predictions), 'mcc': matthews_corrcoef(y_test, predictions)}
+    return {"averaged_r2":score_func_classification(y_test, predictions,groups, classification= False), "r2": r2_score(y_test, predictions), "MAE": mean_absolute_error(y_test, predictions),
             "MSE": mean_squared_error(y_test, predictions)
             }
 

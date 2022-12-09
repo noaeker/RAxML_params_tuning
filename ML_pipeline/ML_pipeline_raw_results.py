@@ -19,6 +19,7 @@ import os
 import argparse
 import numpy as np
 import pickle
+import torch
 
 
 
@@ -35,7 +36,7 @@ def get_ML_ready_data(full_data, data_feature_names, search_feature_names, test_
     y_val_err = validation_data["is_global_max"]
     y_val_time = validation_data["normalized_relative_time"]
     return {"X_train": X_train, "train_MSAs": train_data["msa_path"], "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test": X_test,
-            "y_test_err": y_test_err, "y_test_time": y_test_time, "X_val": X_val, "y_val_err": y_val_err, "y_val_time": y_val_time,
+            'test_MSAs': test_data["msa_path"],"y_test_err": y_test_err, "y_test_time": y_test_time, "X_val": X_val, "y_val_err": y_val_err, "y_val_time": y_val_time,
             "full_test_data": test_data, "full_train_data" : train_data, "full_validation_data": validation_data}
 
 
@@ -50,6 +51,7 @@ def get_file_paths(args):
      "required_accuracy_model_path": f"{args.baseline_folder}/accuracy.model",
     "validation_multi_tree_data": f"{args.baseline_folder}/validation_multi_tree_data{CSV_SUFFIX}",
             "test_multi_tree_data": f"{args.baseline_folder}/test_multi_tree_data{CSV_SUFFIX}",
+            "test_multi_tree_data_with_predictions": f"{args.baseline_folder}/test_multi_tree_data_with_predictions{CSV_SUFFIX}",
             "validation_single_tree_data": f"{args.baseline_folder}/validation_single_tree_data{CSV_SUFFIX}",
             "test_single_tree_data": f"{args.baseline_folder}/test_single_tree_data{CSV_SUFFIX}",
     "performance_on_test_set":f"{args.baseline_folder}/overall_performance_on_test_set{CSV_SUFFIX}",
@@ -82,12 +84,12 @@ def generate_basic_data_dict(data_for_ML, args):
 
 def generate_single_tree_models(data_dict, file_paths, args):
     time_model= ML_model(X_train=data_dict["X_train"], groups =data_dict["train_MSAs"], y_train=data_dict["y_train_time"],n_jobs=args.n_jobs, path = file_paths["time_model_path"], classifier = False)
-    print_model_statistics(model=time_model,  test_X=data_dict["X_test"],
+    print_model_statistics(model=time_model,  test_X=data_dict["X_test"], test_groups = data_dict["test_MSAs"],
                            y_test=data_dict["y_test_time"], is_classification=False, vi_path=file_paths["time_vi"],
                            name="Time regression model")
     error_model= ML_model(X_train= data_dict["X_train"], groups= data_dict["train_MSAs"], y_train= data_dict["y_train_err"],n_jobs=args.n_jobs,
                           path = file_paths["error_model_path"], classifier = True)
-    print_model_statistics(model=error_model,  test_X=data_dict["X_test"],
+    print_model_statistics(model=error_model,  test_X=data_dict["X_test"], test_groups = data_dict["test_MSAs"],
                            y_test=data_dict["y_test_err"], is_classification=True, vi_path=file_paths["error_vi"],
                            name="Error classification model")
 
@@ -134,10 +136,6 @@ def main():
     file_paths = get_file_paths(args)
     features_data = pd.read_csv(file_paths["features_path"], sep=CSV_SEP)
     features_data = features_data.rename({'starting_tree_object_x':'starting_tree_object'})
-    #msa_names = list(np.unique(features_data["msa_path"]))
-    #np.random.seed(SEED)
-    #chosen_msas= np.random.choice(msa_names, size=int(len(msa_names) * (0.2)), replace=False)
-    #features_data = features_data[features_data["msa_path"].isin(chosen_msas)]
     logging_level = logging.INFO
     if os.path.exists(file_paths["log_file"]):
         os.remove(file_paths["log_file"])
@@ -147,8 +145,14 @@ def main():
 
     features_data = features_data.loc[~features_data.msa_path.str.contains("single-gene_alignments")]
 
-    mds_included_features = [f'feature_mds_False_pca_{i}_3' for i in range(3)]+['feature_mds_False_stress_3']
-    excluded_features = [col for col in features_data.columns if 'feature_ll_improvements' in col or 'feature_corcoeff_SPR' in col or 'mds' in col]
+
+    mds_included_features = [f'feature_mds_False_pca_{i}_3_spr_enriched' for i in range(3)]+['feature_mds_False_stress_3_spr_enriched']
+    excluded_features = [col for col in features_data.columns if 'mds' in col]
+
+    # msa_names = list(np.unique(features_data["msa_path"]))
+    # np.random.seed(SEED)
+    # chosen_msas= np.random.choice(msa_names, size=int(len(msa_names) * (0.2)), replace=False)
+    # features_data = features_data[features_data["msa_path"].isin(chosen_msas)]
 
     if os.path.exists(file_paths["edited_data"]):
         edited_data = pickle.load(open(file_paths["edited_data"],'rb'))
@@ -176,14 +180,15 @@ def main():
     performance_on_test_set = train_multi_tree_models(file_paths, time_model, error_model, data_dict, total_MSA_level_features, args)
 
 
-    default_data_performance = get_default_performance(edited_data["default"],args,performance_on_test_set, out_path = file_paths["default_path"])
+    #default_data_performance = get_default_performance(edited_data["default"],args,performance_on_test_set, out_path = file_paths["default_path"])
     default_by_params_data_performance = get_default_performance(edited_data["default_by_params"], args, performance_on_test_set, out_path= file_paths["default_by_params_path"])
-    default_results_agg_per_MSA = default_data_performance.groupby('msa_path').aggregate(mean_default_status = ('default_status', np.mean), mean_default_diff = ('default_final_err',np.mean))
-    default_params_results_agg_per_MSA = default_by_params_data_performance.groupby('msa_path').aggregate(
-        mean_default_params_status=('default_status', np.mean), mean_default_params_diff=('default_final_err', np.mean))
 
-    raw_comp = performance_on_test_set.merge(default_results_agg_per_MSA, how = 'left', on="msa_path").merge(default_params_results_agg_per_MSA, how='left', on="msa_path")
-    aggregated_results = raw_comp.groupby(['metric','threshold','MSAs_included']).agg(mean_status = ('status', np.mean), mean_default_status = ('mean_default_status', np.mean),mean_default_params_status = ('mean_default_params_status', np.mean), mean_time = ("total_actual_time",np.mean),mean_LL_diff = ('diff',np.mean), mean_default_diff = ('mean_default_diff',np.mean),mean_default_params_diff = ('mean_default_params_diff', np.mean) )
+    #default_results_agg_per_MSA = default_data_performance.groupby('msa_path').aggregate(mean_default_status = ('default_status', np.mean), mean_default_diff = ('default_final_err',np.mean), mean_default_time = ('default_total_time',np.mean))
+    default_params_results_agg_per_MSA = default_by_params_data_performance.groupby('msa_path').aggregate(
+        mean_default_params_status=('default_status', np.mean), mean_default_params_diff=('default_final_err', np.mean), mean_default_time_param_diff =('default_total_time',np.mean) )
+
+    raw_comp = performance_on_test_set.merge(default_params_results_agg_per_MSA, how='left', on="msa_path") #.merge(default_results_agg_per_MSA, how = 'left', on="msa_path")
+    aggregated_results = raw_comp.groupby(['metric','threshold','MSAs_included']).agg(mean_status = ('status', np.mean),mean_default_params_status = ('mean_default_params_status', np.mean), mean_time = ("total_actual_time",np.mean),mean_LL_diff = ('diff',np.mean), mean_default_params_diff = ('mean_default_params_diff', np.mean), mean_default_time_param_diff = ('mean_default_time_param_diff',np.mean) )
     aggregated_results.to_csv(file_paths["final_comparison_path_agg"], sep = CSV_SEP)
     raw_comp.to_csv(file_paths["final_comparison_path"], sep=CSV_SEP)
 
