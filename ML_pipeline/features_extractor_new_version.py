@@ -230,6 +230,9 @@ def enrich_with_LLE_and_ISOMAP(all_pars_tree_distances,all_rand_tree_distances,p
         full_df["feature_iso_eigen2"] = iso.kernel_pca_.eigenvalues_[1]
         full_df["feature_iso_eigen3"] = iso.kernel_pca_.eigenvalues_[2]
     except:
+        full_df["feature_iso_eigen1"] = -1
+        full_df["feature_iso_eigen2"] = -1
+        full_df["feature_iso_eigen3"] = -1
         logging.info("Problem with eigenvalues")
     full_df["feature_isomap_time"] = isomap_time
     full_df["feature_lle_time"] = lle_time
@@ -293,7 +296,7 @@ def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_n
 
     logging.info("Perofrming TSNE")
     st = time.time()
-    TSNE_model = TSNE(n_components=3, learning_rate='auto', init='pca', perplexity=3)
+    TSNE_model = TSNE(n_components=3, init='pca', perplexity=3)
     TSNE_embedded = TSNE_model.fit_transform(all_tree_distances)
     en = time.time()
     TSNE_embedded_df = pd.DataFrame(TSNE_embedded, columns=['feature_TSNE_0', 'feature_TSNE_1', 'feature_TSNE_2'])
