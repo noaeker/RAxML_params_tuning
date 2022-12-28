@@ -42,7 +42,7 @@ def main_parser():
     parser.add_argument('--old_msas_folder', type=str)
     parser.add_argument('--test_msa_type', default = 'AA')
     parser.add_argument('--time_between_tests',type=int, default=300)
-    parser.add_argument('--fake_run', type = bool, default= True)
+    parser.add_argument('--fake_run', type = bool, default= False)
     return parser
 
 
