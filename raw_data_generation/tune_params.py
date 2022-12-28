@@ -17,7 +17,7 @@ import numpy as np
 from shutil import rmtree
 
 
-def single_tree_RAxML_run(curr_run_directory, single_raxml_run_obj, tmp_starting_tree_path, fake = False):
+def single_tree_RAxML_run(curr_run_directory, single_raxml_run_obj, tmp_starting_tree_path):
     '''
 
     :param curr_run_directory:
@@ -36,7 +36,7 @@ def single_tree_RAxML_run(curr_run_directory, single_raxml_run_obj, tmp_starting
     create_or_clean_dir(curr_param_run_directory)
     raxml_search_results = raxml_search(curr_param_run_directory, single_raxml_run_obj.msa_path, msa_type, prefix,
                                         single_raxml_run_obj.params_config,
-                                        tmp_starting_tree_path, fake = fake)
+                                        tmp_starting_tree_path)
     rmtree(run_directory)
     return raxml_search_results
 
@@ -58,7 +58,7 @@ def raxml_run_on_test_msa(args, tmp_starting_tree_path):
         logging.debug(f"iter {i} of test")
         curr_i_folder = os.path.join(test_msa_folder, str(i))
         os.mkdir(curr_i_folder)
-        test_results = single_tree_RAxML_run(curr_i_folder, test_raxml_run, tmp_starting_tree_path, fake = args.fake_run)
+        test_results = single_tree_RAxML_run(curr_i_folder, test_raxml_run, tmp_starting_tree_path)
         total_test_time = total_test_time + test_results["elapsed_running_time"]
     rmtree(test_msa_folder)
     return total_test_time
@@ -113,7 +113,7 @@ def main():
             with open(tmp_starting_tree_path, 'w') as TMP_STARTING_TREE_PATH:
                 TMP_STARTING_TREE_PATH.write(raxml_run.starting_tree_object.write(format=1))
 
-            results = single_tree_RAxML_run(args.curr_job_folder, raxml_run, tmp_starting_tree_path, fake = args.fake_run)
+            results = single_tree_RAxML_run(args.curr_job_folder, raxml_run, tmp_starting_tree_path)
             results["test_norm_const"] = total_test_time
             results["job_ind"] = args.job_ind
             logging.debug(f"Current task results: {results}")
