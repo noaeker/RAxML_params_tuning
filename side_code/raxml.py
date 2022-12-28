@@ -223,7 +223,13 @@ def extract_parsimony_unique_topologies(curr_run_directory, trees_path, dist_pat
     return unique_file_path
 
 
-def raxml_search(curr_run_directory, msa_path, msa_type, prefix, params_config, starting_tree_path):
+def raxml_search(curr_run_directory, msa_path, msa_type, prefix, params_config, starting_tree_path, is_fake):
+    if is_fake:
+        fake_res = {'spr_radius': params_config.get("spr_radius"), 'spr_cutoff': params_config.get("spr_cutoff"), 'final_ll': -1,
+           'starting_tree_ll': -1,
+           'elapsed_running_time': -1,
+           'final_tree_topology': 'None'}
+
     spr_radius = params_config.get("spr_radius")
     spr_cutoff = params_config.get("spr_cutoff")
     spr_radius_command = "--spr-radius {}".format(spr_radius) if spr_radius else ""

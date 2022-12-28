@@ -1,5 +1,4 @@
 import sys
-from sklearn.calibration import calibration_curve
 
 if sys.platform == "linux" or sys.platform == "linux2":
     PROJECT_ROOT_DIRECRTORY = "/groups/pupko/noaeker/RAxML_params_tuning"
@@ -10,17 +9,10 @@ sys.path.append(PROJECT_ROOT_DIRECRTORY)
 from side_code.config import *
 from ML_pipeline.side_functions import get_ML_parser
 from ML_pipeline.ML_pipeline_procedures import get_average_results_on_default_configurations_per_msa,edit_raw_data_for_ML
-from ML_pipeline.ML_algorithms_and_hueristics import ML_model, print_model_statistics, train_test_validation_splits, \
-    variable_importance
-from ML_pipeline.knapsack import knapsack_on_test_set
-from ML_pipeline.multi_tree_model import get_multitree_performance_on_test_set_per_threshold
+from ML_pipeline.ML_algorithms_and_hueristics import ML_model, print_model_statistics, train_test_validation_splits
 import pandas as pd
 import os
-import argparse
-import numpy as np
 import pickle
-import torch
-
 
 
 def get_ML_ready_data(full_data, data_feature_names, search_feature_names, test_pct, val_pct):
@@ -96,17 +88,34 @@ def generate_single_tree_models(data_dict, file_paths, args):
     return time_model,error_model
 
 
-def train_multi_tree_models(file_paths, time_model, error_model, data_dict, total_MSA_level_features, args):
-    if not os.path.exists(file_paths["performance_on_test_set"]):
-        logging.info(f"Starting ML model from scratch {file_paths['performance_on_test_set']}")
-        performance_on_test_set =get_multitree_performance_on_test_set_per_threshold(data_dict, args, time_model, error_model, total_MSA_level_features, file_paths)
+
+def apply_single_tree_models_on_data(full_data,X, time_model,error_model,singletree_out_path):
+        time_data = time_model['selector'].transform(X)
+        full_data["predicted_time"] = time_model['best_model'].predict(time_data)
+        error_data = error_model['selector'].transform(X)
+        full_data["predicted_calibrated_failure_probabilities"] = error_model['calibrated_model'].predict_proba(
+            error_data)[:,
+                                                                  0]
+
+        full_data["predicted_uncalibrated_failure_probabilities"] = error_model[
+                                                                        'best_model'].predict_proba(
+            error_data)[:,
+                                                                    0]
+        full_data.to_csv(singletree_out_path, sep=CSV_SEP)
+        return full_data
 
 
-        performance_on_test_set.to_csv(file_paths["performance_on_test_set"], sep = CSV_SEP)
-    else:
-        logging.info(f"Using existing test performance in {file_paths['performance_on_test_set']}")
-        performance_on_test_set = pd.read_csv(file_paths["performance_on_test_set"], sep = CSV_SEP)
-    return performance_on_test_set
+# def train_multi_tree_models(file_paths, time_model, error_model, data_dict, total_MSA_level_features, args):
+#     if not os.path.exists(file_paths["performance_on_test_set"]):
+#         logging.info(f"Starting ML model from scratch {file_paths['performance_on_test_set']}")
+#         performance_on_test_set =get_multitree_performance_on_test_set_per_threshold(data_dict, args, time_model, error_model, total_MSA_level_features, file_paths)
+#
+#
+#         performance_on_test_set.to_csv(file_paths["performance_on_test_set"], sep = CSV_SEP)
+#     else:
+#         logging.info(f"Using existing test performance in {file_paths['performance_on_test_set']}")
+#         performance_on_test_set = pd.read_csv(file_paths["performance_on_test_set"], sep = CSV_SEP)
+#     return performance_on_test_set
 
 
 def get_default_performance(enriched_default_data,args,performance_on_test_set, out_path):
@@ -147,6 +156,8 @@ def main():
 
 
     mds_included_features = [f'feature_mds_False_pca_{i}_3_spr_enriched' for i in range(3)]+['feature_mds_False_stress_3_spr_enriched']
+    #for f in mds_included_features:
+    #    features_data[f] = abs(features_data[f])
     excluded_features = [col for col in features_data.columns if 'mds' in col]
 
     # msa_names = list(np.unique(features_data["msa_path"]))
@@ -175,22 +186,14 @@ def main():
     data_dict = generate_basic_data_dict(edited_data["non_default"], args)
     time_model, error_model = generate_single_tree_models(data_dict, file_paths, args)
 
-
-    total_MSA_level_features = edited_data["MSA_level_columns"]+edited_data["averaged_MSA_level_columns"]
-    performance_on_test_set = train_multi_tree_models(file_paths, time_model, error_model, data_dict, total_MSA_level_features, args)
-
+    #validation_data = apply_single_tree_models_on_data(data_dict["full_validation_data"], data_dict["X_val"],time_model, error_model,  file_paths["validation_single_tree_data"])
+    test_data = apply_single_tree_models_on_data(data_dict["full_test_data"], data_dict["X_test"], time_model, error_model,
+                                     file_paths["test_single_tree_data"])
 
     #default_data_performance = get_default_performance(edited_data["default"],args,performance_on_test_set, out_path = file_paths["default_path"])
-    default_by_params_data_performance = get_default_performance(edited_data["default_by_params"], args, performance_on_test_set, out_path= file_paths["default_by_params_path"])
+    default_by_params_data_performance = get_default_performance(edited_data["default_by_params"], args, data_dict["full_test_data"], out_path= file_paths["default_by_params_path"])
 
-    #default_results_agg_per_MSA = default_data_performance.groupby('msa_path').aggregate(mean_default_status = ('default_status', np.mean), mean_default_diff = ('default_final_err',np.mean), mean_default_time = ('default_total_time',np.mean))
-    default_params_results_agg_per_MSA = default_by_params_data_performance.groupby('msa_path').aggregate(
-        mean_default_params_status=('default_status', np.mean), mean_default_params_diff=('default_final_err', np.mean), mean_default_time_param_diff =('default_total_time',np.mean) )
 
-    raw_comp = performance_on_test_set.merge(default_params_results_agg_per_MSA, how='left', on="msa_path") #.merge(default_results_agg_per_MSA, how = 'left', on="msa_path")
-    aggregated_results = raw_comp.groupby(['metric','threshold','MSAs_included']).agg(mean_status = ('status', np.mean),mean_default_params_status = ('mean_default_params_status', np.mean), mean_time = ("total_actual_time",np.mean),mean_LL_diff = ('diff',np.mean), mean_default_params_diff = ('mean_default_params_diff', np.mean), mean_default_time_param_diff = ('mean_default_time_param_diff',np.mean) )
-    aggregated_results.to_csv(file_paths["final_comparison_path_agg"], sep = CSV_SEP)
-    raw_comp.to_csv(file_paths["final_comparison_path"], sep=CSV_SEP)
 
 
 

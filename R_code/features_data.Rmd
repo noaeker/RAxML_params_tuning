@@ -22,7 +22,7 @@ library(lubridate)
 
 
 ```{r}
-all_features<- read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/ready/ML_edited_features.tsv")
+all_features<- read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/MLML_edited_features.tsv")
 ```
 
 Take a look at the features
@@ -36,19 +36,38 @@ Parsimony vs. Random behaviour
 all_features %>% group_by(msa_path,starting_tree_ind,starting_tree_type) %>% summarise(is_global_max = mean(is_global_max)) %>% ggplot(aes(x= is_global_max, color =starting_tree_type))+geom_density()
 
 
+all_features %>% group_by(msa_path,starting_tree_type, starting_tree_ind) %>% mutate(success = max(is_global_max))%>% ungroup () %>% group_by (msa_path,starting_tree_type) %>% summarise(v_s = var(success)) %>% ggplot(aes(x= v_s, color =starting_tree_type))+geom_density()
+
+
+
 
 
 ```
+
+
 ```{r}
 all_features  %>% group_by (msa_path,starting_tree_type,feature_msa_pypythia_msa_difficulty) %>% summarise(is_global_max = max(is_global_max)) %>% pivot_wider(names_from = starting_tree_type, values_from = is_global_max ) %>% mutate (pars_vs_rand = pars-rand) %>% ggplot(aes(y=as.factor(pars_vs_rand), x = feature_msa_pypythia_msa_difficulty))+geom_boxplot()
+
+
+
+
+all_features  %>% group_by (msa_path,starting_tree_type,feature_msa_pypythia_msa_difficulty) %>% summarise(is_global_max = max(is_global_max)) %>% pivot_wider(names_from = starting_tree_type, values_from = is_global_max ) %>% mutate (pars_vs_rand = pars-rand) %>% ggplot(aes(x=(pars_vs_rand)))+geom_histogram()
 ```
 
+```{r}
+all_features %>% group_by(spr_radius, spr_cutoff) %>% summarise(normalized_time = mean(normalized_relative_time), is_global_max = mean(is_global_max)) %>% arrange(normalized_time) %>% ggplot(aes(x=normalized_time, y = is_global_max))+geom_point()+geom_line()
+```
 
 
 MDS feature
 
 ```{r}
 all_features %>% filter (starting_tree_type=='pars') %>% select (feature_mds_False_pca_0_3_spr_enriched, delta_ll_from_overall_msa_best_topology, is_global_max) %>% ggplot(aes( x =feature_mds_False_pca_0_3_spr_enriched,color=as.factor(is_global_max), ))+geom_density()
+
+all_features %>% filter (starting_tree_type=='pars') %>% select (feature_mds_False_pca_1_3_spr_enriched, delta_ll_from_overall_msa_best_topology, is_global_max) %>% ggplot(aes( x =feature_mds_False_pca_1_3_spr_enriched,color=as.factor(is_global_max), ))+geom_density()
+
+
+all_features %>% filter (starting_tree_type=='pars') %>% select (feature_mds_False_pca_2_3_spr_enriched, delta_ll_from_overall_msa_best_topology, is_global_max) %>% ggplot(aes( x =feature_mds_False_pca_2_3_spr_enriched,color=as.factor(is_global_max), ))+geom_density()
 ```
 Estimate parsimony tree correlation
 
@@ -60,10 +79,10 @@ all_features %>% filter (starting_tree_type=='pars') %>% ggplot(aes(x=normalized
 
 ```
 ```{r}
-data<-all_features %>% filter (starting_tree_type=='pars') %>% group_by(msa_path) %>% mutate(delta_ll = delta_ll_from_overall_msa_best_topology/max(delta_ll_from_overall_msa_best_topology))
-data %>% ggplot(aes(x = abs(feature_mds_False_pca_0_3_spr_enriched), y = delta_ll))+geom_point()
-data
+data<-all_features %>% group_by(msa_path) %>% mutate(mds = abs(feature_mds_False_pca_0_3_spr_enriched),delta_ll = delta_ll_from_overall_msa_best_topology/max(delta_ll_from_overall_msa_best_topology))
+#data %>% ggplot(aes(x = abs(feature_mds_False_pca_0_3_spr_enriched), y = delta_ll))+geom_point()
 
+cor.test(data$mds, data$delta_ll)
 
 ```
 

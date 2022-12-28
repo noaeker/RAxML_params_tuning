@@ -1,0 +1,155 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+
+test_single_tree_data =  read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/test_single_tree_data.tsv")
+validation_single_tree_data =  read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/validation_single_tree_data.tsv")
+
+```
+
+```{r}
+default_performance<- read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/default_by_params_sampling.tsv")
+```
+
+
+```{r}
+agg_default<-default_performance %>% group_by(msa_path) %>% summarise(mean_status_default = mean(default_status))
+```
+
+Validation data visualizations 
+
+```{r}
+validation_single_tree_data  %>% ggplot(aes(x=predicted_time, y= as.factor(is_global_max)))+geom_boxplot()
+validation_single_tree_data  %>% group_by(msa_path) %>% mutate(prob = predicted_calibrated_failure_probabilities/ max(predicted_calibrated_failure_probabilities)) %>% ungroup() %>% ggplot(aes(x=prob, y= as.factor(is_global_max)))+geom_boxplot()
+
+
+validation_single_tree_data  %>% ggplot(aes(x=predicted_calibrated_failure_probabilities, y= as.factor(is_global_max)))+geom_boxplot()
+```
+
+
+
+```{r}
+enriched_data<-validation_single_tree_data %>%arrange(predicted_time) %>% select (msa_path, predicted_uncalibrated_failure_probabilities,predicted_calibrated_failure_probabilities,starting_tree_type, starting_tree_ind, spr_radius, spr_cutoff, feature_mds_False_pca_0_3_spr_enriched, delta_ll_from_overall_msa_best_topology, is_global_max,tree_clusters_ind, predicted_time, feature_mds_False_stress_3_spr_enriched, feature_msa_pypythia_msa_difficulty,feature_msa_n_seq) %>% group_by(msa_path,starting_tree_ind, starting_tree_type)  %>% filter (row_number()==1) %>% ungroup() %>% group_by(msa_path, starting_tree_type)  %>% arrange(predicted_calibrated_failure_probabilities) %>% mutate(n_trees_used = row_number(), total_prob = 1-cumprod(predicted_calibrated_failure_probabilities), status = (cummax(is_global_max)), total_time = cumsum(predicted_time)) %>% ungroup() %>% group_by(msa_path, starting_tree_type) %>% mutate(max_status = max(status)) %>% ungroup() 
+
+enriched_data_test<-test_single_tree_data %>%arrange(predicted_time) %>% select (msa_path, predicted_uncalibrated_failure_probabilities,predicted_calibrated_failure_probabilities,starting_tree_type, starting_tree_ind, spr_radius, spr_cutoff, feature_mds_False_pca_0_3_spr_enriched, delta_ll_from_overall_msa_best_topology, is_global_max,tree_clusters_ind, predicted_time, feature_mds_False_stress_3_spr_enriched, feature_msa_pypythia_msa_difficulty,feature_msa_n_seq) %>% group_by(msa_path,starting_tree_ind, starting_tree_type)  %>% filter (row_number()==1) %>% ungroup() %>% group_by(msa_path, starting_tree_type)  %>% arrange(predicted_calibrated_failure_probabilities) %>% mutate(n_trees_used = row_number(), total_prob = 1-cumprod(predicted_calibrated_failure_probabilities), status = (cummax(is_global_max)), total_time = cumsum(predicted_time)) %>% ungroup() %>% group_by(msa_path, starting_tree_type) %>% mutate(max_status = max(status)) %>% ungroup() 
+```
+
+
+Getting test and train data
+
+```{r}
+
+enriched_data_success<-enriched_data %>% filter (max_status==1) %>% mutate(success=1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path, starting_tree_type) %>% mutate(mean_success_prob = mean(success), max_total_prob = max(total_prob),median_total_prob = median(total_prob) ) %>% filter(status==1) %>% filter(n_trees_used == min(n_trees_used)) %>% ungroup() %>% select (msa_path,starting_tree_type,mean_success_prob, n_trees_used, max_status,feature_msa_pypythia_msa_difficulty,max_total_prob,median_total_prob) %>% rename(id = msa_path)
+
+
+enriched_data_failure<- enriched_data %>% filter (max_status==0) %>% mutate(success=1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path,starting_tree_type) %>% mutate(mean_success_prob = mean(success),max_total_prob = max(total_prob), median_total_prob = median(total_prob),n_trees_used = 20 ) %>% distinct (msa_path,starting_tree_type,mean_success_prob, n_trees_used, max_status ,feature_msa_pypythia_msa_difficulty,max_total_prob,median_total_prob) %>% rename(id = msa_path)
+
+total_enriched_data<- rbind(enriched_data_success, enriched_data_failure) 
+
+
+enriched_data_success_show<-enriched_data_test %>% filter (max_status==1) %>% mutate(success=1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path, starting_tree_type) %>% mutate(mean_success_prob = mean(success), max_total_prob = max(total_prob) ) %>% filter(status==1) %>% filter(n_trees_used == min(n_trees_used)) %>% ungroup() %>% select (msa_path,starting_tree_type,mean_success_prob, n_trees_used, max_status,feature_msa_pypythia_msa_difficulty,max_total_prob) %>% rename(id = msa_path)
+
+
+enriched_data_failure_show<- enriched_data_test %>% filter (max_status==0) %>% mutate(success=1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path,starting_tree_type) %>% mutate(mean_success_prob = mean(success),max_total_prob = max(total_prob),n_trees_used = 20 ) %>% distinct (msa_path,starting_tree_type,mean_success_prob, n_trees_used, max_status ,feature_msa_pypythia_msa_difficulty,max_total_prob) %>% rename(id = msa_path)
+
+total_enriched_data_show<- rbind(enriched_data_success_show, enriched_data_failure_show) 
+
+total_enriched_data_test<-enriched_data_test %>% mutate(success=1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path, starting_tree_type) %>% mutate(mean_success_prob = mean(success),max_total_prob = max(total_prob),median_total_prob=median(total_prob) )  %>% ungroup() %>% select (msa_path,n_trees_used,status,starting_tree_type,mean_success_prob,feature_msa_pypythia_msa_difficulty,max_total_prob,median_total_prob) %>% rename(id = msa_path,max_status=status)
+```
+
+
+
+```{r}
+parsimony_data<- total_enriched_data%>% filter (starting_tree_type=='pars') %>% mutate(type='pars')
+random_data<- total_enriched_data%>% filter (starting_tree_type=='rand') %>% mutate(type='rand')
+
+parsimony_data_show<- total_enriched_data_show%>% filter (starting_tree_type=='pars') %>% mutate(type='pars')
+random_data_show<- total_enriched_data_show%>% filter (starting_tree_type=='rand') %>% mutate(type='rand')
+
+
+
+parsimony_test_data<- total_enriched_data_test%>% filter (starting_tree_type=='pars') %>% mutate(type='pars')
+random_test_data<- total_enriched_data_test%>% filter (starting_tree_type=='rand') %>% mutate(type='rand')
+parsimony_test_data %>% arrange(id)
+```
+
+
+```{r}
+library(ciTools)
+
+
+aft_pars<- survreg(Surv(n_trees_used, max_status)~strata(starting_tree_type)+feature_msa_pypythia_msa_difficulty,data =total_enriched_data)
+AIC(aft_pars)
+
+#+feature_msa_pypythia_msa_difficulty
+summary(aft_pars)
+AIC(aft_pars)
+predictions<-exp(predict(aft_pars, newdata=parsimony_test_data, type="lp"))*log(2)
+
+
+summary(predictions)
+
+with_ints <- ciTools::add_ci(parsimony_data_show,aft_pars, names = c("lcb", "ucb")) %>%
+    ciTools::add_pi(aft_pars, names = c("lpb", "upb"))
+
+ggplot(with_ints, aes(x =  mean_success_prob, y = n_trees_used)) +
+    geom_point(aes()) +
+    #facet_wrap()+
+    theme_bw() +
+    ggtitle("Model fit with 95% CIs and PIs",
+            "solid line = mean, dotted line = median") +
+    geom_line(aes(y = mean_pred), linetype = 1) +
+    geom_line(aes(y = median_pred), linetype = 2) +
+    geom_ribbon(aes(ymin = lcb, ymax = ucb), alpha = 0.5) +
+    geom_ribbon(aes(ymin = lpb, ymax = upb), alpha = 0.1)
+
+ggplot(with_ints, aes(x =  max_total_prob, y = n_trees_used)) +
+    geom_point(aes()) +
+    #facet_wrap()+
+    theme_bw() +
+    ggtitle("Model fit with 95% CIs and PIs",
+            "solid line = mean, dotted line = median") +
+    geom_line(aes(y = mean_pred), linetype = 1) +
+    geom_line(aes(y = median_pred), linetype = 2) +
+    geom_ribbon(aes(ymin = lcb, ymax = ucb), alpha = 0.5) +
+    geom_ribbon(aes(ymin = lpb, ymax = upb), alpha = 0.1)
+
+
+
+
+
+```
+
+
+```{r}
+quants <- ciTools::add_quantile(parsimony_test_data, aft_pars, p = 0.999,
+                                name = c("quant", "lcb", "ucb"))
+
+
+q<-quants %>% filter (n_trees_used>quant) %>% group_by(id) %>% filter (n_trees_used== min(n_trees_used))
+q %>% distinct (id)
+summary(q %>% pull(max_status))
+summary(q %>% pull(n_trees_used))
+```
+
+
+```{r}
+
+```
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

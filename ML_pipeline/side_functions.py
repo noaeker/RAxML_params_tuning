@@ -11,9 +11,9 @@ def get_ML_parser():
     parser.add_argument('--tree_choosing_method', action='store', type=str,
                         default='ML')
     parser.add_argument('--val_pct', action='store', type=int,
-                        default=0.25)
+                        default=0)
     parser.add_argument('--test_pct', action='store', type=int,
-                        default=0.25)
+                        default=0.5)
     parser.add_argument('--max_starting_trees', action='store', type=int,
                         default=40)
     parser.add_argument('--clusters_max_dist_options', action='store', type=float,

@@ -10,89 +10,196 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 ```{r}
 library(tidyverse)
 
-single_tree_data =  read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/ready/test_single_tree_data.tsv")
+test_single_tree_data =  read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/test_single_tree_data.tsv")
 
 ```
 
 ```{r}
-single_tree_data %>% distinct (msa_path, feature_msa_pypythia_msa_difficulty)
-```
-
-```{r}
-single_tree_data  %>% ggplot(aes(x=predicted_time, y= as.factor(is_global_max)))+geom_boxplot()
+default_performance<- read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/default_by_params_sampling.tsv")
 ```
 
 
 ```{r}
-data<-single_tree_data %>%arrange(predicted_time) %>% select (msa_path, predicted_uncalibrated_failure_probabilities,predicted_calibrated_failure_probabilities,starting_tree_type, starting_tree_ind, spr_radius, spr_cutoff, feature_mds_False_pca_0_3_spr_enriched, delta_ll_from_overall_msa_best_topology, is_global_max,tree_clusters_ind, predicted_time, feature_mds_False_stress_3_spr_enriched, feature_msa_pypythia_msa_difficulty,feature_msa_n_seq) %>% group_by(msa_path,starting_tree_ind, starting_tree_type)  %>% filter (row_number()==1) %>% ungroup() 
-
-#arrange(predicted_uncalibrated_failure_probabilities) 
-
-global_data<-data %>% group_by(msa_path)  %>% arrange(predicted_uncalibrated_failure_probabilities) %>% mutate(row_num = row_number(), total_prob = 1-cumprod(1-predicted_calibrated_failure_probabilities)) %>% ungroup() %>% filter (is_global_max==1) %>% group_by(msa_path) %>% filter (row_num == min(row_num)) %>% select (row_num,total_prob,feature_mds_False_stress_3_spr_enriched, feature_msa_pypythia_msa_difficulty,feature_msa_n_seq)
-
-global_data
-
-global_data%>% ggplot(aes(x=row_num))+geom_histogram()
-
-global_data%>% ggplot(aes(x=total_prob, y =feature_mds_False_stress_3_spr_enriched ))+geom_point()
-global_data%>% ggplot(aes(y=total_prob, x =feature_msa_pypythia_msa_difficulty ))+geom_point()
-global_data%>% ggplot(aes(y=row_num, x =feature_msa_pypythia_msa_difficulty ))+geom_point()
-global_data%>% ggplot(aes(y=row_num, x =total_prob ))+geom_point()
-
-global_data%>% ggplot(aes(y=total_prob, x =feature_msa_n_seq ))+geom_point()
-cor.test(global_data %>% pull (total_prob), global_data %>% pull (feature_msa_pypythia_msa_difficulty))
-cor.test(global_data %>% pull (total_prob), global_data %>% pull (feature_msa_n_seq))
-
-
-
-
-
- 
-
-
-
-#data  %>% group_by(msa_path) %>% mutate(global_max = max(is_global_max)) %>% filter (global_max==0) %>% distinct (msa_path) %>% #arrange(msa_path)
-
-"/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00122.fasta"
-"/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00061.fasta"
-
-
-```
-```{r}
-global_data %>% ggplot(aes(x= total_prob))+geom_histogram(bins =3)
-global_data%>% ggplot(aes(y=row_num, x =total_prob ))+geom_point()
-data %>% distinct (msa_path)
+agg_default<-default_performance %>% group_by(msa_path) %>% summarise(mean_status_default = mean(default_status))
 ```
 
 
-```{r}
-data %>% filter(msa_path=="/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF07994.fasta")  %>% arrange(predicted_uncalibrated_failure_probabilities) %>% mutate(row_num = row_number(), total_prob = 1-cumprod(1-predicted_uncalibrated_failure_probabilities)) %>% ungroup() %>% select (total_prob, predicted_uncalibrated_failure_probabilities, is_global_max, delta_ll_from_overall_msa_best_topology)
-```
+
 
 
 
 ```{r}
-single_tree_data %>% filter (msa_path=="/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00122.fasta") %>%
-  group_by(starting_tree_ind,starting_tree_type) %>% mutate(max_global= max(is_global_max)) %>% ungroup() %>% filter (max_global==1) %>%
-  arrange(starting_tree_ind,predicted_uncalibrated_failure_probabilities) %>% select (starting_tree_type, starting_tree_ind,is_global_max,predicted_time,predicted_uncalibrated_failure_probabilities,, spr_radius, spr_cutoff, feature_mds_False_pca_0_3_spr_enriched, delta_ll_from_overall_msa_best_topology, is_global_max,tree_clusters_ind, predicted_time) 
+
+```
+
+
+
+Validation data visualizations 
+
+```{r}
+#validation_single_tree_data  %>% ggplot(aes(x=predicted_time, y= as.factor(is_global_max)))+geom_boxplot()
+
+validation_single_tree_data  %>% group_by(msa_path, starting_tree_type,starting_tree_ind) %>% mutate(prob = predicted_calibrated_failure_probabilities/ max(predicted_calibrated_failure_probabilities)) %>% ungroup() %>% ggplot(aes(x=prob, y= as.factor(is_global_max)))+geom_boxplot()
+
+validation_single_tree_data  %>% group_by(msa_path, starting_tree_type) %>% mutate(prob = predicted_calibrated_failure_probabilities/ max(predicted_calibrated_failure_probabilities)) %>% ungroup() %>% ggplot(aes(x=prob, y= as.factor(is_global_max)))+geom_boxplot()
+
+validation_single_tree_data  %>% group_by(msa_path) %>% mutate(prob = predicted_calibrated_failure_probabilities/ max(predicted_calibrated_failure_probabilities)) %>% ungroup() %>% ggplot(aes(x=prob, y= as.factor(is_global_max)))+geom_boxplot()
+
+
+validation_single_tree_data  %>% ggplot(aes(x=predicted_calibrated_failure_probabilities, y= as.factor(is_global_max)))+geom_boxplot()
+```
+Taking the fastest configuraiton for each starting tree (for validation and test)
+
+```{r}
+enriched_data<-validation_single_tree_data %>%arrange(predicted_time) %>% select (msa_path, predicted_uncalibrated_failure_probabilities,predicted_calibrated_failure_probabilities,starting_tree_type, starting_tree_ind, spr_radius, spr_cutoff, feature_mds_False_pca_0_3_spr_enriched, delta_ll_from_overall_msa_best_topology, is_global_max,tree_clusters_ind, predicted_time, feature_mds_False_stress_3_spr_enriched, feature_msa_pypythia_msa_difficulty,feature_msa_n_seq) %>% group_by(msa_path,starting_tree_ind, starting_tree_type)  %>% filter (row_number()==1) %>% ungroup() %>% group_by(msa_path, starting_tree_type)  %>% arrange(predicted_calibrated_failure_probabilities) %>% mutate(n_trees_used = row_number(), total_prob = 1-cumprod(predicted_calibrated_failure_probabilities), status = (cummax(is_global_max)), total_time = cumsum(predicted_time)) %>% ungroup() %>% group_by(msa_path, starting_tree_type) %>% mutate(max_status = max(status)) %>% ungroup() 
+
+enriched_data_test<-test_single_tree_data %>%arrange(predicted_time) %>% select (msa_path, predicted_uncalibrated_failure_probabilities,predicted_calibrated_failure_probabilities,starting_tree_type, starting_tree_ind, spr_radius, spr_cutoff, feature_mds_False_pca_0_3_spr_enriched, delta_ll_from_overall_msa_best_topology, is_global_max,tree_clusters_ind, predicted_time, feature_mds_False_stress_3_spr_enriched, feature_msa_pypythia_msa_difficulty,feature_msa_n_seq) %>% group_by(msa_path,starting_tree_ind, starting_tree_type)  %>% filter (row_number()==1) %>% ungroup() %>% group_by(msa_path, starting_tree_type)  %>% arrange(predicted_calibrated_failure_probabilities) %>% mutate(n_trees_used = row_number(), total_prob = 1-cumprod(predicted_calibrated_failure_probabilities), status = (cummax(is_global_max)), total_time = cumsum(predicted_time)) %>% ungroup() %>% group_by(msa_path, starting_tree_type) %>% mutate(max_status = max(status)) %>% ungroup() 
+```
+
+Testing the independence assumption
+
+```{r}
+total_prob_thresholds = c(0.8,0.9,0.95)
+independent_data_095<-enriched_data %>% select (msa_path,total_prob, status, total_time) %>% filter(total_prob>0.8) %>%  group_by(msa_path) %>% filter(total_time == min(total_time)) %>% ungroup() 
+
+independent_data_095
+summary(independent_data_095 %>% pull (status) )
+summary(independent_data_095 %>% pull (total_time) )
+```
+
+```{r}
+
+enriched_data_success<- enriched_data %>% filter (max_status==1) %>% mutate(start = n_trees_used-1, stop = n_trees_used,success = 1-predicted_calibrated_failure_probabilities) %>% select (msa_path, starting_tree_type,total_prob, status,max_status, feature_msa_pypythia_msa_difficulty, start, stop,total_time, success)%>% rename(id = msa_path)
+
+
+enriched_data_failure<-  enriched_data %>% filter (max_status==0) %>% mutate(start = n_trees_used-1, stop =n_trees_used,success = 1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path)  %>% ungroup() %>% distinct (msa_path, starting_tree_type,total_prob, status,max_status, feature_msa_pypythia_msa_difficulty, start, stop,total_time, success)%>% rename(id = msa_path)
+
+total_enriched_data<-rbind(enriched_data_success) #enriched_data_failure
+
+
+enriched_data_success_test<- enriched_data_test %>% filter (max_status==1) %>% mutate(start = n_trees_used-1, stop = n_trees_used,success = 1-predicted_calibrated_failure_probabilities) %>% select (msa_path, starting_tree_type,total_prob, status,max_status, feature_msa_pypythia_msa_difficulty, start, stop,total_time, success)%>% rename(id = msa_path)
+
+
+enriched_data_failure_test<-  enriched_data_test %>% filter (max_status==0) %>% mutate(start = 0, stop =20,success = 1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path) %>% filter (success == max(success)) %>% ungroup() %>% distinct (msa_path, starting_tree_type,total_prob, status,max_status, feature_msa_pypythia_msa_difficulty, start, stop,total_time, success)%>% rename(id = msa_path)
+
+
+total_enriched_data_test<-rbind(enriched_data_success_test,enriched_data_failure_test) #enriched_data_failure
+
+
+
+```
+
+
+
+
+```{r}
+library(survival)
+library(survminer)
+total_enriched_data<- total_enriched_data %>% mutate(strata_v = cut(feature_msa_pypythia_msa_difficulty, breaks = c(0,0.2,0.4,0.7,1), labels = c(1,2,3,4)))
+total_enriched_data_test<- total_enriched_data_test %>% mutate(strata_v = cut(feature_msa_pypythia_msa_difficulty, breaks = c(0,0.2,0.4,0.7,1), labels = c(1,2,3,4)))
+
+parsimony_data<- total_enriched_data%>% filter (starting_tree_type=='pars') %>% mutate(type='pars')
+random_data<- total_enriched_data%>% filter (starting_tree_type=='rand') %>% mutate(type='rand')
+
+parsimony_test_data<- total_enriched_data_test%>% filter (starting_tree_type=='pars') %>% mutate(type='pars')
+random_test_data<- total_enriched_data_test%>% filter (starting_tree_type=='rand') %>% mutate(type='rand')
+
+total_data<- rbind(parsimony_data , random_data)
+
+#total_enriched_data
+Surv_general<-Surv(total_data$start,total_data$stop,total_data$status )
+Surv_pars<-Surv(parsimony_data$start,parsimony_data$stop, parsimony_data$status)
+Surv_rand<-Surv(random_data$start,random_data$stop, random_data$status)
+#summary(Surv)
+
+KP<- survfit(Surv(start,stop,status ) ~ strata_v, data = parsimony_data, id = id) 
+ggsurvplot(KP, data = parsimony_data)
+KR<- survfit(Surv(start,stop,status ) ~ strata_v, data = random_data,id = id) 
+ggsurvplot(KR, data = random_data)
+KT<- survfit(Surv(start,stop,status) ~ type+strata_v, data = total_data) 
+ggsurvplot(KT, data = total_data,linetype = c("type"), color = c("strata_v"))
+#summary(KP, times = c(seq(1, 20, by = 1)))
+
+#+total_prob+cluster(msa_path)
+cox_pars<- coxph(Surv(start,stop,status)~ success+cluster(id), data = parsimony_data) #+total_prob+cluster(id)
+
+#strata(strata_v)
+summary(cox_pars)
+ggsurvplot(survfit(cox_pars , data = parsimony_data))
+
+cox_rand<- coxph(Surv(start,stop,status)~ success+cluster(id), data = random_data) #strata(strata_v) #+total_prob+cluster(id)
+summary(cox_rand)
+ggsurvplot(survfit(cox_rand , data =random_data))
+#legend("topright", c("Clinic 1", "Clinic 2"), lty = c("solid", "dashed"), col = c("black", "grey"))
+
+
+
+```
+
+
+Testing model assumptions
+
+```{r}
+test.ph <- cox.zph(cox_pars)
+test.ph
+ggcoxzph(test.ph)
+test.ph <- cox.zph(cox_rand)
+test.ph
+ggcoxzph(test.ph)
+
 ```
 
 
 ```{r}
-data<-single_tree_data %>% arrange(predicted_uncalibrated_failure_probabilities) %>% select (msa_path,predicted_uncalibrated_failure_probabilities,starting_tree_type, starting_tree_ind, spr_radius, spr_cutoff, feature_mds_False_pca_0_3_spr_enriched, delta_ll_from_overall_msa_best_topology, is_global_max,tree_clusters_ind, predicted_time) %>% group_by(msa_path, starting_tree_type, starting_tree_ind) %>% group_by(starting_tree_ind, starting_tree_type)  %>% filter (row_number()==1)
+library(broom)
+  cox_pars_test<- survfit(cox_pars,newdata = parsimony_test_data, id = id) #new_data = enriched_data_test_example
+pars_test_predict = tidy(cox_pars_test)
+
+pars_test_predict
+
+cox_rand_test<- survfit(cox_rand,newdata = random_test_data, id = id) #new_data = enriched_data_test_example
+rand_test_predict = tidy(cox_rand_test)
+
+rand_test_predict
+
+
 ```
+
+
 
 
 ```{r}
-library(randomForest)
+#pars_test_predict
+median_per_MSA_pars<-pars_test_predict %>%  filter (estimate<=0.05) %>% group_by(strata) %>% arrange(time) %>%filter (row_number()==1) %>% ungroup() %>% filter(time<=20) %>% select (strata, time, estimate)
 
-test_msas<-global_data %>% distinct(msa_path)
-train_msas<-
+median_per_MSA_rand<-rand_test_predict %>%  filter (estimate<=0.05) %>% group_by(strata) %>% arrange(time) %>%filter (row_number()==1) %>% ungroup() %>% filter(time<=20) %>% select (strata, time, estimate)
 
-data.rf<-randomForest(total_prob~feature_msa_pypythia_msa_difficulty+total_prob+feature_mds_False_stress_3_spr_enriched, data = global_data)
+#summary(median_per_MSA %>% select (time))
+#hist(median_per_MSA%>% pull (time))
 
-data.rf
+parsimony_performance<-parsimony_test_data %>% inner_join(median_per_MSA_pars, by = c("id"="strata")) %>% filter (time==stop) 
+#%>% inner_join(agg_default, by = c("id"="msa_path"))
+parsimony_performance
+random_performance<-random_test_data %>% inner_join(median_per_MSA_rand, by = c("id"="strata")) %>% filter (time==stop) #%>%inner_join(agg_default, by = c("id"="msa_path"))
+random_performance
+
+
+
+parsimony_performance %>% select (status, total_time) %>% summarise(mean_staus = mean(status), mean_total_time = 20/mean(total_time)) #mean_status_default
+random_performance %>% select (status, total_time) %>% summarise(mean_status = mean(status),mean_total_time = 20/mean(total_time)) #mean_default = mean(mean_status_default),m
 ```
+
+```{r}
+agg_default %>% pull (mean_status_default) %>% mean()
+```
+
+```{r}
+full_data<-rbind(pars_test_predict %>% mutate(type='pars'), rand_test_predict %>% mutate(type='rand'))
+full_data %>% filter (estimate <=0.05) %>% group_by(strata,type) %>% arrange(time) %>%filter (row_number()==1) %>% ungroup() %>% filter(time<=20) %>% select (strata, time, estimate, type) %>% arrange(strata,time,type)
+```
+
+
+
 
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
