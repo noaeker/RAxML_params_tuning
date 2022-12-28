@@ -200,9 +200,9 @@ def enrich_with_MDS_features(curr_run_directory, tree_features, pars_neighbors, 
 
 def enrich_with_LLE_and_ISOMAP(all_pars_tree_distances,all_rand_tree_distances,pars_extended_tree_features_df,rand_extended_tree_features_df):
 
-    iso = Isomap(n_components=3, n_neighbors=3)
+    iso = Isomap(n_components=3, n_neighbors=3).fit(all_pars_tree_distances)
     st = time.time()
-    iso_pars_embedding_df = pd.DataFrame(iso.fit_transform(all_pars_tree_distances),
+    iso_pars_embedding_df = pd.DataFrame(iso.transform(all_pars_tree_distances),
                                                     columns=['feature_iso_0', 'feature_iso_1', 'feature_iso_2'])
 
     iso_rand_embedding_df = pd.DataFrame(iso.transform(all_rand_tree_distances),
@@ -211,8 +211,8 @@ def enrich_with_LLE_and_ISOMAP(all_pars_tree_distances,all_rand_tree_distances,p
     en = time.time()
     isomap_time = en - st
     st = time.time()
-    LLE_embedding = LocallyLinearEmbedding(n_components=3)
-    LLE_pars_embedding_df = pd.DataFrame(LLE_embedding.fit_transform(all_pars_tree_distances),
+    LLE_embedding = LocallyLinearEmbedding(n_components=3).fit(all_pars_tree_distances)
+    LLE_pars_embedding_df = pd.DataFrame(LLE_embedding.transform(all_pars_tree_distances),
                                                     columns=['feature_lle_0', 'feature_lle_1', 'feature_lle_2'])
 
     LLE_rand_embedding_df = pd.DataFrame(LLE_embedding.transform(all_rand_tree_distances),
@@ -225,9 +225,12 @@ def enrich_with_LLE_and_ISOMAP(all_pars_tree_distances,all_rand_tree_distances,p
 
     full_df = pd.concat([pars_df,rand_df])
 
-    full_df["feature_iso_eigen1"] = iso.kernel_pca_.eigenvalues_[0]
-    full_df["feature_iso_eigen2"] = iso.kernel_pca_.eigenvalues_[1]
-    full_df["feature_iso_eigen3"] = iso.kernel_pca_.eigenvalues_[2]
+    try:
+        full_df["feature_iso_eigen1"] = iso.kernel_pca_.eigenvalues_[0]
+        full_df["feature_iso_eigen2"] = iso.kernel_pca_.eigenvalues_[1]
+        full_df["feature_iso_eigen3"] = iso.kernel_pca_.eigenvalues_[2]
+    except:
+        logging.info("Problem with eigenvalues")
     full_df["feature_isomap_time"] = isomap_time
     full_df["feature_lle_time"] = lle_time
     full_df["feature_lle_reconstruction_error"] = LLE_embedding.reconstruction_error_
@@ -274,8 +277,8 @@ def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_n
 
     st = time.time()
     logging.info("Perofrming first PCA")
-    pars_pca = PCA(n_components=10)  # reduce dimensions to those of parsimony trees
-    all_pars_tree_distances = pars_pca.fit_transform(all_pars_tree_distances)
+    pars_pca = PCA(n_components=10).fit(all_pars_tree_distances)  # reduce dimensions to those of parsimony trees
+    all_pars_tree_distances = pars_pca.transform(all_pars_tree_distances)
     all_rand_tree_distances = pars_pca.transform(all_rand_tree_distances)
     all_tree_distances = pars_pca.transform(all_tree_distances)
     en  = time.time()

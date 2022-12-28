@@ -18,46 +18,23 @@ import seaborn as sns
 from sklearn import svm
 from sklearn.kernel_approximation import Nystroem
 from sklearn.svm import SVC
+from sksurv.nonparametric import kaplan_meier_estimator
+from sksurv.linear_model import CoxPHSurvivalAnalysis
 
 
 def extend_multi_tree_metrics(possible_configurations):
-    possible_configurations["sum_of_log_failure_probability_calibrated"] = possible_configurations[
-        "log_failure_calibrated"].cumsum()
-    possible_configurations["sum_of_log_failure_probability_calibrated_pars"] = possible_configurations[
-        "log_failure_calibrated_pars"].cumsum()
-    possible_configurations["sum_of_log_failure_probability_calibrated_rand"] = possible_configurations[
-        "log_failure_calibrated_rand"].cumsum()
     possible_configurations["status"] = possible_configurations["is_global_max"].cummax()
     possible_configurations["total_time_predicted"] = possible_configurations["predicted_time"].cumsum()
     possible_configurations["total_actual_time"] = possible_configurations["normalized_relative_time"].cumsum()
     possible_configurations["diff"] = possible_configurations["delta_ll_from_overall_msa_best_topology"].cummin()
     possible_configurations["n_trees_used"] = list(range(1, len(possible_configurations.index) + 1))
-    possible_configurations["n_parsimony_trees_used"] = possible_configurations["starting_tree_bool"].cumsum()
-    possible_configurations["n_random_trees_used"] = possible_configurations["n_trees_used"] - \
-                                                     possible_configurations["n_parsimony_trees_used"]
-    possible_configurations["predicted_iid_single_tree_failure_probability"] = np.exp(
-        possible_configurations["sum_of_log_failure_probability_calibrated"])
-    possible_configurations["predicted_iid_single_tree_failure_probability_pars"] = np.exp(
-        possible_configurations["sum_of_log_failure_probability_calibrated_pars"])
-    possible_configurations["predicted_iid_single_tree_failure_probability_rand"] = np.exp(
-        possible_configurations["sum_of_log_failure_probability_calibrated_rand"])
+    possible_configurations["predicted_iid_single_tree_failure_probability"] = possible_configurations["predicted_calibrated_failure_probabilities"].cumprod()
     possible_configurations["predicted_iid_success_probabilities"] = possible_configurations[
         "predicted_iid_single_tree_failure_probability"].apply(lambda x: 1 - x)
-    possible_configurations["predicted_iid_success_probabilities_pars"] = possible_configurations[
-        "predicted_iid_single_tree_failure_probability_pars"].apply(lambda x: 1 - x)
-    possible_configurations["predicted_iid_success_probabilities_rand"] = possible_configurations[
-        "predicted_iid_single_tree_failure_probability_rand"].apply(lambda x: 1 - x)
-    possible_configurations["sum_of_calibrated_success_probabilities_pars"] = possible_configurations['predicted_calibrated_success_probability_pars'].cumsum()
-    possible_configurations["sum_of_calibrated_success_probabilities_rand"] = possible_configurations[
-        'predicted_calibrated_success_probability_rand'].cumsum()
-    possible_configurations["sum_of_uncalibrated_success_probabilities_pars"] = possible_configurations['predicted_uncalibrated_success_probability_pars'].cumsum()
-    possible_configurations["sum_of_uncalibrated_success_probabilities_rand"] = possible_configurations[
-        'predicted_uncalibrated_success_probability_rand'].cumsum()
+    possible_configurations["sum_of_calibrated_success_probabilities"] = possible_configurations['predicted_calibrated_success_probability'].cumsum()
+    possible_configurations["sum_of_uncalibrated_success_probabilities"] = possible_configurations['predicted_uncalibrated_success_probability'].cumsum()
     possible_configurations['min_mds_0'] = possible_configurations['feature_mds_False_pca_0_3_spr_enriched'].cummin()
     possible_configurations['max_mds_0'] = possible_configurations['feature_mds_False_pca_0_3_spr_enriched'].cummax()
-    possible_configurations['var_mds_0'] = possible_configurations['feature_mds_False_pca_0_3_spr_enriched'].apply(lambda x: x**2).cumsum()
-
-
     return possible_configurations
 
 
@@ -67,51 +44,37 @@ def get_MSA_multi_tree_metrics(data, total_MSA_level_features, shuffle = True):
     all_msa_validation_performance = []
     msa_paths = data["msa_path"].unique()
     for msa_path in msa_paths:
-        msa_data = data.loc[data.msa_path == msa_path]
-        curr_msa_data_per_tree = msa_data[
-            ["msa_path", "starting_tree_ind", "starting_tree_object", "spr_radius", "spr_cutoff", "starting_tree_type",
-             "starting_tree_bool","feature_tree_optimized_ll", "spr_radius","spr_cutoff","equal_to_default_config",
-             "feature_mds_False_pca_0_3_spr_enriched"
+        for starting_tree_type in ('pars','rand'):
+            msa_data = data.loc[(data.msa_path == msa_path)&(data.starting_tree_type==starting_tree_type)]
+            relevant_msa_data = msa_data[
+                ["msa_path", "starting_tree_ind", "starting_tree_object", "spr_radius", "spr_cutoff", "starting_tree_type",
+                 "starting_tree_bool","feature_tree_optimized_ll", "spr_radius","spr_cutoff","equal_to_default_config",
+                 "feature_mds_False_pca_0_3_spr_enriched"
 
-                , "predicted_calibrated_failure_probabilities", "predicted_uncalibrated_failure_probabilities",
-             "delta_ll_from_overall_msa_best_topology", "tree_clusters_ind",
-             "is_global_max", "predicted_time", "normalized_relative_time","final_tree_topology","final_ll"] + total_MSA_level_features]
+                    , "predicted_calibrated_failure_probabilities", "predicted_uncalibrated_failure_probabilities",
+                 "delta_ll_from_overall_msa_best_topology", "tree_clusters_ind",
+                 "is_global_max", "predicted_time", "normalized_relative_time","final_tree_topology","final_ll"] + total_MSA_level_features]
 
-        curr_msa_data_per_tree["log_failure_calibrated"] = np.log(
-            curr_msa_data_per_tree["predicted_calibrated_failure_probabilities"])
-        curr_msa_data_per_tree["feature_diff_vs_start"] = curr_msa_data_per_tree[""]-curr_msa_data_per_tree[""]
-        #curr_msa_data_per_tree["predicted_calibrated_success_probabilities"] =
+            #relevant_msa_data["log_failure_calibrated"] = np.log(
+            #    relevant_msa_data["predicted_calibrated_failure_probabilities"])
+            #relevant_msa_data["predicted_calibrated_success_probabilities"] =
 
-
-        curr_msa_data_per_tree["log_failure_calibrated_pars"] = np.where(curr_msa_data_per_tree["starting_tree_type"] == 'pars', curr_msa_data_per_tree["log_failure_calibrated"], 0)
-        curr_msa_data_per_tree["log_failure_calibrated_rand"] = np.where(
-            curr_msa_data_per_tree["starting_tree_type"] == 'rand', curr_msa_data_per_tree["log_failure_calibrated"], 0)
-        curr_msa_data_per_tree["predicted_uncalibrated_success_probability"] = curr_msa_data_per_tree[
-            "predicted_uncalibrated_failure_probabilities"].apply(lambda x: 1 - x)
-        curr_msa_data_per_tree["predicted_uncalibrated_success_probability_pars"] = np.where(curr_msa_data_per_tree["starting_tree_type"] == 'pars', curr_msa_data_per_tree["predicted_uncalibrated_success_probability"], 0)
-        curr_msa_data_per_tree["predicted_uncalibrated_success_probability_rand"] = np.where(curr_msa_data_per_tree["starting_tree_type"] == 'rand', curr_msa_data_per_tree["predicted_uncalibrated_success_probability"], 0)
-
-        curr_msa_data_per_tree["predicted_calibrated_success_probability"] = curr_msa_data_per_tree[
-            "predicted_calibrated_failure_probabilities"].apply(lambda x: 1 - x)
-        curr_msa_data_per_tree["predicted_calibrated_success_probability_pars"] = np.where(
-            curr_msa_data_per_tree["starting_tree_type"] == 'pars',
-            curr_msa_data_per_tree["predicted_calibrated_success_probability"], 0)
-        curr_msa_data_per_tree["predicted_calibrated_success_probability_rand"] = np.where(
-            curr_msa_data_per_tree["starting_tree_type"] == 'rand',
-            curr_msa_data_per_tree["predicted_calibrated_success_probability"], 0)
-
-        best_configuration_per_starting_tree = get_best_configuration_per_starting_tree(curr_msa_data_per_tree)
-        if not shuffle:
-            possible_configurations = best_configuration_per_starting_tree.sort_values(
-               by="predicted_uncalibrated_failure_probabilities"
-               )
-            #possible_configurations = best_configuration_per_starting_tree.sample(frac=1)
-            all_msa_validation_performance.append(extend_multi_tree_metrics(possible_configurations))
-        else:
-            for i in range(100):
-                possible_configurations = best_configuration_per_starting_tree.sample(frac=1)
-                possible_configurations["simulation_ind"] = i
+            relevant_msa_data["predicted_uncalibrated_success_probability"] = relevant_msa_data[
+                "predicted_uncalibrated_failure_probabilities"].apply(lambda x: 1 - x)
+            relevant_msa_data["predicted_calibrated_success_probability"] = relevant_msa_data[
+                "predicted_calibrated_failure_probabilities"].apply(lambda x: 1 - x)
+            best_configuration_per_starting_tree = get_best_configuration_per_starting_tree(relevant_msa_data)
+            if not shuffle:
+                possible_configurations = best_configuration_per_starting_tree.sort_values(
+                   by="predicted_uncalibrated_failure_probabilities"
+                   )
+                #possible_configurations = best_configuration_per_starting_tree.sample(frac=1)
                 all_msa_validation_performance.append(extend_multi_tree_metrics(possible_configurations))
+            else:
+                for i in range(100):
+                    possible_configurations = best_configuration_per_starting_tree.sample(frac=1)
+                    possible_configurations["simulation_ind"] = i
+                    all_msa_validation_performance.append(extend_multi_tree_metrics(possible_configurations))
     return pd.concat(all_msa_validation_performance)
 
 
@@ -128,52 +91,72 @@ def multi_tree_data_pipeline(full_data, X, time_model, error_model, total_MSA_le
         error_data)[:,
                                                                 0]
     full_data.to_csv(singletree_out_path, sep =CSV_SEP)
-    multi_tree_data_df = get_MSA_multi_tree_metrics(
-        full_data,
-        total_MSA_level_features=total_MSA_level_features, shuffle = shuffle
-    )
+    #multi_tree_data_df = get_MSA_multi_tree_metrics(
+    #    full_data,
+    #    total_MSA_level_features=total_MSA_level_features, shuffle = shuffle
+    #)
 
-    multi_tree_data_df.to_csv(multitree_out_path, sep = CSV_SEP)
-    return multi_tree_data_df
+    #multi_tree_data_df.to_csv(multitree_out_path, sep = CSV_SEP)
+    #return multi_tree_data_df
 
 
-def logistic_regression_pipeline(val_multi_tree_data,test_multi_tree_data):
-    #"predicted_iid_success_probabilities_rand","predicted_iid_success_probabilities_pars"
-    probability_col = ["n_trees_used","sum_of_calibrated_success_probabilities_pars","sum_of_calibrated_success_probabilities_rand","predicted_iid_success_probabilities_pars","predicted_iid_success_probabilities_rand","feature_msa_pypythia_msa_difficulty"] #mds_pc_0_variance
-    y = "status"
-    poly = PolynomialFeatures(2)
-    X_validation = val_multi_tree_data[probability_col]
-    X_validation["best_diff_per_group"] = X_validation.groupby("msa_path")["diff"].transform(min)
-    X_validation["min_time_per_group"] = X_validation.groupby("msa_path")["diff"].transform(min)
-    X_validation = X_validation[(X_validation["diff"]>X_validation["best_diff_per_group"]) | (X_validation["diff"]>X_validation["best_diff_per_group"])]
-    #X_validation=poly.fit_transform(X_validation)
-    #X_validation = X_validation.sort_values('diff').groupby('msa_path').head()
-    #X_validation = poly.fit_transform(X_validation)
-    y_validation = val_multi_tree_data[y]
-    group_splitter = list(
-        GroupKFold(n_splits=5).split(X_validation, y_validation.ravel(), groups=val_multi_tree_data["msa_path"]))
-
-    model = make_pipeline(StandardScaler(), LogisticRegressionCV(cv=group_splitter,max_iter=1000, scoring = 'roc_auc'))#SGDClassifier(max_iter=1000, tol=1e-3, loss = 'modified_huber')
-    model.fit(X_validation,y_validation)
-    # model = ML_model(X_train=X_validation, groups=val_multi_tree_data["msa_path"], y_train=y_validation,
-    #          n_jobs=4,
-    #          path=None, classifier=False)
-    #for coef,feature in zip(model._final_estimator.coef_, probability_col):
-    #   logging.info(f"Feature {feature} has coefficient {coef}")
-    X_test = test_multi_tree_data[probability_col]
-    #X_test = poly.fit_transform(X_test)
-    #X_test = poly.fit_transform(X_test)
-    y_test = test_multi_tree_data[y]
-    test_multi_tree_data['predicted_total_accuracy_calibrated_logistic'] = model.predict_proba(X_test)[:, 1]
-    #
-    # predicted = test_multi_tree_data['predicted_total_accuracy_calibrated'].apply(lambda x: int(x>0.5))
-    predicted = model.predict(X_test)
-    test_metrics = model_metrics(y_test, predicted, test_multi_tree_data['predicted_total_accuracy_calibrated_logistic'],
-                                is_classification=True, groups = test_multi_tree_data["msa_path"])
-    #logging.info(f"Multitree logistic model metrics: {test_metrics}")
-    #print_model_statistics(model, X_test, test_multi_tree_data["msa_path"], y_test, is_classification = False, vi_path = None, name = None,
-    #                       feature_importance=True)
-
+# def multi_tree_final_model_pipeline(val_multi_tree_data, test_multi_tree_data):
+#     #"predicted_iid_success_probabilities_rand","predicted_iid_success_probabilities_pars"
+#     probability_col = ["n_trees_used","sum_of_calibrated_success_probabilities","predicted_iid_success_probabilities_pars","predicted_iid_success_probabilities_rand","feature_msa_pypythia_msa_difficulty"] #mds_pc_0_variance
+#     val_multi_tree_data["status_bool"] = val_multi_tree_data["status"].astype(bool)
+#     for starting_tree_type in ("pars", "rand"):
+#         mask_tree = val_multi_tree_data["starting_tree_type"] == starting_tree_type
+#         time_tree, survival_prob_tree = kaplan_meier_estimator(
+#             val_multi_tree_data["status_bool"][mask_tree],
+#             val_multi_tree_data["n_trees_used"][mask_tree])
+#
+#         plt.step(time_tree, survival_prob_tree, where="post",
+#                  label="Tree = %s" % starting_tree_type)
+#
+#     plt.ylabel("est. probability of survival $\hat{S}(t)$")
+#     plt.xlabel("time $t$")
+#     plt.legend(loc="best")
+#
+#     time, survival_prob = kaplan_meier_estimator(val_multi_tree_data["status_bool"], val_multi_tree_data["n_trees_used"])
+#     plt.show()
+#
+#
+#
+#
+#
+#     poly = PolynomialFeatures(2)
+#     X_validation = val_multi_tree_data[probability_col]
+#     X_validation["best_diff_per_group"] = X_validation.groupby("msa_path")["diff"].transform(min)
+#     X_validation["min_time_per_group"] = X_validation.groupby("msa_path")["diff"].transform(min)
+#     X_validation = X_validation[(X_validation["diff"]>X_validation["best_diff_per_group"]) | (X_validation["diff"]>X_validation["best_diff_per_group"])]
+#     #X_validation=poly.fit_transform(X_validation)
+#     #X_validation = X_validation.sort_values('diff').groupby('msa_path').head()
+#     #X_validation = poly.fit_transform(X_validation)
+#     y_validation = val_multi_tree_data[""]
+#     group_splitter = list(
+#         GroupKFold(n_splits=5).split(X_validation, y_validation.ravel(), groups=val_multi_tree_data["msa_path"]))
+#
+#     model = make_pipeline(StandardScaler(), LogisticRegressionCV(cv=group_splitter,max_iter=1000, scoring = 'roc_auc'))#SGDClassifier(max_iter=1000, tol=1e-3, loss = 'modified_huber')
+#     model.fit(X_validation,y_validation)
+#     # model = ML_model(X_train=X_validation, groups=val_multi_tree_data["msa_path"], y_train=y_validation,
+#     #          n_jobs=4,
+#     #          path=None, classifier=False)
+#     #for coef,feature in zip(model._final_estimator.coef_, probability_col):
+#     #   logging.info(f"Feature {feature} has coefficient {coef}")
+#     X_test = test_multi_tree_data[probability_col]
+#     #X_test = poly.fit_transform(X_test)
+#     #X_test = poly.fit_transform(X_test)
+#     y_test = test_multi_tree_data[y]
+#     test_multi_tree_data['predicted_total_accuracy_calibrated_logistic'] = model.predict_proba(X_test)[:, 1]
+#     #
+#     # predicted = test_multi_tree_data['predicted_total_accuracy_calibrated'].apply(lambda x: int(x>0.5))
+#     predicted = model.predict(X_test)
+#     test_metrics = model_metrics(y_test, predicted, test_multi_tree_data['predicted_total_accuracy_calibrated_logistic'],
+#                                 is_classification=True, groups = test_multi_tree_data["msa_path"])
+#     #logging.info(f"Multitree logistic model metrics: {test_metrics}")
+#     #print_model_statistics(model, X_test, test_multi_tree_data["msa_path"], y_test, is_classification = False, vi_path = None, name = None,
+#     #                       feature_importance=True)
+#
 
 # def test_required_threshold(val_multi_tree_data,test_multi_tree_data):
 #     #probability_col = ["predicted_iid_success_probabilities",
@@ -263,7 +246,7 @@ def get_multitree_performance_on_test_set_per_threshold(data_dict, args, time_mo
                                                         singletree_out_path=file_paths["test_single_tree_data"],
                                                         multitree_out_path=file_paths[
                                                             "test_multi_tree_data"], shuffle = False)
-    logistic_regression_pipeline(val_multi_tree_data, test_multi_tree_data)
+    multi_tree_final_model_pipeline(val_multi_tree_data, test_multi_tree_data)
     isotonic_regression_pipeline(val_multi_tree_data,test_multi_tree_data)
     #test_required_threshold(val_multi_tree_data,test_multi_tree_data)
     test_multi_tree_data.to_csv(file_paths["test_multi_tree_data_with_predictions"])
