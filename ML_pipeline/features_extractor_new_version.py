@@ -300,7 +300,8 @@ def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_n
     TSNE_embedded = TSNE_model.fit_transform(all_tree_distances)
     en = time.time()
     TSNE_embedded_df = pd.DataFrame(TSNE_embedded, columns=['feature_TSNE_0', 'feature_TSNE_1', 'feature_TSNE_2'])
-
+    TSNE_embedded_df.reset_index(inplace=True, drop=True)
+    extended_tree_features_df.reset_index(inplace=True, drop=True)
     extended_tree_features_df = pd.concat([extended_tree_features_df, TSNE_embedded_df], axis=1)
     extended_tree_features_df["feature_TSNE_time"] = en - st
     extended_tree_features_df["feature_TSNE_kl_divergence_"] = TSNE_model.kl_divergence_
