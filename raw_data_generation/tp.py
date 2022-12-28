@@ -319,6 +319,8 @@ def main():
         logging.info(f"Current target MSAs are of length: {len(current_target_MSAs)}")
         remaining_MSAs = target_msas_list[args.n_MSAs_per_bunch:]
         create_or_clean_dir(trees_run_directory)
+
+
         current_tasks = generate_all_raxml_runs_per_msa(current_target_MSAs, spr_radius_grid_str=args.spr_radius_grid,
                                                         spr_cutoff_grid_str=args.spr_cutoff_grid,
                                                         n_parsimony_tree_objects_per_msa=args.n_raxml_parsimony_trees,

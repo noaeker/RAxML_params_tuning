@@ -2,6 +2,7 @@ import sys
 import math
 
 if sys.platform == "linux" or sys.platform == "linux2":
+
     PROJECT_ROOT_DIRECRTORY = "/groups/pupko/noaeker/RAxML_params_tuning"
 else:
     PROJECT_ROOT_DIRECRTORY = "/Users/noa/Workspace/RAxML_params_tuning"
@@ -9,6 +10,7 @@ sys.path.append(PROJECT_ROOT_DIRECRTORY)
 
 from side_code.SPR_moves import *
 from scipy.stats import spearmanr
+from sklearn.decomposition import KernelPCA
 from side_code.raxml import *
 from side_code.basic_trees_manipulation import *
 from side_code.MSA_manipulation import get_alignment_data, get_msa_name
@@ -17,9 +19,10 @@ from side_code.MSA_manipulation import get_alignment_data, alignment_list_to_df,
     get_local_path
 from side_code.config import *
 from ML_pipeline.features_job_functions import feature_job_parser
-from sklearn.manifold import MDS
+from sklearn.manifold import MDS, Isomap, TSNE, LocallyLinearEmbedding
 from sklearn.decomposition import PCA
 from shutil import rmtree
+from sklearn.linear_model import LassoCV
 import pandas as pd
 import pickle
 import argparse
@@ -144,7 +147,7 @@ def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_tr
     else:
         LL_neighbour_score = np.dot(np.array(affinity), np.array(all_parsimony_trees_LL))/np.sum(affinity)
 
-    all_tree_features = {"feature_tree_MAD": mad_tree_parameter(curr_tree_path), 'feature_tree_LL_neighbour_score': LL_neighbour_score} #'feature_corcoeff_SPR': corcoeff_SPR ,'feature_tree_parsimony_dist_vs_LL_imprv_corr':LL_rf_corr,"feature_LL_diff_vs_parsimony": parsimony_LL_differences,'feature_ll_improvements': ll_improvements
+    all_tree_features = {"feature_tree_MAD": mad_tree_parameter(curr_tree_path), 'feature_tree_LL_neighbour_score': LL_neighbour_score, "tree_distances": tree_distances} #'feature_corcoeff_SPR': corcoeff_SPR ,'feature_tree_parsimony_dist_vs_LL_imprv_corr':LL_rf_corr,"feature_LL_diff_vs_parsimony": parsimony_LL_differences,'feature_ll_improvements': ll_improvements
     multidimensional_features = {'feature_tree_branch_lengths' : BL_metrics["BL_list"], "feature_tree_distances_between_taxa":tree_distances, "feature_tree_parsimony_rf_values" : rf_values}
     for feature in multidimensional_features:
         all_tree_features.update(get_summary_statistics_dict(feature, multidimensional_features[feature]))
@@ -154,30 +157,32 @@ def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_tr
 
 def mds_and_pca(tree_features, X, starting_trees, mds_n_components, metric, pca_n_components, suffix):
     st = time.time()
-    mds = MDS(random_state=0, n_components=mds_n_components, metric=True, dissimilarity='precomputed')
+    mds = MDS(random_state=0, n_components=mds_n_components, metric=True, dissimilarity='precomputed').fit(X)
     et = time.time()
     tree_features[f"feature_mds_{metric}_time_{mds_n_components}_{suffix}"] = et-st
-    X_transform = mds.fit_transform(X)
     tree_features[f"feature_mds_{metric}_stress_{mds_n_components}_{suffix}"] = mds.stress_
+    #mds_normalized = MDS(random_state=0, n_components=mds_n_components, metric=True, dissimilarity='precomputed', normalized_stress = True).fit(X)
+    #tree_features[f"feature_mds_{metric}_nornalized_stress_{mds_n_components}_{suffix}"] = mds_normalized.stress_
 
-    for i in range(mds_n_components):
-        tree_features[f"feature_mds_{metric}_{i}_{mds_n_components}_{suffix}"] = list(X_transform[:len(starting_trees), i])
-    st = time.time()
-    pca = PCA(n_components=pca_n_components)
-    et = time.time()
-    tree_features[f"feature_mds_{metric}_pca_time_{mds_n_components}_{suffix}"] = et - st
-    pca_transformed_x = pca.fit_transform(X_transform)
-    for i in range(pca_n_components):
-        tree_features[f"feature_mds_{metric}_pca_{i}_{mds_n_components}_{suffix}"] = list(pca_transformed_x[:len(starting_trees), i])
-
-
-
-
+    #for i in range(mds_n_components):
+    #    tree_features[f"feature_mds_{metric}_{i}_{mds_n_components}_{suffix}"] = list(X_transform[:len(starting_trees), i])
+    #st = time.time()
+    #pca = PCA(n_components=pca_n_components)
+    #et = time.time()
+    #tree_features[f"feature_mds_{metric}_pca_time_{mds_n_components}_{suffix}"] = et - st
+    #pca_transformed_x = pca.fit_transform(X_transform)
+    #for i in range(pca_n_components):
+    #    tree_features[f"feature_mds_{metric}_pca_{i}_{mds_n_components}_{suffix}"] = list(pca_transformed_x[:len(starting_trees), i])
 
 
-def enrich_with_MDS_features(curr_run_directory, tree_features,starting_trees, all_neighbors,suffix): #starting_trees = Basic_tree_features['starting_tree_object']
+
+
+
+
+def enrich_with_MDS_features(curr_run_directory, tree_features, pars_neighbors, suffix): #starting_trees = Basic_tree_features['starting_tree_object']
     overall_trees_path = os.path.join(curr_run_directory, 'overall_trees')
-    overall_trees = starting_trees + all_neighbors
+    pars_starting_trees = list(tree_features.loc[tree_features.starting_tree_type=='pars']["starting_tree_object"])
+    overall_trees = pars_starting_trees + pars_neighbors
     unify_text_files(overall_trees, overall_trees_path, str_given=True)
 
     distances = np.array(RF_distances(curr_run_directory, trees_path_a=overall_trees_path, trees_path_b=None,
@@ -187,14 +192,119 @@ def enrich_with_MDS_features(curr_run_directory, tree_features,starting_trees, a
     X[triu] = distances
     X = X.T
     X[triu] = X.T[triu]
-    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 3, metric = True, pca_n_components = 3, suffix = suffix)
-    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 3, metric = False, pca_n_components = 3,suffix = suffix)
-    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 10, metric = True, pca_n_components = 10,suffix = suffix)
-    mds_and_pca(tree_features, X, starting_trees, mds_n_components = 10, metric = False, pca_n_components = 10,suffix = suffix)
+    #mds_and_pca(tree_features, X, overall_trees, mds_n_components = 3, metric = True, pca_n_components = 3, suffix = suffix)
+    mds_and_pca(tree_features, X, overall_trees, mds_n_components = 3, metric = False, pca_n_components = 3,suffix = suffix)
+    #mds_and_pca(tree_features, X, overall_trees, mds_n_components = 10, metric = True, pca_n_components = 10,suffix = suffix)
+    mds_and_pca(tree_features, X, overall_trees, mds_n_components = 10, metric = False, pca_n_components = 10,suffix = suffix)
+
+
+def enrich_with_LLE_and_ISOMAP(all_pars_tree_distances,all_rand_tree_distances,pars_extended_tree_features_df,rand_extended_tree_features_df):
+
+    iso = Isomap(n_components=3, n_neighbors=3)
+    st = time.time()
+    iso_pars_embedding_df = pd.DataFrame(iso.fit_transform(all_pars_tree_distances),
+                                                    columns=['feature_iso_0', 'feature_iso_1', 'feature_iso_2'])
+
+    iso_rand_embedding_df = pd.DataFrame(iso.transform(all_rand_tree_distances),
+                 columns=['feature_iso_0', 'feature_iso_1', 'feature_iso_2'])
+
+    en = time.time()
+    isomap_time = en - st
+    st = time.time()
+    LLE_embedding = LocallyLinearEmbedding(n_components=3)
+    LLE_pars_embedding_df = pd.DataFrame(LLE_embedding.fit_transform(all_pars_tree_distances),
+                                                    columns=['feature_lle_0', 'feature_lle_1', 'feature_lle_2'])
+
+    LLE_rand_embedding_df = pd.DataFrame(LLE_embedding.transform(all_rand_tree_distances),
+                 columns=['feature_lle_0', 'feature_lle_1', 'feature_lle_2'])
+    en = time.time()
+    lle_time = st-en
+
+    pars_df = pd.concat([pars_extended_tree_features_df,iso_pars_embedding_df,LLE_pars_embedding_df], axis=1)
+    rand_df = pd.concat([rand_extended_tree_features_df,iso_rand_embedding_df,LLE_rand_embedding_df], axis=1)
+
+    full_df = pd.concat([pars_df,rand_df])
+
+    full_df["feature_iso_eigen1"] = iso.kernel_pca_.eigenvalues_[0]
+    full_df["feature_iso_eigen2"] = iso.kernel_pca_.eigenvalues_[1]
+    full_df["feature_iso_eigen3"] = iso.kernel_pca_.eigenvalues_[2]
+    full_df["feature_isomap_time"] = isomap_time
+    full_df["feature_lle_time"] = lle_time
+    full_df["feature_lle_reconstruction_error"] = LLE_embedding.reconstruction_error_
+    return full_df
+
+
+def get_basic_tree_features(msa_raw_data, curr_run_directory,msa_path,tmp_folder, args):
+    basic_tree_features = msa_raw_data[
+        ["starting_tree_ind", "starting_tree_type", "starting_tree_object",
+         "starting_tree_ll"]].drop_duplicates().reset_index().sort_values(["starting_tree_type", "starting_tree_ind"])
+
+    all_starting_trees_path = os.path.join(curr_run_directory, 'all_trees')
+    unify_text_files(basic_tree_features['starting_tree_object'], all_starting_trees_path, str_given=True)
+
+    optimized_tree_object_ll, optimized_tree_object_alpha, optimized_trees_file = raxml_optimize_trees_for_given_msa(
+        get_local_path(msa_path), "trees_eval", all_starting_trees_path,
+        tmp_folder, args.msa_type, opt_brlen=True
+    )
+    basic_tree_features["feature_tree_optimized_ll"] = optimized_tree_object_ll
+    basic_tree_features["feature_tree_optimized_alpha"] = optimized_tree_object_alpha
+    basic_tree_features["optimized_tree_object"] = generate_multiple_tree_object_from_newick(optimized_trees_file)
+    all_parsimony_trees_LL = basic_tree_features[basic_tree_features["starting_tree_type"] == "pars"][
+        "feature_tree_optimized_ll"].drop_duplicates().tolist()
+    all_random_trees_LL = basic_tree_features[basic_tree_features["starting_tree_type"] == "rand"][
+        "feature_tree_optimized_ll"].drop_duplicates().tolist()
+    basic_tree_features["feature_parsimony_vs_random_diff"] = np.mean(all_parsimony_trees_LL) - np.mean(
+        all_random_trees_LL)
+    return basic_tree_features
 
 
 
+def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_neighbors):
+    all_tree_distances = np.array(list(extended_tree_features_df["tree_distances"])).reshape(
+        len(extended_tree_features_df.index), -1)
+    pars_extended_tree_features_df = extended_tree_features_df.loc[
+        extended_tree_features_df.starting_tree_type == "pars"]
+    rand_extended_tree_features_df = extended_tree_features_df.loc[
+        extended_tree_features_df.starting_tree_type == "rand"]
 
+    all_pars_tree_distances = np.array(list(pars_extended_tree_features_df["tree_distances"])).reshape(
+        len(pars_extended_tree_features_df.index), -1)
+    all_rand_tree_distances = np.array(list(rand_extended_tree_features_df["tree_distances"])).reshape(
+        len(rand_extended_tree_features_df.index), -1)
+
+    st = time.time()
+    logging.info("Perofrming first PCA")
+    pars_pca = PCA(n_components=10)  # reduce dimensions to those of parsimony trees
+    all_pars_tree_distances = pars_pca.fit_transform(all_pars_tree_distances)
+    all_rand_tree_distances = pars_pca.transform(all_rand_tree_distances)
+    all_tree_distances = pars_pca.transform(all_tree_distances)
+    en  = time.time()
+    PCA_time = en-st
+
+    logging.info("Perofrming LLE and ISOMAP")
+    extended_tree_features_df = enrich_with_LLE_and_ISOMAP(all_pars_tree_distances, all_rand_tree_distances,
+                                                           pars_extended_tree_features_df,
+                                                           rand_extended_tree_features_df)
+
+    extended_tree_features_df["feature_PCA_time"] = PCA_time
+
+    logging.info("Perofrming TSNE")
+    st = time.time()
+    TSNE_model = TSNE(n_components=3, learning_rate='auto', init='pca', perplexity=3)
+    TSNE_embedded = TSNE_model.fit_transform(all_tree_distances)
+    en = time.time()
+    TSNE_embedded_df = pd.DataFrame(TSNE_embedded, columns=['feature_TSNE_0', 'feature_TSNE_1', 'feature_TSNE_2'])
+
+    extended_tree_features_df = pd.concat([extended_tree_features_df, TSNE_embedded_df], axis=1)
+    extended_tree_features_df["feature_TSNE_time"] = en - st
+    extended_tree_features_df["feature_TSNE_kl_divergence_"] = TSNE_model.kl_divergence_
+
+    logging.info("Perofrming MDS")
+    enrich_with_MDS_features(curr_run_directory, extended_tree_features_df,
+                             [], suffix='only_base')
+    enrich_with_MDS_features(curr_run_directory, extended_tree_features_df,
+                             all_neighbors, suffix='spr_enriched')
+    return extended_tree_features_df
 
 
 def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_tree_features_path, args):
@@ -203,42 +313,22 @@ def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_
     if os.path.exists(existing_tree_features_path):
         existing_tree_features = pickle.load(open(existing_tree_features_path, "rb"))
         return existing_tree_features
-    Basic_tree_features = msa_raw_data[
-        ["starting_tree_ind", "starting_tree_type", "starting_tree_object","starting_tree_ll"]].drop_duplicates().reset_index().sort_values(["starting_tree_type","starting_tree_ind"])
-
-    all_starting_trees_path = os.path.join(curr_run_directory, 'all_trees')
-    unify_text_files(Basic_tree_features['starting_tree_object'], all_starting_trees_path, str_given=True)
-
-    optimized_tree_object_ll, optimized_tree_object_alpha, optimized_trees_file = raxml_optimize_trees_for_given_msa(
-        get_local_path(msa_path), "trees_eval", all_starting_trees_path,
-        tmp_folder, args.msa_type, opt_brlen=True
-        )
-    Basic_tree_features["feature_tree_optimized_ll"] = optimized_tree_object_ll
-    Basic_tree_features["feature_tree_optimized_alpha"] = optimized_tree_object_alpha
-    Basic_tree_features["feature_optimized_tree_object"] = generate_multiple_tree_object_from_newick(optimized_trees_file)
-    all_parsimony_trees = Basic_tree_features[Basic_tree_features["starting_tree_type"] == "pars"][
+    basic_tree_features = get_basic_tree_features(msa_raw_data, curr_run_directory,msa_path,tmp_folder, args)
+    all_parsimony_trees = basic_tree_features[basic_tree_features["starting_tree_type"] == "pars"][
         "starting_tree_object"].drop_duplicates().tolist()
-    all_parsimony_trees_LL = Basic_tree_features[Basic_tree_features["starting_tree_type"] == "pars"][
+    all_parsimony_trees_LL = basic_tree_features[basic_tree_features["starting_tree_type"] == "pars"][
         "feature_tree_optimized_ll"].drop_duplicates().tolist()
-    all_random_trees_LL = Basic_tree_features[Basic_tree_features["starting_tree_type"] == "rand"][
-        "feature_tree_optimized_ll"].drop_duplicates().tolist()
-    Basic_tree_features["feature_parsimony_vs_random_diff"] = np.mean(all_parsimony_trees_LL)-np.mean(all_random_trees_LL)
-    extensions = []
+    extended_tree_metrics_lst = []
     all_neighbors = []
-    for index, row in Basic_tree_features.iterrows():
-        general_tree_metrics, neighbors = single_tree_metrics(tmp_folder, all_parsimony_trees,all_parsimony_trees_LL, row["feature_optimized_tree_object"], row["starting_tree_ll"], msa_path, args.msa_type, spr_iterations = args.spr_iters)
-        general_tree_metrics["starting_tree_ind"] = row["starting_tree_ind"]
-        general_tree_metrics["starting_tree_type"] = row["starting_tree_type"]
-        all_neighbors.extend(neighbors)
-
-        extensions.append(general_tree_metrics)
-    single_tree_features = pd.DataFrame(extensions)
-    tree_features = Basic_tree_features.merge(single_tree_features, on = ["starting_tree_ind","starting_tree_type"]).drop(["feature_optimized_tree_object"],axis = 1)
-    enrich_with_MDS_features(curr_run_directory, tree_features, list(Basic_tree_features['starting_tree_object']),
-                             [],  suffix= 'only_base')
-    enrich_with_MDS_features(curr_run_directory, tree_features, list(Basic_tree_features['starting_tree_object']),
-                             all_neighbors, suffix = 'spr_enriched')
-    tree_features = tree_features[[col for col in tree_features.columns if col.startswith('feature')]+["starting_tree_ind", "starting_tree_type"]]
+    for index, basic_features in basic_tree_features.iterrows():
+        general_tree_metrics, neighbors= single_tree_metrics(tmp_folder, all_parsimony_trees,all_parsimony_trees_LL, basic_features["optimized_tree_object"], basic_features["starting_tree_ll"], msa_path, args.msa_type, spr_iterations = args.spr_iters)
+        general_tree_metrics.update(dict(basic_features))
+        if basic_features["starting_tree_type"]=='pars':
+            all_neighbors.extend(neighbors)
+        extended_tree_metrics_lst.append(general_tree_metrics)
+    extended_tree_features_df = pd.DataFrame(extended_tree_metrics_lst)
+    extended_tree_features_df = tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_neighbors)
+    tree_features = extended_tree_features_df[[col for col in extended_tree_features_df.columns if col.startswith('feature')]+["starting_tree_ind", "starting_tree_type"]]
     pickle.dump(tree_features, open(existing_tree_features_path, 'wb'))
     return tree_features
 
@@ -343,7 +433,7 @@ def main():
                                                      perform_topology_tests=args.perform_topology_tests, args = args)
 
     #raw_data_with_features = pd.DataFrame()
-    logging.info(f'Writing enriched data to {args.features_output_path}',args.features_output_path)
+    logging.info(f'Writing enriched data to {args.features_output_path}')
     raw_data_with_features.to_csv(args.features_output_path, sep=CSV_SEP)
 
 
