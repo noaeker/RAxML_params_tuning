@@ -281,7 +281,7 @@ def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_n
 
     st = time.time()
     logging.info("Perofrming first PCA")
-    pars_pca = PCA(n_components=15).fit(all_pars_tree_distances)  # reduce dimensions to those of parsimony trees
+    pars_pca = PCA(n_components=10).fit(all_pars_tree_distances)  # reduce dimensions to those of parsimony trees
     all_pars_tree_distances = pars_pca.transform(all_pars_tree_distances)
     all_rand_tree_distances = pars_pca.transform(all_rand_tree_distances)
     all_tree_distances = pars_pca.transform(all_tree_distances)
