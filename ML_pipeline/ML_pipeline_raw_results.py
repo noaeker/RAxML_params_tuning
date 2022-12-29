@@ -156,7 +156,7 @@ def main():
 
 
     embedding_features = [col for col in  features_data.columns if ('iso' in col or 'mds' in col or 'lle' in col or 'TSNE' in col or 'PCA' in col) ]
-    excluded_features = [col for col in embedding_features if 'time' in col]
+    excluded_features = [col for col in embedding_features if 'time'  in col or 'lle' in col or 'TSNE' in col]
     #mds_included_features = [f'feature_mds_False_pca_{i}_3_spr_enriched' for i in range(3)]+['feature_mds_False_stress_3_spr_enriched']
     #for f in mds_included_features:
     #    features_data[f] = abs(features_data[f])

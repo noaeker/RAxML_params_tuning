@@ -42,7 +42,7 @@ def score_func_classification(y, y_pred, groups, classification):
 
 
 def RFE(model,X,y,group_splitter,n_jobs):
-    selector = RFECV(model, step=2, cv=group_splitter, n_jobs=n_jobs, min_features_to_select=30 )#min_features_to_select= 30,X.shape[1] X.shape[1]
+    selector = RFECV(model, step=2, cv=group_splitter, n_jobs=n_jobs, min_features_to_select=X.shape[1] )#min_features_to_select= 30,X.shape[1] X.shape[1]
     selector = selector.fit(X, y.ravel())
     model = selector.estimator
     X_new =  selector.transform(X)
