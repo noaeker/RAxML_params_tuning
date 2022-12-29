@@ -59,7 +59,7 @@ def get_file_paths(args):
 
 
 def generate_basic_data_dict(data_for_ML, args):
-    logging.info("Removing columns with NA")
+    #logging.info("Removing columns with NA")
     msa_features = [col for col in data_for_ML.columns if
                     (col.startswith("feature_")  and col not in ["feature_msa_path", "feature_msa_name",
                                                                 "feature_msa_type","feature_msa_gaps"])]
@@ -155,10 +155,12 @@ def main():
     features_data = features_data.loc[~features_data.msa_path.str.contains("single-gene_alignments")]
 
 
-    mds_included_features = [f'feature_mds_False_pca_{i}_3_spr_enriched' for i in range(3)]+['feature_mds_False_stress_3_spr_enriched']
+    embedding_features = [col for col in  features_data.columns if ('iso' in col or 'mds' in col or 'lle' in col or 'TSNE' in col or 'PCA' in col) ]
+    excluded_features = [col for col in embedding_features if 'time' in col]
+    #mds_included_features = [f'feature_mds_False_pca_{i}_3_spr_enriched' for i in range(3)]+['feature_mds_False_stress_3_spr_enriched']
     #for f in mds_included_features:
     #    features_data[f] = abs(features_data[f])
-    excluded_features = [col for col in features_data.columns if 'mds' in col]
+    mds_included_features = []
 
     # msa_names = list(np.unique(features_data["msa_path"]))
     # np.random.seed(SEED)
@@ -168,7 +170,7 @@ def main():
     if os.path.exists(file_paths["edited_data"]):
         edited_data = pickle.load(open(file_paths["edited_data"],'rb'))
     else:
-        features_data = features_data[[col for col in features_data.columns if col not in excluded_features or col in mds_included_features]]
+        features_data = features_data[[col for col in features_data.columns if col not in excluded_features]]
         #features_data = features_data.loc[features_data.starting_tree_type == 'rand']
         logging.info(f"Number of MSAs in feature data is {len(features_data['msa_path'].unique())}")
 

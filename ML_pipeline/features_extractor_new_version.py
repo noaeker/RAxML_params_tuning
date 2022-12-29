@@ -132,6 +132,7 @@ def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_tr
         TREE.write(tree_object.write(format=1))
     BL_metrics = tree_branch_length_metrics(tree_object)
     tree_distances = get_distances_between_leaves(tree_object)
+    #final_tree_distances = get_distances_between_leaves(final_tree_object)
     rf_values = []
     #parsimony_LL_differences = [tree_LL-pars_LL for pars_LL in all_parsimony_trees_LL]
 
@@ -147,7 +148,7 @@ def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_tr
     else:
         LL_neighbour_score = np.dot(np.array(affinity), np.array(all_parsimony_trees_LL))/np.sum(affinity)
 
-    all_tree_features = {"feature_tree_MAD": mad_tree_parameter(curr_tree_path), 'feature_tree_LL_neighbour_score': LL_neighbour_score, "tree_distances": tree_distances} #'feature_corcoeff_SPR': corcoeff_SPR ,'feature_tree_parsimony_dist_vs_LL_imprv_corr':LL_rf_corr,"feature_LL_diff_vs_parsimony": parsimony_LL_differences,'feature_ll_improvements': ll_improvements
+    all_tree_features = {"feature_tree_MAD": mad_tree_parameter(curr_tree_path), 'feature_tree_LL_neighbour_score': LL_neighbour_score, "tree_distances": tree_distances} #"final_tree_distances": final_tree_distances'feature_corcoeff_SPR': corcoeff_SPR ,'feature_tree_parsimony_dist_vs_LL_imprv_corr':LL_rf_corr,"feature_LL_diff_vs_parsimony": parsimony_LL_differences,'feature_ll_improvements': ll_improvements
     multidimensional_features = {'feature_tree_branch_lengths' : BL_metrics["BL_list"], "feature_tree_distances_between_taxa":tree_distances, "feature_tree_parsimony_rf_values" : rf_values}
     for feature in multidimensional_features:
         all_tree_features.update(get_summary_statistics_dict(feature, multidimensional_features[feature]))
@@ -203,20 +204,20 @@ def enrich_with_LLE_and_ISOMAP(all_pars_tree_distances,all_rand_tree_distances,p
     iso = Isomap(n_components=3, n_neighbors=3).fit(all_pars_tree_distances)
     st = time.time()
     iso_pars_embedding_df = pd.DataFrame(iso.transform(all_pars_tree_distances),
-                                                    columns=['feature_iso_0', 'feature_iso_1', 'feature_iso_2'])
+                                                    columns=['feature_iso_0', 'feature_iso_1', 'feature_iso_2']).reset_index(drop = True)
 
     iso_rand_embedding_df = pd.DataFrame(iso.transform(all_rand_tree_distances),
-                 columns=['feature_iso_0', 'feature_iso_1', 'feature_iso_2'])
+                 columns=['feature_iso_0', 'feature_iso_1', 'feature_iso_2']).reset_index(drop = True)
 
     en = time.time()
     isomap_time = en - st
     st = time.time()
     LLE_embedding = LocallyLinearEmbedding(n_components=3).fit(all_pars_tree_distances)
     LLE_pars_embedding_df = pd.DataFrame(LLE_embedding.transform(all_pars_tree_distances),
-                                                    columns=['feature_lle_0', 'feature_lle_1', 'feature_lle_2'])
+                                                    columns=['feature_lle_0', 'feature_lle_1', 'feature_lle_2']).reset_index(drop = True)
 
     LLE_rand_embedding_df = pd.DataFrame(LLE_embedding.transform(all_rand_tree_distances),
-                 columns=['feature_lle_0', 'feature_lle_1', 'feature_lle_2'])
+                 columns=['feature_lle_0', 'feature_lle_1', 'feature_lle_2']).reset_index(drop = True)
     en = time.time()
     lle_time = st-en
 
@@ -254,7 +255,9 @@ def get_basic_tree_features(msa_raw_data, curr_run_directory,msa_path,tmp_folder
     )
     basic_tree_features["feature_tree_optimized_ll"] = optimized_tree_object_ll
     basic_tree_features["feature_tree_optimized_alpha"] = optimized_tree_object_alpha
-    basic_tree_features["optimized_tree_object"] = generate_multiple_tree_object_from_newick(optimized_trees_file)
+    basic_tree_features["optimized_tree_object"] = generate_multiple_tree_object_from_newick_file(optimized_trees_file)
+    #basic_tree_features["final_tree_objects"] = generate_multiple_tree_object_from_newick_list(basic_tree_features["final_tree_topology"])
+
     all_parsimony_trees_LL = basic_tree_features[basic_tree_features["starting_tree_type"] == "pars"][
         "feature_tree_optimized_ll"].drop_duplicates().tolist()
     all_random_trees_LL = basic_tree_features[basic_tree_features["starting_tree_type"] == "rand"][
@@ -269,9 +272,9 @@ def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_n
     all_tree_distances = np.array(list(extended_tree_features_df["tree_distances"])).reshape(
         len(extended_tree_features_df.index), -1)
     pars_extended_tree_features_df = extended_tree_features_df.loc[
-        extended_tree_features_df.starting_tree_type == "pars"]
+        extended_tree_features_df.starting_tree_type == "pars"].copy().reset_index(drop = True)
     rand_extended_tree_features_df = extended_tree_features_df.loc[
-        extended_tree_features_df.starting_tree_type == "rand"]
+        extended_tree_features_df.starting_tree_type == "rand"].copy().reset_index(drop = True)
 
     all_pars_tree_distances = np.array(list(pars_extended_tree_features_df["tree_distances"])).reshape(
         len(pars_extended_tree_features_df.index), -1)
@@ -286,6 +289,7 @@ def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_n
     all_tree_distances = pars_pca.transform(all_tree_distances)
     en  = time.time()
     PCA_time = en-st
+    #var_explained = ""
 
     logging.info("Perofrming LLE and ISOMAP")
     extended_tree_features_df = enrich_with_LLE_and_ISOMAP(all_pars_tree_distances, all_rand_tree_distances,
@@ -299,8 +303,7 @@ def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_n
     TSNE_model = TSNE(n_components=3, init='pca', perplexity=3)
     TSNE_embedded = TSNE_model.fit_transform(all_tree_distances)
     en = time.time()
-    TSNE_embedded_df = pd.DataFrame(TSNE_embedded, columns=['feature_TSNE_0', 'feature_TSNE_1', 'feature_TSNE_2'])
-    TSNE_embedded_df.reset_index(inplace=True, drop=True)
+    TSNE_embedded_df = pd.DataFrame(TSNE_embedded, columns=['feature_TSNE_0', 'feature_TSNE_1', 'feature_TSNE_2']).reset_index(drop = True)
     extended_tree_features_df.reset_index(inplace=True, drop=True)
     extended_tree_features_df = pd.concat([extended_tree_features_df, TSNE_embedded_df], axis=1)
     extended_tree_features_df["feature_TSNE_time"] = en - st
@@ -328,7 +331,7 @@ def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_
     extended_tree_metrics_lst = []
     all_neighbors = []
     for index, basic_features in basic_tree_features.iterrows():
-        general_tree_metrics, neighbors= single_tree_metrics(tmp_folder, all_parsimony_trees,all_parsimony_trees_LL, basic_features["optimized_tree_object"], basic_features["starting_tree_ll"], msa_path, args.msa_type, spr_iterations = args.spr_iters)
+        general_tree_metrics, neighbors= single_tree_metrics(tmp_folder, all_parsimony_trees,all_parsimony_trees_LL, basic_features["optimized_tree_object"],basic_features["starting_tree_ll"], msa_path, args.msa_type, spr_iterations = args.spr_iters)
         general_tree_metrics.update(dict(basic_features))
         if basic_features["starting_tree_type"]=='pars':
             all_neighbors.extend(neighbors)

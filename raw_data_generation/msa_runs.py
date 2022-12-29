@@ -49,7 +49,7 @@ def get_n_unique_tree_objects(msa_path, curr_run_directory, msa_stats, tree_type
         curr_run_directory=curr_run_directory,
         curr_msa_stats=msa_stats, seed=SEED,
         tree_type=tree_type)[:n]
-    tree_objects = generate_multiple_tree_object_from_newick(topologies_path)[:n]
+    tree_objects = generate_multiple_tree_object_from_newick_file(topologies_path)[:n]
     return tree_objects
 
 
@@ -71,7 +71,7 @@ def generate_tree_type_raxml_runs(msa_path, n_tree_objects_per_msa, msa_type, tr
     trees_path = generate_n_unique_tree_topologies_as_starting_trees(n,
                                                                      msa_path, curr_run_directory,
                                                                      seed, tree_type, msa_type)
-    tree_objects = generate_multiple_tree_object_from_newick(trees_path)[
+    tree_objects = generate_multiple_tree_object_from_newick_file(trees_path)[
                    :n_tree_objects_per_msa]
     for starting_tree_ind,tree_object in enumerate(tree_objects):
         runs.append(single_raxml_run(msa_path=msa_path, starting_tree_object=tree_object,

@@ -1,7 +1,7 @@
 from side_code.config import *
 from side_code.file_handling import create_or_clean_dir, delete_dir_content, unify_text_files
 from side_code.code_submission import execute_command_and_write_to_log
-from side_code.basic_trees_manipulation import get_tree_string, generate_multiple_tree_object_from_newick
+from side_code.basic_trees_manipulation import get_tree_string, generate_multiple_tree_object_from_newick_file
 import os
 import time
 import re

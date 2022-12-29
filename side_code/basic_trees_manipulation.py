@@ -50,12 +50,18 @@ def generate_tree_object_from_newick(tree_path):
     return starting_tree_object
 
 
-def generate_multiple_tree_object_from_newick(trees_path):
+def generate_multiple_tree_object_from_newick_file(trees_path):
     with open(trees_path) as trees_path:
         newicks = trees_path.read().split("\n")
         newicks = [t for t in newicks if len(t) > 0]
         tree_objects = [generate_tree_object_from_newick(newick) for newick in newicks]
         return tree_objects
+
+
+def generate_multiple_tree_object_from_newick_list(newicks ):
+        tree_objects = [generate_tree_object_from_newick(newick) for newick in newicks]
+        return tree_objects
+
 
 
 
