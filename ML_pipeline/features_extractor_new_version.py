@@ -201,23 +201,23 @@ def enrich_with_MDS_features(curr_run_directory, tree_features, pars_neighbors, 
 
 def enrich_with_LLE_and_ISOMAP(all_pars_tree_distances,all_rand_tree_distances,pars_extended_tree_features_df,rand_extended_tree_features_df):
 
-    iso = Isomap(n_components=3, n_neighbors=3).fit(all_pars_tree_distances)
+    iso = Isomap(n_components=2, n_neighbors=3).fit(all_pars_tree_distances)
     st = time.time()
     iso_pars_embedding_df = pd.DataFrame(iso.transform(all_pars_tree_distances),
-                                                    columns=['feature_iso_0', 'feature_iso_1', 'feature_iso_2']).reset_index(drop = True)
+                                                    columns=['feature_iso_0', 'feature_iso_1']).reset_index(drop = True)
 
     iso_rand_embedding_df = pd.DataFrame(iso.transform(all_rand_tree_distances),
-                 columns=['feature_iso_0', 'feature_iso_1', 'feature_iso_2']).reset_index(drop = True)
+                 columns=['feature_iso_0', 'feature_iso_1']).reset_index(drop = True)
 
     en = time.time()
     isomap_time = en - st
     st = time.time()
-    LLE_embedding = LocallyLinearEmbedding(n_components=3).fit(all_pars_tree_distances)
+    LLE_embedding = LocallyLinearEmbedding(n_components=2,n_neighbors=3).fit(all_pars_tree_distances)
     LLE_pars_embedding_df = pd.DataFrame(LLE_embedding.transform(all_pars_tree_distances),
-                                                    columns=['feature_lle_0', 'feature_lle_1', 'feature_lle_2']).reset_index(drop = True)
+                                                    columns=['feature_lle_0', 'feature_lle_1']).reset_index(drop = True)
 
     LLE_rand_embedding_df = pd.DataFrame(LLE_embedding.transform(all_rand_tree_distances),
-                 columns=['feature_lle_0', 'feature_lle_1', 'feature_lle_2']).reset_index(drop = True)
+                 columns=['feature_lle_0', 'feature_lle_1']).reset_index(drop = True)
     en = time.time()
     lle_time = st-en
 
@@ -229,11 +229,9 @@ def enrich_with_LLE_and_ISOMAP(all_pars_tree_distances,all_rand_tree_distances,p
     try:
         full_df["feature_iso_eigen1"] = iso.kernel_pca_.eigenvalues_[0]
         full_df["feature_iso_eigen2"] = iso.kernel_pca_.eigenvalues_[1]
-        full_df["feature_iso_eigen3"] = iso.kernel_pca_.eigenvalues_[2]
     except:
         full_df["feature_iso_eigen1"] = -1
         full_df["feature_iso_eigen2"] = -1
-        full_df["feature_iso_eigen3"] = -1
         logging.info("Problem with eigenvalues")
     full_df["feature_isomap_time"] = isomap_time
     full_df["feature_lle_time"] = lle_time
@@ -283,7 +281,7 @@ def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_n
 
     st = time.time()
     logging.info("Perofrming first PCA")
-    pars_pca = PCA(n_components=10).fit(all_pars_tree_distances)  # reduce dimensions to those of parsimony trees
+    pars_pca = PCA(n_components=15).fit(all_pars_tree_distances)  # reduce dimensions to those of parsimony trees
     all_pars_tree_distances = pars_pca.transform(all_pars_tree_distances)
     all_rand_tree_distances = pars_pca.transform(all_rand_tree_distances)
     all_tree_distances = pars_pca.transform(all_tree_distances)
@@ -300,10 +298,10 @@ def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_n
 
     logging.info("Perofrming TSNE")
     st = time.time()
-    TSNE_model = TSNE(n_components=3, init='pca', perplexity=3)
+    TSNE_model = TSNE(n_components=2, init='pca', perplexity=3)
     TSNE_embedded = TSNE_model.fit_transform(all_tree_distances)
     en = time.time()
-    TSNE_embedded_df = pd.DataFrame(TSNE_embedded, columns=['feature_TSNE_0', 'feature_TSNE_1', 'feature_TSNE_2']).reset_index(drop = True)
+    TSNE_embedded_df = pd.DataFrame(TSNE_embedded, columns=['feature_TSNE_0', 'feature_TSNE_1']).reset_index(drop = True)
     extended_tree_features_df.reset_index(inplace=True, drop=True)
     extended_tree_features_df = pd.concat([extended_tree_features_df, TSNE_embedded_df], axis=1)
     extended_tree_features_df["feature_TSNE_time"] = en - st
