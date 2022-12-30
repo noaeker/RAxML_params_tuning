@@ -47,22 +47,22 @@ Getting test and train data
 
 ```{r}
 
-enriched_data_success<-enriched_data %>% filter (max_status==1) %>% mutate(success=1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path, starting_tree_type) %>% mutate(mean_success_prob = mean(success), max_total_prob = max(total_prob),median_total_prob = median(total_prob) ) %>% filter(status==1) %>% filter(n_trees_used == min(n_trees_used)) %>% ungroup() %>% select (msa_path,starting_tree_type,mean_success_prob, n_trees_used, max_status,feature_msa_pypythia_msa_difficulty,max_total_prob,median_total_prob) %>% rename(id = msa_path)
+enriched_data_success<-enriched_data %>% filter (max_status==1) %>% mutate(success=1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path, starting_tree_type) %>% mutate(mean_success_prob = mean(success), max_total_prob = max(total_prob),median_total_prob = median(total_prob),prob_sum = sum(success) ) %>% filter(status==1) %>% filter(n_trees_used == min(n_trees_used)) %>% ungroup() %>% select (msa_path,starting_tree_type,mean_success_prob, n_trees_used, max_status,feature_msa_pypythia_msa_difficulty,max_total_prob,median_total_prob, prob_sum, total_prob) %>% rename(id = msa_path)
 
 
-enriched_data_failure<- enriched_data %>% filter (max_status==0) %>% mutate(success=1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path,starting_tree_type) %>% mutate(mean_success_prob = mean(success),max_total_prob = max(total_prob), median_total_prob = median(total_prob),n_trees_used = 20 ) %>% distinct (msa_path,starting_tree_type,mean_success_prob, n_trees_used, max_status ,feature_msa_pypythia_msa_difficulty,max_total_prob,median_total_prob) %>% rename(id = msa_path)
+enriched_data_failure<- enriched_data %>% filter (max_status==0) %>% mutate(success=1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path,starting_tree_type) %>% mutate(mean_success_prob = mean(success),max_total_prob = max(total_prob), median_total_prob = median(total_prob),n_trees_used = 20, prob_sum = sum(success) ) %>% distinct (msa_path,starting_tree_type,mean_success_prob, n_trees_used, max_status ,feature_msa_pypythia_msa_difficulty,max_total_prob,median_total_prob, prob_sum, total_prob) %>% rename(id = msa_path)
 
 total_enriched_data<- rbind(enriched_data_success, enriched_data_failure) 
 
 
-enriched_data_success_show<-enriched_data_test %>% filter (max_status==1) %>% mutate(success=1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path, starting_tree_type) %>% mutate(mean_success_prob = mean(success), max_total_prob = max(total_prob) ) %>% filter(status==1) %>% filter(n_trees_used == min(n_trees_used)) %>% ungroup() %>% select (msa_path,starting_tree_type,mean_success_prob, n_trees_used, max_status,feature_msa_pypythia_msa_difficulty,max_total_prob) %>% rename(id = msa_path)
+enriched_data_success_show<-enriched_data_test %>% filter (max_status==1) %>% mutate(success=1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path, starting_tree_type) %>% mutate(mean_success_prob = mean(success), max_total_prob = max(total_prob) ) %>% filter(status==1) %>% filter(n_trees_used == min(n_trees_used)) %>% ungroup() %>% select (msa_path,starting_tree_type,mean_success_prob, n_trees_used, max_status,feature_msa_pypythia_msa_difficulty,max_total_prob, total_prob) %>% rename(id = msa_path)
 
 
-enriched_data_failure_show<- enriched_data_test %>% filter (max_status==0) %>% mutate(success=1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path,starting_tree_type) %>% mutate(mean_success_prob = mean(success),max_total_prob = max(total_prob),n_trees_used = 20 ) %>% distinct (msa_path,starting_tree_type,mean_success_prob, n_trees_used, max_status ,feature_msa_pypythia_msa_difficulty,max_total_prob) %>% rename(id = msa_path)
+enriched_data_failure_show<- enriched_data_test %>% filter (max_status==0) %>% mutate(success=1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path,starting_tree_type) %>% mutate(mean_success_prob = mean(success),max_total_prob = max(total_prob),n_trees_used = 20 ) %>% distinct (msa_path,starting_tree_type,mean_success_prob, n_trees_used, max_status ,feature_msa_pypythia_msa_difficulty,max_total_prob, total_prob) %>% rename(id = msa_path)
 
 total_enriched_data_show<- rbind(enriched_data_success_show, enriched_data_failure_show) 
 
-total_enriched_data_test<-enriched_data_test %>% mutate(success=1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path, starting_tree_type) %>% mutate(mean_success_prob = mean(success),max_total_prob = max(total_prob),median_total_prob=median(total_prob) )  %>% ungroup() %>% select (msa_path,n_trees_used,status,starting_tree_type,mean_success_prob,feature_msa_pypythia_msa_difficulty,max_total_prob,median_total_prob) %>% rename(id = msa_path,max_status=status)
+total_enriched_data_test<-enriched_data_test %>% mutate(success=1-predicted_calibrated_failure_probabilities) %>% group_by(msa_path, starting_tree_type) %>% mutate(mean_success_prob = mean(success),max_total_prob = max(total_prob),median_total_prob=median(total_prob),prob_sum = sum(success), total_prob )  %>% ungroup() %>% select (msa_path,n_trees_used,status,starting_tree_type,mean_success_prob,feature_msa_pypythia_msa_difficulty,max_total_prob,median_total_prob,prob_sum,mean_success_prob )%>% rename(id = msa_path,max_status=status)
 ```
 
 
@@ -84,9 +84,10 @@ parsimony_test_data %>% arrange(id)
 
 ```{r}
 library(ciTools)
+library(survival)
 
 
-aft_pars<- survreg(Surv(n_trees_used, max_status)~strata(starting_tree_type)+feature_msa_pypythia_msa_difficulty,data =total_enriched_data)
+aft_pars<- survreg(Surv(n_trees_used, max_status)~strata(starting_tree_type)+feature_msa_pypythia_msa_difficulty+mean_success_prob,data =total_enriched_data)
 AIC(aft_pars)
 
 #+feature_msa_pypythia_msa_difficulty
@@ -97,10 +98,10 @@ predictions<-exp(predict(aft_pars, newdata=parsimony_test_data, type="lp"))*log(
 
 summary(predictions)
 
-with_ints <- ciTools::add_ci(parsimony_data_show,aft_pars, names = c("lcb", "ucb")) %>%
+with_ints <- ciTools::add_ci(total_enriched_data_test,aft_pars, names = c("lcb", "ucb")) %>%
     ciTools::add_pi(aft_pars, names = c("lpb", "upb"))
 
-ggplot(with_ints, aes(x =  mean_success_prob, y = n_trees_used)) +
+ggplot(with_ints, aes(x =  mean_success_prob, y = prob_sum)) +
     geom_point(aes()) +
     #facet_wrap()+
     theme_bw() +
@@ -130,11 +131,11 @@ ggplot(with_ints, aes(x =  max_total_prob, y = n_trees_used)) +
 
 
 ```{r}
-quants <- ciTools::add_quantile(parsimony_test_data, aft_pars, p = 0.999,
+quants <- ciTools::add_quantile(total_enriched_data_test, aft_pars, p = 0.9,
                                 name = c("quant", "lcb", "ucb"))
 
 
-q<-quants %>% filter (n_trees_used>quant) %>% group_by(id) %>% filter (n_trees_used== min(n_trees_used))
+q<-quants %>% group_by(starting_tree_type)%>% filter (n_trees_used>quant) %>% group_by(id,starting_tree_type) %>% filter (n_trees_used== min(n_trees_used))
 q %>% distinct (id)
 summary(q %>% pull(max_status))
 summary(q %>% pull(n_trees_used))
