@@ -30,6 +30,8 @@ from pypythia.predictor import DifficultyPredictor
 from pypythia.prediction import get_all_features
 from pypythia.raxmlng import RAxMLNG
 from pypythia.msa import MSA
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 from sklearn.neighbors import KNeighborsRegressor
 import numpy as np
 from matplotlib import pyplot as plt
@@ -156,9 +158,9 @@ def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_tr
     return all_tree_features, neighbors
 
 
-def mds_and_pca(tree_features, X, starting_trees, mds_n_components, metric, pca_n_components, suffix):
+def perform_MDS(tree_features, X, starting_trees, mds_n_components, metric, pca_n_components, suffix):
     st = time.time()
-    mds = MDS(random_state=0, n_components=mds_n_components, metric=True, dissimilarity='precomputed').fit(X)
+    mds = MDS(random_state=0, n_components=mds_n_components, metric=metric, dissimilarity='precomputed').fit(X)
     et = time.time()
     tree_features[f"feature_mds_{metric}_time_{mds_n_components}_{suffix}"] = et-st
     tree_features[f"feature_mds_{metric}_stress_{mds_n_components}_{suffix}"] = mds.stress_
@@ -193,33 +195,36 @@ def enrich_with_MDS_features(curr_run_directory, tree_features, pars_neighbors, 
     X[triu] = distances
     X = X.T
     X[triu] = X.T[triu]
-    mds_and_pca(tree_features, X, overall_trees, mds_n_components = 3, metric = True, pca_n_components = 3, suffix = suffix)
-    mds_and_pca(tree_features, X, overall_trees, mds_n_components = 3, metric = False, pca_n_components = 3,suffix = suffix)
-    mds_and_pca(tree_features, X, overall_trees, mds_n_components = 10, metric = True, pca_n_components = 10,suffix = suffix)
-    mds_and_pca(tree_features, X, overall_trees, mds_n_components = 10, metric = False, pca_n_components = 10,suffix = suffix)
-    mds_and_pca(tree_features, X, overall_trees, mds_n_components = 30, metric = True, pca_n_components = 10,suffix = suffix)
-    mds_and_pca(tree_features, X, overall_trees, mds_n_components = 30, metric = False, pca_n_components = 10,suffix = suffix)
+    perform_MDS(tree_features, X, overall_trees, mds_n_components = 3, metric = True, pca_n_components = 3, suffix = suffix)
+    perform_MDS(tree_features, X, overall_trees, mds_n_components = 3, metric = False, pca_n_components = 3, suffix = suffix)
+    perform_MDS(tree_features, X, overall_trees, mds_n_components = 10, metric = True, pca_n_components = 10, suffix = suffix)
+    perform_MDS(tree_features, X, overall_trees, mds_n_components = 10, metric = False, pca_n_components = 10, suffix = suffix)
+    perform_MDS(tree_features, X, overall_trees, mds_n_components=15, metric=True, pca_n_components=15, suffix=suffix)
+    perform_MDS(tree_features, X, overall_trees, mds_n_components = 30, metric = True, pca_n_components = 10, suffix = suffix)
+    perform_MDS(tree_features, X, overall_trees, mds_n_components = 30, metric = False, pca_n_components = 10, suffix = suffix)
 
 
 def enrich_with_LLE_and_ISOMAP(all_pars_tree_distances,all_rand_tree_distances,pars_extended_tree_features_df,rand_extended_tree_features_df):
+    n_components = 2
 
-    iso = Isomap(n_components=2, n_neighbors=3).fit(all_pars_tree_distances)
+    iso = Isomap(n_components=n_components, n_neighbors=3).fit(all_pars_tree_distances)
     st = time.time()
     iso_pars_embedding_df = pd.DataFrame(iso.transform(all_pars_tree_distances),
-                                                    columns=['feature_iso_0', 'feature_iso_1']).reset_index(drop = True)
+                                                    columns=[f'feature_iso_{i}' for i in range(n_components)]).reset_index(drop = True)
 
     iso_rand_embedding_df = pd.DataFrame(iso.transform(all_rand_tree_distances),
-                 columns=['feature_iso_0', 'feature_iso_1']).reset_index(drop = True)
+                 columns=[f'feature_iso_{i}' for i in range(n_components)]).reset_index(drop = True)
 
     en = time.time()
     isomap_time = en - st
     st = time.time()
-    LLE_embedding = LocallyLinearEmbedding(n_components=2,n_neighbors=3).fit(all_pars_tree_distances)
+    LLE_embedding = LocallyLinearEmbedding(n_components=n_components,n_neighbors=3).fit(all_pars_tree_distances)
+
     LLE_pars_embedding_df = pd.DataFrame(LLE_embedding.transform(all_pars_tree_distances),
-                                                    columns=['feature_lle_0', 'feature_lle_1']).reset_index(drop = True)
+                                                    columns=[f'feature_lle_{i}' for i in range(n_components)]).reset_index(drop = True)
 
     LLE_rand_embedding_df = pd.DataFrame(LLE_embedding.transform(all_rand_tree_distances),
-                 columns=['feature_lle_0', 'feature_lle_1']).reset_index(drop = True)
+                 columns=[f'feature_lle_{i}' for i in range(n_components)]).reset_index(drop = True)
     en = time.time()
     lle_time = st-en
 
@@ -228,13 +233,6 @@ def enrich_with_LLE_and_ISOMAP(all_pars_tree_distances,all_rand_tree_distances,p
 
     full_df = pd.concat([pars_df,rand_df])
 
-    try:
-        full_df["feature_iso_eigen1"] = iso.kernel_pca_.eigenvalues_[0]
-        full_df["feature_iso_eigen2"] = iso.kernel_pca_.eigenvalues_[1]
-    except:
-        full_df["feature_iso_eigen1"] = -1
-        full_df["feature_iso_eigen2"] = -1
-        logging.info("Problem with eigenvalues")
     full_df["feature_isomap_time"] = isomap_time
     full_df["feature_lle_time"] = lle_time
     full_df["feature_lle_reconstruction_error"] = LLE_embedding.reconstruction_error_
@@ -269,8 +267,7 @@ def get_basic_tree_features(msa_raw_data, curr_run_directory,msa_path,tmp_folder
 
 
 def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_neighbors):
-    all_tree_distances = np.array(list(extended_tree_features_df["tree_distances"])).reshape(
-        len(extended_tree_features_df.index), -1)
+
     pars_extended_tree_features_df = extended_tree_features_df.loc[
         extended_tree_features_df.starting_tree_type == "pars"].copy().reset_index(drop = True)
     rand_extended_tree_features_df = extended_tree_features_df.loc[
@@ -283,35 +280,34 @@ def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_n
 
     st = time.time()
     logging.info("Performing first PCA")
-    n_PCA_components = 10
-    pars_pca = PCA(n_components=n_PCA_components).fit(all_pars_tree_distances)  # reduce dimensions to those of parsimony trees
-    if True:
-        all_pars_tree_distances = pars_pca.transform(all_pars_tree_distances)
-        all_rand_tree_distances = pars_pca.transform(all_rand_tree_distances)
-        all_tree_distances = pars_pca.transform(all_tree_distances)
+    n_PCA_components = 20
+
+    pars_pca = Pipeline([('scaling',StandardScaler()),('pca',PCA(n_components=n_PCA_components))])
+    pars_pca.fit(all_pars_tree_distances)
+    all_tree_distances = np.array(list(extended_tree_features_df["tree_distances"])).reshape(
+        len(extended_tree_features_df.index), -1)
     all_tree_distances_PCA = pars_pca.transform(all_tree_distances)
 
     en  = time.time()
     PCA_time = en-st
-    extended_tree_features_df["feature_explained_var"] = np.sum(pars_pca.explained_variance_ratio_)
+    extended_tree_features_df["feature_explained_var"] = np.sum(pars_pca['pca'].explained_variance_ratio_)
     #var_explained = ""
-
-    logging.info("Perofrming LLE and ISOMAP")
-    extended_tree_features_df = enrich_with_LLE_and_ISOMAP(all_pars_tree_distances, all_rand_tree_distances,
-                                                           pars_extended_tree_features_df,
-                                                           rand_extended_tree_features_df)
-
-    extended_tree_features_df["feature_PCA_time"] = PCA_time
+    # logging.info("Perofrming LLE and ISOMAP")
+    # extended_tree_features_df = enrich_with_LLE_and_ISOMAP(all_pars_tree_distances, all_rand_tree_distances,
+    #                                                        pars_extended_tree_features_df,
+    #                                                        rand_extended_tree_features_df)
+    #
+    # extended_tree_features_df["feature_PCA_time"] = PCA_time
 
     for i in range(n_PCA_components):
         extended_tree_features_df[f"feature_PCA_{i}"] = all_tree_distances_PCA[:,i]
 
     logging.info("Perofrming TSNE")
     st = time.time()
-    TSNE_model = TSNE(n_components=2, init='pca', perplexity=3)
+    TSNE_model = TSNE(n_components=3, init='pca')
     TSNE_embedded = TSNE_model.fit_transform(all_tree_distances)
     en = time.time()
-    TSNE_embedded_df = pd.DataFrame(TSNE_embedded, columns=['feature_TSNE_0', 'feature_TSNE_1']).reset_index(drop = True)
+    TSNE_embedded_df = pd.DataFrame(TSNE_embedded, columns=['feature_TSNE_0', 'feature_TSNE_1','feature_TSNE_2']).reset_index(drop = True)
     extended_tree_features_df.reset_index(inplace=True, drop=True)
     extended_tree_features_df = pd.concat([extended_tree_features_df, TSNE_embedded_df], axis=1)
     extended_tree_features_df["feature_TSNE_time"] = en - st

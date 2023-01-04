@@ -1,0 +1,147 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+library(ggpubr)
+```
+
+Error and time  as a function of training size:
+```{r}
+error_vs_size = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/error_metrics.tsv")
+error_vs_size_plt = error_vs_size %>% ggplot(aes(x=sample_fraction, y = AUC))+geom_line()+ expand_limits(y = 0.5)+xlab("Fraction of training-data")+ theme(text = element_text(size = 15))+ylab("AUC")+geom_point()
+
+time_vs_size = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/time_metrics.tsv")
+time_vs_size_plt = time_vs_size %>% ggplot(aes(x=sample_fraction, y = r2))+geom_line()+ expand_limits(y = 0)+xlab("Fraction of training-data")+theme(text = element_text(size = 15))+ylab("R-squared")+geom_point()
+
+
+ggarrange(error_vs_size_plt, time_vs_size_plt,labels = c("A", "B"),ncol = 2, nrow = 1)
+```
+
+Error as a function of binning:
+
+```{r}
+error_vs_group = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/error_group_metrics.tsv")
+
+error_vs_group = error_vs_group %>% group_by(grouping_col_name) %>% filter (grouping_col_name!="starting_tree_type_bool") %>% mutate(rownum = row_number()) %>% mutate(Parameter = case_when(grouping_col_name=="n_seq_group"~"Number of sequences",grouping_col_name=="msa_difficulty_group"~"MSA difficulty",grouping_col_name=="feature_msa_n_loci"~"Number of MSA positions")) %>% ungroup()
+
+error_vs_group_plt<-error_vs_group  %>% ggplot(aes(color=Parameter,x=rownum, y = AUC))+geom_line()+geom_point()+ expand_limits(y = 0.5)+xlab("Quantile")+theme(text = element_text(size = 15))
+
+
+time_vs_group = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/time_group_metrics.tsv")
+
+time_vs_group = time_vs_group %>% group_by(grouping_col_name) %>% filter (grouping_col_name!="starting_tree_type_bool") %>% mutate(rownum = row_number()) %>% mutate(Parameter = case_when(grouping_col_name=="n_seq_group"~"Number of sequences",grouping_col_name=="msa_difficulty_group"~"MSA difficulty",grouping_col_name=="feature_msa_n_loci"~"Number of MSA positions")) %>% ungroup()
+time_vs_group_plt<-time_vs_group %>% ggplot(aes(color=Parameter,x=rownum, y = R2))+geom_line()+geom_point()+ expand_limits(y = 0)+xlab("Quantile")+ylab("R-squared")+theme(text = element_text(size = 15))
+
+ggarrange(error_vs_group_plt, time_vs_group_plt,labels = c("A", "B"),ncol = 1, nrow = 2,common.legend = TRUE)
+```
+Test single tree data
+
+```{r}
+test_data = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/Working_results/test_single_tree_data.tsv")
+
+```
+
+```{r}
+#test_data$predicted_calibrated_failure_probabilities
+#test_data$predicted_uncalibrated_failure_probabilities
+#test_data$predicted_time
+#test_data$normalized_relative_time
+#test_data$is_global_max
+
+library(ggplot2)
+library(pROC)
+
+rocobj <- roc(test_data$is_global_max, test_data$predicted_uncalibrated_failure_probabilities)
+auc <- round(auc(test_data$is_global_max, test_data$predicted_uncalibrated_failure_probabilities),4)
+
+global_max_auc<-ggroc(rocobj,colour = 'steelblue', size = 2)+
+  ggtitle(paste0('AUC = ', auc))+theme(text = element_text(size = 15))
+
+
+```
+```{r}
+R.squared = round(cor(test_data$predicted_time,test_data$normalized_relative_time ) ^ 2,4)
+
+time_r2<-test_data %>% ggplot(aes(x=predicted_time, y= normalized_relative_time))+geom_point(size=0.01)+xlab("Predicted")+ ylab("True")+theme(text = element_text(size = 15))+ ggtitle(paste0('R-squared = ', R.squared ))+theme(text = element_text(size = 15))
+
+
+```
+
+```{r}
+
+ggarrange(global_max_auc, time_r2,labels = c("A", "B"),ncol = 2, nrow = 1)
+```
+
+
+
+```{r}
+test_pct_of_success<-test_data %>% group_by(msa_path, feature_msa_pypythia_msa_difficulty, feature_mds_True_stress_10_only_base) %>% summarise(pct_success = mean(is_global_max)) 
+
+pythia<-test_pct_of_success%>% ggplot(aes(x=feature_msa_pypythia_msa_difficulty, y=pct_success))+geom_point()+geom_smooth()+ylab("% global maxima")+xlab("MSA difficulty score")+theme(text = element_text(size = 12))
+mds<-test_pct_of_success%>% ggplot(aes(x=feature_mds_True_stress_10_only_base, y=pct_success))+geom_point()+geom_smooth()+ylab("% global maxima")+xlab("MDS stress score (10)")+theme(text = element_text(size = 12))
+ggarrange(pythia, mds,labels = c("A", "B"),ncol = 1, nrow = 2)
+```
+```{r}
+prob_per_tree<-test_data %>% group_by(msa_path, starting_tree_ind, starting_tree_type) %>% summarise(min_prob = min(predicted_calibrated_failure_probabilities), max_prob =max(predicted_calibrated_failure_probabilities), min_time = min(predicted_time), max_time= max(predicted_time)) %>% mutate(acc_diff = max_prob-min_prob, time_diff = max_time-min_time)
+
+prob_per_tree%>% ggplot(aes(x=acc_diff))+geom_histogram()
+prob_per_tree%>% ggplot(aes(x=time_diff))+geom_histogram()
+print("Results:")
+summary(prob_per_tree %>% pull (acc_diff))
+summary(prob_per_tree %>% pull (time_diff))
+```
+```{r}
+
+test_data %>% filter (equal_to_default_config==TRUE) %>% select (msa_path, starting_tree_ind, starting_tree_type,spr_radius, spr_cutoff,predicted_time, predicted_calibrated_failure_probabilities, is_global_max, normalized_relative_time) %>% summarise(mean_success = mean(is_global_max), mean_time = mean(normalized_relative_time), mean_predicted_time = mean(predicted_time),mean_predicted_failure= mean(predicted_calibrated_failure_probabilities))
+
+test_accuracy_per_config<-test_data  %>% select (msa_path, starting_tree_ind, starting_tree_type,spr_radius, spr_cutoff,predicted_time, predicted_calibrated_failure_probabilities, is_global_max, normalized_relative_time) %>% group_by(spr_cutoff, spr_radius) %>% summarise(mean_success = mean(is_global_max), mean_predicted_failure= mean(predicted_calibrated_failure_probabilities)) %>% ggplot(aes(x=mean_success, y = 1-mean_predicted_failure))+geom_point()+geom_line()+xlab("True % success")+ylab("Predicted % success")+theme(text = element_text(size = 12))
+
+test_running_time_per_config<-test_data   %>% select (msa_path, starting_tree_ind, starting_tree_type,spr_radius, spr_cutoff,predicted_time, predicted_calibrated_failure_probabilities, is_global_max, normalized_relative_time) %>% group_by(spr_cutoff, spr_radius) %>% summarise(mean_time = mean(normalized_relative_time), mean_predicted_time = mean(predicted_time)) %>% ggplot(aes(x=mean_time, y =mean_predicted_time))+geom_point()+geom_line()+xlab("True time")+ylab("Predicted time")+theme(text = element_text(size = 12))
+
+
+ggarrange(test_accuracy_per_config, test_running_time_per_config,labels = c("A", "B"),ncol = 1, nrow = 2)
+
+
+```
+
+```{r}
+test_data  %>% select (msa_path, starting_tree_ind, starting_tree_type,spr_radius, spr_cutoff,predicted_time, predicted_calibrated_failure_probabilities, is_global_max, normalized_relative_time) %>% group_by(spr_cutoff, spr_radius) %>% summarise(mean_time = mean(normalized_relative_time), mean_predicted_time = mean(predicted_time), mean_success = mean(is_global_max), mean_predicted_failure= mean(predicted_calibrated_failure_probabilities) ) %>% ggplot(aes(x=mean_time, y =mean_success, color = spr_radius))+geom_point()+geom_line()
+
+
+
+test_data  %>% select (msa_path, starting_tree_ind, starting_tree_type,spr_radius, spr_cutoff,predicted_time, predicted_calibrated_failure_probabilities, is_global_max, normalized_relative_time) %>% group_by(spr_cutoff, spr_radius) %>% summarise(mean_time = mean(normalized_relative_time), mean_predicted_time = mean(predicted_time), mean_success = mean(is_global_max), mean_predicted_failure= mean(predicted_calibrated_failure_probabilities) ) %>% ggplot(aes(x=mean_predicted_time, y =1-mean_predicted_failure, color = spr_radius))+geom_point()+geom_line()
+```
+
+```{r}
+data<-test_data  %>% select (msa_path, starting_tree_ind, starting_tree_type,spr_radius, spr_cutoff,predicted_time, predicted_calibrated_failure_probabilities, is_global_max, normalized_relative_time,equal_to_default_config) %>% group_by(spr_cutoff, spr_radius) %>% summarise(mean_time = mean(normalized_relative_time), mean_predicted_time = mean(predicted_time), mean_success = mean(is_global_max), mean_predicted_failure= mean(predicted_calibrated_failure_probabilities) ) %>% mutate(mean_predicted_success = 1-mean_predicted_failure)
+
+data %>% arrange(-mean_predicted_success) %>% select (spr_radius, spr_cutoff,mean_predicted_success, mean_predicted_time, mean_success, mean_time)
+
+data %>% arrange(-mean_success) %>% select (spr_radius, spr_cutoff,mean_predicted_success, mean_predicted_time, mean_success, mean_time)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

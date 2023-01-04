@@ -46,26 +46,26 @@ def edit_raw_data_for_ML(data, epsilon):
     #data["feature_brlen_opt_effect"] = data["feature_tree_optimized_ll"] - data["starting_tree_ll"]
     #non_default_data["feature_seq_to_loci"] = non_default_data["feature_msa_n_seq"] / non_default_data["feature_msa_n_loci"]
     non_default_data["feature_seq_to_unique_loci"] = non_default_data["feature_msa_n_seq"] / non_default_data["feature_msa_n_unique_sites"]
-    non_default_data["found_best_score"] = non_default_data.groupby("msa_path")['is_global_max'].transform(np.max)
+ #   non_default_data["found_best_score"] = non_default_data.groupby("msa_path")['is_global_max'].transform(np.max)
     default_by_params = non_default_data[non_default_data["equal_to_default_config"]].copy()
     numerical_columns = [col for col in non_default_data.columns if
                          col.startswith('feature') and is_numeric_dtype(non_default_data[col])]
     changing_features = non_default_data[numerical_columns + ['msa_path']].groupby('msa_path').apply(
-        lambda x: np.var(x)).sum(axis=0)
-    #mds_included_features = [f'feature_mds_False_pca_{i}_3' for i in range(3)] + ['feature_mds_False_stress_3']
+         lambda x: np.var(x)).sum(axis=0)
     starting_tree_level_columns =changing_features[changing_features > 0.001].index
-    #
-    starting_tree_level_columns = [col for col in starting_tree_level_columns ]
+    # #
+    starting_tree_level_columns = [col for col in starting_tree_level_columns if col not in ('feature_cluster_size','feature_cluster_size_random ') ]
     MSA_level_columns = [col for col in numerical_columns if col not in starting_tree_level_columns]
-    #mean_transformations = non_default_data.groupby('msa_path').transform(lambda vec: np.mean(vec))
+    mean_transformations = non_default_data.groupby('msa_path').transform(lambda vec: np.mean(vec))
     averaged_cols = []
-    # for col in starting_tree_level_columns:
-    #     name = col + "_averaged_per_entire_MSA"
-    #     non_default_data[col + "_averaged_per_entire_MSA"] = mean_transformations[col]
-    #     averaged_cols.append(name)
-    # std_transformations = non_default_data.groupby('msa_path').transform(lambda vec: (vec - vec.mean()) / vec.std())
-    # for col in starting_tree_level_columns:
-    #     non_default_data[col] = std_transformations[col]
+    for col in starting_tree_level_columns:
+        if not 'cluster' in col:
+            name = col + "_averaged_per_entire_MSA"
+            non_default_data[col + "_averaged_per_entire_MSA"] = mean_transformations[col]
+            averaged_cols.append(name)
+    std_transformations = non_default_data.groupby('msa_path').transform(lambda vec: (vec - vec.mean()) / vec.std())
+    for col in starting_tree_level_columns:
+       non_default_data[col] =std_transformations[col]
     return {"non_default": non_default_data, "default_by_params": default_by_params,"MSA_level_columns": MSA_level_columns,"averaged_MSA_level_columns":averaged_cols  }
 
 
@@ -98,31 +98,31 @@ def get_average_results_on_default_configurations_per_msa(default_data, n_sample
     return default_results
 
 
-
-def get_best_parsimony_config_per_cluster(curr_run_directory, best_configuration_per_starting_tree_pars, normalizing_const, max_dist_options):
-    logging.debug(f"Clustering parsimony trees based on distances:{max_dist_options} ")
-    parsimony_tree_data = best_configuration_per_starting_tree_pars.sort_values(by='starting_tree_ind')
-    parsimony_trees_path = os.path.join(curr_run_directory, 'parsimony_trees')
-    unify_text_files(parsimony_tree_data['starting_tree_object'], parsimony_trees_path, str_given=True)
-    distances = np.array(RF_distances(curr_run_directory, trees_path_a=parsimony_trees_path, trees_path_b=None, name="RF"))/normalizing_const
-    a = np.zeros((len(parsimony_tree_data.index), len(parsimony_tree_data.index)))
-    triu = np.triu_indices(len(parsimony_tree_data.index), 1)
-    a[triu] = distances
-    a = a.T
-    a[triu] = a.T[triu]
-    parsimony_choice_per_d = {}
-    for d in max_dist_options:
-        clustering = AgglomerativeClustering(affinity="precomputed", n_clusters= None, distance_threshold=d, linkage='complete').fit(a)
-        parsimony_tree_data["cluster"] = clustering.labels_
-        parsimony_tree_data["n_actual_parsimony_clusters"] = clustering.n_clusters_
-        best_parsimony_configuration_per_cluster = parsimony_tree_data.sort_values(
-            ['cluster', 'predicted_uncalibrated_failure_probabilities']).groupby(
-            ['cluster']).head(1)
-        parsimony_choice_per_d[d] = best_parsimony_configuration_per_cluster
-    return parsimony_choice_per_d
-
-
 #
+# def get_best_parsimony_config_per_cluster(curr_run_directory, best_configuration_per_starting_tree_pars, normalizing_const, max_dist_options):
+#     logging.debug(f"Clustering parsimony trees based on distances:{max_dist_options} ")
+#     parsimony_tree_data = best_configuration_per_starting_tree_pars.sort_values(by='starting_tree_ind')
+#     parsimony_trees_path = os.path.join(curr_run_directory, 'parsimony_trees')
+#     unify_text_files(parsimony_tree_data['starting_tree_object'], parsimony_trees_path, str_given=True)
+#     distances = np.array(RF_distances(curr_run_directory, trees_path_a=parsimony_trees_path, trees_path_b=None, name="RF"))/normalizing_const
+#     a = np.zeros((len(parsimony_tree_data.index), len(parsimony_tree_data.index)))
+#     triu = np.triu_indices(len(parsimony_tree_data.index), 1)
+#     a[triu] = distances
+#     a = a.T
+#     a[triu] = a.T[triu]
+#     parsimony_choice_per_d = {}
+#     for d in max_dist_options:
+#         clustering = AgglomerativeClustering(affinity="precomputed", n_clusters= None, distance_threshold=d, linkage='complete').fit(a)
+#         parsimony_tree_data["cluster"] = clustering.labels_
+#         parsimony_tree_data["n_actual_parsimony_clusters"] = clustering.n_clusters_
+#         best_parsimony_configuration_per_cluster = parsimony_tree_data.sort_values(
+#             ['cluster', 'predicted_uncalibrated_failure_probabilities']).groupby(
+#             ['cluster']).head(1)
+#         parsimony_choice_per_d[d] = best_parsimony_configuration_per_cluster
+#     return parsimony_choice_per_d
+#
+#
+# #
 # def knapsack(optional_configurations,max_time_options):
 #     v = list(optional_configurations['predicted_time'].apply(lambda x: round(x * 10)))
 #     w = list(optional_configurations['predicted_success_probabilities'].apply(lambda x: round(x * 1000)))

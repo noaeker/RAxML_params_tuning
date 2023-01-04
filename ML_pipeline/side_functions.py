@@ -13,13 +13,13 @@ def get_ML_parser():
     parser.add_argument('--val_pct', action='store', type=int,
                         default=0)
     parser.add_argument('--test_pct', action='store', type=int,
-                        default=0.5)
+                        default=0.3)
     parser.add_argument('--max_starting_trees', action='store', type=int,
                         default=40)
-    parser.add_argument('--clusters_max_dist_options', action='store', type=float,
-                        default=[0]) #np.linspace(0,1,10)
     parser.add_argument('--n_jobs', action='store', type=int,
                         default=4)
     parser.add_argument('--lightgbm', action='store_true', default=True)
-    parser.add_argument('--fast_run', action='store_true', default=False)
+    parser.add_argument('--test_different_training_sizes',action='store_true', default = False)
+    parser.add_argument('--different_training_sizes', default=np.linspace(0.1,1,4))
+
     return parser

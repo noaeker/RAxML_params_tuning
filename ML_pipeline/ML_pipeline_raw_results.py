@@ -13,11 +13,13 @@ from ML_pipeline.ML_algorithms_and_hueristics import ML_model, print_model_stati
 import pandas as pd
 import os
 import pickle
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 
 
-def get_ML_ready_data(full_data, data_feature_names, search_feature_names, test_pct, val_pct):
+def get_ML_ready_data(full_data, data_feature_names, search_feature_names, test_pct, val_pct, subsample_train = False, subsample_train_frac = -1):
     train_data, test_data, validation_data = train_test_validation_splits(
-        full_data, test_pct=test_pct, val_pct= val_pct)
+        full_data, test_pct=test_pct, val_pct= val_pct, subsample_train = subsample_train, subsample_train_frac = subsample_train_frac)
     X_train = train_data[data_feature_names + search_feature_names]
     y_train_err = train_data["is_global_max"]
     y_train_time = train_data["normalized_relative_time"]
@@ -51,14 +53,18 @@ def get_file_paths(args):
      "final_comparison_path": f"{args.baseline_folder}/final_performance_comp{CSV_SUFFIX}",
             "final_comparison_path_agg": f"{args.baseline_folder}/final_performance_comp_agg{CSV_SUFFIX}",
      "log_file": f"{args.baseline_folder}/ML_log_file.log","time_vi": f"{args.baseline_folder}/time_vi{CSV_SUFFIX}",
+            "time_metrics": f"{args.baseline_folder}/time_metrics{CSV_SUFFIX}",
+            "time_group_metrics": f"{args.baseline_folder}/time_group_metrics{CSV_SUFFIX}",
             "error_vi": f"{args.baseline_folder}/error_vi{CSV_SUFFIX}",
+            "error_metrics": f"{args.baseline_folder}/error_metrics{CSV_SUFFIX}",
+            "error_group_metrics": f"{args.baseline_folder}/error_group_metrics{CSV_SUFFIX}",
             "final_error_vi": f"{args.baseline_folder}/final_error_vi{CSV_SUFFIX}",
             "ML_edited_default_data_path": f"{args.baseline_folder}/ML_edited_default_data{CSV_SUFFIX}"
             }
 
 
 
-def generate_basic_data_dict(data_for_ML, args):
+def generate_basic_data_dict(data_for_ML, args,subsample_train = False, subsample_train_frac = -1):
     #logging.info("Removing columns with NA")
     msa_features = [col for col in data_for_ML.columns if
                     (col.startswith("feature_")  and col not in ["feature_msa_path", "feature_msa_name",
@@ -69,21 +75,25 @@ def generate_basic_data_dict(data_for_ML, args):
     logging.info(f"Features are: {msa_features}")
     search_features = ['spr_radius', 'spr_cutoff', 'starting_tree_bool', "starting_tree_ll"]
     data_dict = get_ML_ready_data(data_for_ML, msa_features, search_features, test_pct=args.test_pct,
-                                  val_pct=args.val_pct)
+                                  val_pct=args.val_pct,subsample_train = subsample_train, subsample_train_frac =  subsample_train_frac)
     return data_dict
 
 
 
-def generate_single_tree_models(data_dict, file_paths, args):
-    time_model= ML_model(X_train=data_dict["X_train"], groups =data_dict["train_MSAs"], y_train=data_dict["y_train_time"],n_jobs=args.n_jobs, path = file_paths["time_model_path"], classifier = False)
-    print_model_statistics(model=time_model,  test_X=data_dict["X_test"], test_groups = data_dict["test_MSAs"],
-                           y_test=data_dict["y_test_time"], is_classification=False, vi_path=file_paths["time_vi"],
-                           name="Time regression model")
+def generate_single_tree_models(data_dict, file_paths, args, sampling_frac):
+
     error_model= ML_model(X_train= data_dict["X_train"], groups= data_dict["train_MSAs"], y_train= data_dict["y_train_err"],n_jobs=args.n_jobs,
-                          path = file_paths["error_model_path"], classifier = True)
-    print_model_statistics(model=error_model,  test_X=data_dict["X_test"], test_groups = data_dict["test_MSAs"],
-                           y_test=data_dict["y_test_err"], is_classification=True, vi_path=file_paths["error_vi"],
-                           name="Error classification model")
+                          path = file_paths["error_model_path"], classifier = True, name = str(sampling_frac))
+    print_model_statistics(model=error_model,train_X =data_dict["X_train"],  test_X=data_dict["X_test"],y_train=data_dict["y_train_err"],
+                           y_test=data_dict["y_test_err"], is_classification=True, vi_path=file_paths["error_vi"], metrics_path = file_paths["error_metrics"], group_metrics_path=file_paths["error_group_metrics"],
+                           name=f"Error classification model frac ={sampling_frac}", sampling_frac = sampling_frac,test_MSAs= data_dict["full_test_data"]["msa_path"])
+    time_model = ML_model(X_train=data_dict["X_train"], groups=data_dict["train_MSAs"],
+                          y_train=data_dict["y_train_time"], n_jobs=args.n_jobs, path=file_paths["time_model_path"],
+                          classifier=False, name=str(sampling_frac))
+    print_model_statistics(model=time_model, train_X=data_dict["X_train"], test_X=data_dict["X_test"],
+                           y_train=data_dict["y_train_time"],
+                           y_test=data_dict["y_test_time"], is_classification=False, vi_path=file_paths["time_vi"],metrics_path = file_paths["time_metrics"],group_metrics_path=file_paths["time_group_metrics"],
+                           name=f"Time regression model frac={sampling_frac}", sampling_frac = sampling_frac,test_MSAs= data_dict["full_test_data"]["msa_path"])
 
     return time_model,error_model
 
@@ -105,17 +115,6 @@ def apply_single_tree_models_on_data(full_data,X, time_model,error_model,singlet
         return full_data
 
 
-# def train_multi_tree_models(file_paths, time_model, error_model, data_dict, total_MSA_level_features, args):
-#     if not os.path.exists(file_paths["performance_on_test_set"]):
-#         logging.info(f"Starting ML model from scratch {file_paths['performance_on_test_set']}")
-#         performance_on_test_set =get_multitree_performance_on_test_set_per_threshold(data_dict, args, time_model, error_model, total_MSA_level_features, file_paths)
-#
-#
-#         performance_on_test_set.to_csv(file_paths["performance_on_test_set"], sep = CSV_SEP)
-#     else:
-#         logging.info(f"Using existing test performance in {file_paths['performance_on_test_set']}")
-#         performance_on_test_set = pd.read_csv(file_paths["performance_on_test_set"], sep = CSV_SEP)
-#     return performance_on_test_set
 
 
 def get_default_performance(enriched_default_data,args,performance_on_test_set, out_path):
@@ -138,6 +137,17 @@ def get_default_performance(enriched_default_data,args,performance_on_test_set, 
 
 
 
+from sklearn.cluster import KMeans
+
+def cluster(X):
+    k_means = KMeans(n_clusters=5).fit(X)
+    return X.groupby(k_means.labels_)\
+            .transform('mean').sum(1)\
+            .rank(method='dense').sub(1)\
+            .astype(int).to_frame()
+
+
+
 def main():
     epsilon = 0.1
     parser = get_ML_parser()
@@ -155,22 +165,42 @@ def main():
     features_data = features_data.loc[~features_data.msa_path.str.contains("single-gene_alignments")]
 
 
-    embedding_features = [col for col in  features_data.columns if ('iso' in col or 'mds' in col or 'lle' in col or 'TSNE' in col or 'PCA' in col) ]
-    excluded_features = [col for col in embedding_features if 'time'  in col ] #or 'lle' in col or 'TSNE' in col
-    #mds_included_features = [f'feature_mds_False_pca_{i}_3_spr_enriched' for i in range(3)]+['feature_mds_False_stress_3_spr_enriched']
-    #for f in mds_included_features:
-    #    features_data[f] = abs(features_data[f])
-    mds_included_features = []
+    embedding_features = [col for col in  features_data.columns if ('mds' in col or 'lle' in col in col or 'PCA' in col or 'TSNE' in col or 'iso' in col) ]
+    excluded_features = ['feature_tree_LL_neighbour_score']+[f for f in embedding_features if 'time' in f or 'TSNE' in f or 'lle' in f  or 'iso' in f]
+    included_embedding_features = [f for f in embedding_features if f not in excluded_features]
 
-    # msa_names = list(np.unique(features_data["msa_path"]))
-    # np.random.seed(SEED)
-    # chosen_msas= np.random.choice(msa_names, size=int(len(msa_names) * (0.2)), replace=False)
-    # features_data = features_data[features_data["msa_path"].isin(chosen_msas)]
+    #pca_features =  features_data[["msa_path","starting_tree_type"]+[f"feature_PCA_{i}" for i in range(10)]]
+
+
+
 
     if os.path.exists(file_paths["edited_data"]):
         edited_data = pickle.load(open(file_paths["edited_data"],'rb'))
     else:
-        features_data = features_data[[col for col in features_data.columns if col not in excluded_features]]
+        transformed_MSAs = []
+        # for MSA in features_data["msa_path"].unique():
+        #     msa_data = features_data.loc[features_data.msa_path == MSA]
+        #     n_clusters = 5
+        #     kmeans = KMeans(n_clusters=n_clusters).fit(msa_data[[f"feature_PCA_{i}" for i in range(10)]])
+        #     centroids = {i: kmeans.cluster_centers_[i] for i in range(n_clusters)}
+        #     centroids_distances = {i: np.linalg.norm(v) for i, v in centroids.items()}
+        #     msa_data["clusters"] = kmeans.labels_
+        #     msa_data["feature_cluster_distances"] = msa_data["clusters"].apply(lambda x: centroids_distances[x])
+        #     msa_data["feature_cluster_size"] = msa_data.groupby("clusters")['msa_path'].transform('count') / len(
+        #         msa_data.index)
+        #     msa_data["starting_tree_rand"] = msa_data["starting_tree_type"] == 'rand'
+        #     msa_data["feature_cluster_size_random"] = msa_data.groupby("clusters")['starting_tree_rand'].transform(
+        #         np.mean)
+        #     msa_data["feature_mean_ll_pre_cluster"] = msa_data.groupby("clusters")[
+        #         "feature_tree_optimized_ll"].transform(np.mean)
+        #     transformed_MSAs.append(msa_data)
+        # features_data = pd.concat(transformed_MSAs)
+        features_data = features_data[[col for col in features_data.columns if col not in excluded_features ]]
+        for col in [col for col in features_data.columns if 'PCA' in col]:
+                features_data[col] = (features_data[col].abs())
+        for col in ['feature_mds_True_stress_10_only_base','feature_mds_True_stress_3_only_base','feature_mds_True_stress_30_only_base']:
+            features_data[col+"_log"] = np.log(features_data[col])
+                #features_data[col] = features_data.groupby('msa_path')[col].transform(lambda x: (x/max(x)-np.mean(x)))
         #features_data = features_data.loc[features_data.starting_tree_type == 'rand']
         logging.info(f"Number of MSAs in feature data is {len(features_data['msa_path'].unique())}")
 
@@ -181,19 +211,21 @@ def main():
         enriched_features_data = edited_data["non_default"]
         logging.info(f"Number of positive samples: {len(enriched_features_data.loc[enriched_features_data.is_global_max==1].index)}, Number of negative samples {len(enriched_features_data.loc[enriched_features_data.is_global_max==0].index)}")
         #enriched_default_data = edited_data["default"]
-        #enriched_default_data_by_params = edited_data["default_by_params"]
+        enriched_default_data_by_params = edited_data["default_by_params"]
         enriched_features_data.to_csv(file_paths["ML_edited_features_path"], sep=CSV_SEP)
         #enriched_default_data.to_csv(file_paths["ML_edited_default_data_path"], sep=CSV_SEP)
 
-    data_dict = generate_basic_data_dict(edited_data["non_default"], args)
-    time_model, error_model = generate_single_tree_models(data_dict, file_paths, args)
+    training_fracs = args.different_training_sizes if args.test_different_training_sizes else [-1]
+    for sampling_frac in training_fracs:
+        logging.info(f"****Sampling frac = {sampling_frac}****")
+        data_dict = generate_basic_data_dict(edited_data["non_default"], args,subsample_train = args.test_different_training_sizes, subsample_train_frac = sampling_frac)
+        time_model, error_model = generate_single_tree_models(data_dict, file_paths, args,sampling_frac)
 
-    #validation_data = apply_single_tree_models_on_data(data_dict["full_validation_data"], data_dict["X_val"],time_model, error_model,  file_paths["validation_single_tree_data"])
     test_data = apply_single_tree_models_on_data(data_dict["full_test_data"], data_dict["X_test"], time_model, error_model,
                                      file_paths["test_single_tree_data"])
 
     #default_data_performance = get_default_performance(edited_data["default"],args,performance_on_test_set, out_path = file_paths["default_path"])
-    default_by_params_data_performance = get_default_performance(edited_data["default_by_params"], args, data_dict["full_test_data"], out_path= file_paths["default_by_params_path"])
+    #default_by_params_data_performance = get_default_performance(edited_data["default_by_params"], args, data_dict["full_test_data"], out_path= file_paths["default_by_params_path"])
 
 
 
