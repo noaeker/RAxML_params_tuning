@@ -42,20 +42,18 @@ def test_precentiles(test_regression_dataset, full_test, model, default):
 
 
 def test_parametric_approach(model, regression_dataset,test_regression_dataset, full_test, ancillary,name, default):
-    aft_model = model.fit(regression_dataset, "n_trees_used", "status", ancillary= ancillary,formula="(mean_success_prob+p20_success_prob)*starting_tree_type_bool") #(mean_success_prob+p20_success_prob)*starting_tree_type_bool
+    aft_model = model.fit(regression_dataset, "n_trees_used", "status", ancillary= ancillary,formula="mean_success_prob+p20_success_prob+starting_tree_type_bool") #(mean_success_prob+p20_success_prob)*starting_tree_type_bool
     aft_model.print_summary()
-    #aft_model.predict_survival_function(test_regression_dataset.sample(frac = 0.03)).plot()
-    #plt.show()
     model.predict_hazard(test_regression_dataset.loc[test_regression_dataset.starting_tree_type_bool]).plot()
-    plt.show()
+    #plt.show()
     model.predict_hazard(test_regression_dataset.loc[test_regression_dataset.starting_tree_type_bool==0]).plot()
-    plt.show()
+    #plt.show()
     #model.predict_survival_function(test_regression_dataset)
     #model.predict_median(test_regression_dataset)
     final_df = test_precentiles(test_regression_dataset, full_test, model,default)
     final_df.to_csv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/full_result.csv")
     aft_model.plot_partial_effects_on_outcome('starting_tree_type_bool', values=[0,1], cmap='coolwarm')
-    plt.show()
+    #plt.show()
     # aft_model.plot_partial_effects_on_outcome('mean_success_prob', values=[0.1,0.3,0.5,0.8], cmap='coolwarm')
     # plt.show()
     return {'name': name,'AIC':aft_model.AIC_,  'concordance_index':aft_model.score(regression_dataset, scoring_method="concordance_index")}
@@ -72,7 +70,7 @@ def model_LL_cv(regression_dataset, model,ancillary = True):
     return np.mean(CV_LL_scores)
 
 def survival_pipeline_new(train, test, test_full_options, default):
-    X_cols = ["mean_success_prob","starting_tree_type_bool","feature_mds_False_stress_3_spr_enriched","feature_msa_pypythia_msa_difficulty","p20_success_prob","var_success_prob"]
+    X_cols = ["mean_success_prob","starting_tree_type_bool","feature_msa_pypythia_msa_difficulty","p20_success_prob","var_success_prob"]
     regression_dataset = train[X_cols+["n_trees_used","status"]]
     test_regression_dataset = test[X_cols]
 
@@ -102,7 +100,7 @@ def survival_pipeline_new(train, test, test_full_options, default):
 def edit_data_for_survival_analysis(orig_df, iter):
     all_surv_data = pd.DataFrame()
     full_df = pd.DataFrame()
-    MSA_cols = ["feature_mds_False_stress_3_spr_enriched", "feature_msa_pypythia_msa_difficulty",
+    MSA_cols = [ "feature_msa_pypythia_msa_difficulty",
                 "feature_tree_parsimony_rf_values_pct_25_averaged_per_entire_MSA","feature_tree_MAD_averaged_per_entire_MSA"]
     orig_df["predicted_calibrated_success_probability"] = orig_df['predicted_calibrated_failure_probabilities'].apply(
         lambda x: 1 - x)
@@ -114,51 +112,43 @@ def edit_data_for_survival_analysis(orig_df, iter):
     #    msa_dat = df.loc[(df.msa_path==msa)&(df.starting_tree_ind==1)&(df.starting_tree_type=='pars')]
     #    plt.scatter(msa_dat['predicted_calibrated_success_probability'],msa_dat['predicted_time'] )
     #    plt.show()
-    for i in range(iter):
-        if iter==1:
-            df = orig_df.copy()
-            df = df.loc[df.predicted_calibrated_success_probability >= 0.99 * df.best_accuracy_per_starting_tree]
-            df = df.sort_values(['msa_path', 'starting_tree_type', 'starting_tree_ind', 'predicted_time']).groupby(
-            ['msa_path', 'starting_tree_type', 'starting_tree_ind']).head(1)  # choose one config per tree
-        else:
-            df = orig_df.copy().sample(frac=1)
-            df = df.groupby(['msa_path', 'starting_tree_type', 'starting_tree_ind']).head(1)
-        df = df.sort_values(['msa_path', 'starting_tree_type', 'predicted_calibrated_failure_probabilities'])
-        df["cum_failure"] = df.groupby(['msa_path', 'starting_tree_type'])[
-            'predicted_calibrated_failure_probabilities'].cumprod()
-        df["iid_success_prob"] = df["cum_failure"].apply(lambda x: 1 - x)
-        df["status"] = df.groupby(['msa_path', 'starting_tree_type'])['is_global_max'].cummax()
-        df["delta_ll"] = df.groupby(['msa_path', 'starting_tree_type'])['delta_ll_from_overall_msa_best_topology'].cummin()
-        df["total_actual_time"] = df.groupby(['msa_path', 'starting_tree_type'])['normalized_relative_time'].cumsum()
-        df = df[MSA_cols + ["msa_path", "starting_tree_ind", "starting_tree_type", "iid_success_prob", "cum_failure",
-                            "predicted_calibrated_success_probability","predicted_uncalibrated_success_probability", "predicted_calibrated_failure_probabilities",
-                            "status", "total_actual_time", "delta_ll"]].sort_values(
-            ["msa_path", "starting_tree_type", "predicted_calibrated_failure_probabilities"])
-        df["starting_tree_type_bool"] = df["starting_tree_type"] == 'pars'
-        df["max_status"] = df.groupby(["msa_path", "starting_tree_type"])["status"].transform(max)
-        df["n_trees_used"] = df.groupby(["msa_path", "starting_tree_type"]).cumcount() + 1
-        df["mean_success_prob"] = (df.groupby(["msa_path", "starting_tree_type"])[
-            "predicted_calibrated_success_probability"].transform(np.mean))
-        df["var_success_prob"] = df.groupby(["msa_path", "starting_tree_type"])[
-            "predicted_calibrated_success_probability"].transform(np.var)
-        #df["p20_median_success_prob"] = df.groupby(["msa_path", "starting_tree_type"])[
-        #    "iid_success_prob"].transform(np.median)
-        df["p20_success_prob"] = (df.groupby(["msa_path", "starting_tree_type"])[
-            "iid_success_prob"].transform(np.max)**(1/20))
-        #df["p20_success_prob_75"] = df.groupby(["msa_path", "starting_tree_type"])[
-        #    "iid_success_prob"].transform(pct_75)
-        #df["p20_success_prob_25"] = df.groupby(["msa_path", "starting_tree_type"])[
-        #    "iid_success_prob"].transform(pct_25)
-        successes = df.loc[df.max_status == 1]
-        failures = df.loc[df.max_status == 0]
-        successes_surv = successes.loc[successes.status == 1].sort_values(
-            ["msa_path", "n_trees_used", "starting_tree_type"]).groupby(["msa_path", "starting_tree_type"]).head(1)
-        failures_surv = failures.sort_values("n_trees_used", ascending=False).groupby(
-            ["msa_path", "starting_tree_type"]).head(1)
-        #failures_surv["n_trees_used"] = failures_surv["n_trees_used"]+1
-        surv_data = pd.concat([successes_surv, failures_surv])
-        all_surv_data = all_surv_data.append(surv_data, ignore_index= True)
-        full_df = full_df.append(df, ignore_index= True)
+    df = orig_df.loc[orig_df.equal_to_default_config==True]
+    df = df.sort_values(['msa_path', 'starting_tree_type', 'predicted_calibrated_failure_probabilities'])
+    df["cum_failure"] = df.groupby(['msa_path', 'starting_tree_type'])[
+        'predicted_calibrated_failure_probabilities'].cumprod()
+    df["iid_success_prob"] = df["cum_failure"].apply(lambda x: 1 - x)
+    df["status"] = df.groupby(['msa_path', 'starting_tree_type'])['is_global_max'].cummax()
+    df["delta_ll"] = df.groupby(['msa_path', 'starting_tree_type'])['delta_ll_from_overall_msa_best_topology'].cummin()
+    df["total_actual_time"] = df.groupby(['msa_path', 'starting_tree_type'])['normalized_relative_time'].cumsum()
+    df = df[MSA_cols + ["msa_path", "starting_tree_ind", "starting_tree_type", "iid_success_prob", "cum_failure",
+                        "predicted_calibrated_success_probability","predicted_uncalibrated_success_probability", "predicted_calibrated_failure_probabilities",
+                        "status", "total_actual_time", "delta_ll"]].sort_values(
+        ["msa_path", "starting_tree_type", "predicted_calibrated_failure_probabilities"])
+    df["starting_tree_type_bool"] = df["starting_tree_type"] == 'pars'
+    df["max_status"] = df.groupby(["msa_path", "starting_tree_type"])["status"].transform(max)
+    df["n_trees_used"] = df.groupby(["msa_path", "starting_tree_type"]).cumcount() + 1
+    df["mean_success_prob"] = (df.groupby(["msa_path", "starting_tree_type"])[
+        "predicted_calibrated_success_probability"].transform(np.mean))
+    df["var_success_prob"] = df.groupby(["msa_path", "starting_tree_type"])[
+        "predicted_calibrated_success_probability"].transform(np.var)
+    #df["p20_median_success_prob"] = df.groupby(["msa_path", "starting_tree_type"])[
+    #    "iid_success_prob"].transform(np.median)
+    df["p20_success_prob"] = (df.groupby(["msa_path", "starting_tree_type"])[
+        "iid_success_prob"].transform(np.max)**(1/20))
+    #df["p20_success_prob_75"] = df.groupby(["msa_path", "starting_tree_type"])[
+    #    "iid_success_prob"].transform(pct_75)
+    #df["p20_success_prob_25"] = df.groupby(["msa_path", "starting_tree_type"])[
+    #    "iid_success_prob"].transform(pct_25)
+    successes = df.loc[df.max_status == 1]
+    failures = df.loc[df.max_status == 0]
+    successes_surv = successes.loc[successes.status == 1].sort_values(
+        ["msa_path", "n_trees_used", "starting_tree_type"]).groupby(["msa_path", "starting_tree_type"]).head(1)
+    failures_surv = failures.sort_values("n_trees_used", ascending=False).groupby(
+        ["msa_path", "starting_tree_type"]).head(1)
+    #failures_surv["n_trees_used"] = failures_surv["n_trees_used"]+1
+    surv_data = pd.concat([successes_surv, failures_surv])
+    all_surv_data = all_surv_data.append(surv_data, ignore_index= True)
+    full_df = full_df.append(df, ignore_index= True)
     return surv_data,full_df
 
 
@@ -170,7 +160,6 @@ def main():
     default_data = pd.read_csv(
         "/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/default_by_params_sampling.tsv",
         sep='\t')
-
     test_train_data, test_test_data, test_validation_data = train_test_validation_splits(
         test_data, test_pct=0.4, val_pct=0)
 

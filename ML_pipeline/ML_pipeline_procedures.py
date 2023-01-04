@@ -63,7 +63,7 @@ def edit_raw_data_for_ML(data, epsilon):
             name = col + "_averaged_per_entire_MSA"
             non_default_data[col + "_averaged_per_entire_MSA"] = mean_transformations[col]
             averaged_cols.append(name)
-    std_transformations = non_default_data.groupby('msa_path').transform(lambda vec: (vec - vec.mean()) / vec.std())
+    std_transformations = non_default_data.groupby('msa_path').transform(lambda vec: (vec - vec.min()) / (vec.max()-vec.min()))#(vec - vec.mean()) / vec.std()
     for col in starting_tree_level_columns:
        non_default_data[col] =std_transformations[col]
     return {"non_default": non_default_data, "default_by_params": default_by_params,"MSA_level_columns": MSA_level_columns,"averaged_MSA_level_columns":averaged_cols  }

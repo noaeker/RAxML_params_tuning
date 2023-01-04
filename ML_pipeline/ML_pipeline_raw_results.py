@@ -216,16 +216,18 @@ def main():
         #enriched_default_data.to_csv(file_paths["ML_edited_default_data_path"], sep=CSV_SEP)
 
     training_fracs = args.different_training_sizes if args.test_different_training_sizes else [-1]
+
     for sampling_frac in training_fracs:
         logging.info(f"****Sampling frac = {sampling_frac}****")
         data_dict = generate_basic_data_dict(edited_data["non_default"], args,subsample_train = args.test_different_training_sizes, subsample_train_frac = sampling_frac)
         time_model, error_model = generate_single_tree_models(data_dict, file_paths, args,sampling_frac)
 
+    default_by_params_data_performance = get_default_performance(edited_data["default_by_params"], args, data_dict["full_test_data"], out_path= file_paths["default_by_params_path"])
     test_data = apply_single_tree_models_on_data(data_dict["full_test_data"], data_dict["X_test"], time_model, error_model,
                                      file_paths["test_single_tree_data"])
 
     #default_data_performance = get_default_performance(edited_data["default"],args,performance_on_test_set, out_path = file_paths["default_path"])
-    #default_by_params_data_performance = get_default_performance(edited_data["default_by_params"], args, data_dict["full_test_data"], out_path= file_paths["default_by_params_path"])
+
 
 
 

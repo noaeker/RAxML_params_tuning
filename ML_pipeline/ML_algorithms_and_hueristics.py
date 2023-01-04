@@ -28,10 +28,15 @@ def regression_per_group(df):
     return r2_score(y, y_pred)
 
 
-def accuracy_per_group(df):
+def AUC_per_group(df):
     y_pred = list(df.y_pred)
     y = list(df.y)
     return roc_auc_score(y,y_pred)
+
+def AUPRC_per_group(df):
+    y_pred = list(df.y_pred)
+    y = list(df.y)
+    return average_precision_score(y,y_pred)
 
 
 def score_func(y, y_pred, classification, groups_data):
@@ -39,7 +44,7 @@ def score_func(y, y_pred, classification, groups_data):
     for group in groups_data:
         df = pd.DataFrame({'y': y,'y_pred': y_pred, 'grouping_col': groups_data[group]})
         if classification:
-            df= df.groupby('grouping_col').apply(accuracy_per_group).reset_index(name='AUC')
+            df= df.groupby('grouping_col').apply(AUC_per_group).reset_index(name='AUC')
         else:
             df =df.groupby('grouping_col').apply(regression_per_group).reset_index(name='R2')
         df["grouping_col_name"] = group
@@ -123,7 +128,7 @@ def print_model_statistics(model,train_X, test_X, y_train, y_test, is_classifica
         predicted_proba_test = predicted_test
     groups_data_test = test_X[["feature_msa_n_seq","feature_msa_n_loci","feature_msa_pypythia_msa_difficulty","starting_tree_bool"]]
 
-    groups_dict_test ={'msa_difficulty_group':pd.qcut( groups_data_test["feature_msa_pypythia_msa_difficulty"],4), "n_seq_group":pd.qcut( groups_data_test["feature_msa_n_seq"],4), "starting_tree_type_bool":groups_data_test["starting_tree_bool"], "feature_msa_n_loci": pd.qcut( groups_data_test["feature_msa_n_loci"],4), "test_MSAs": test_MSAs}
+    groups_dict_test ={'msa_difficulty_group':pd.qcut( groups_data_test["feature_msa_pypythia_msa_difficulty"],4), "n_seq_group":pd.qcut( groups_data_test["feature_msa_n_seq"],4), "starting_tree_type_bool":groups_data_test["starting_tree_bool"], "feature_msa_n_loci": pd.qcut( groups_data_test["feature_msa_n_loci"],4)}
 
     train_metrics = model_metrics(y_train, predicted_train, predicted_proba_train,group_metrics_path,sampling_frac, is_classification=is_classification,
                                  groups_data=None)
@@ -136,8 +141,8 @@ def print_model_statistics(model,train_X, test_X, y_train, y_test, is_classifica
     train_metrics = pd.DataFrame.from_dict([train_metrics])
     train_metrics["sample_fraction"] = sampling_frac
     add_to_csv(csv_path=metrics_path,new_data = train_metrics)
-    #if is_classification:
-    #    calibration_plot(model, test_X, y_test)
+    if is_classification:
+        calibration_plot(model, test_X, y_test)
 
 
 def add_to_csv(csv_path, new_data):
