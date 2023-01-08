@@ -197,6 +197,8 @@ def enrich_with_MDS_features(curr_run_directory, tree_features, pars_neighbors, 
     X[triu] = X.T[triu]
     perform_MDS(tree_features, X, overall_trees, mds_n_components = 3, metric = True, pca_n_components = 3, suffix = suffix)
     perform_MDS(tree_features, X, overall_trees, mds_n_components = 3, metric = False, pca_n_components = 3, suffix = suffix)
+    perform_MDS(tree_features, X, overall_trees, mds_n_components=5, metric=True, pca_n_components=3, suffix=suffix)
+    perform_MDS(tree_features, X, overall_trees, mds_n_components=5, metric=False, pca_n_components=3, suffix=suffix)
     perform_MDS(tree_features, X, overall_trees, mds_n_components = 10, metric = True, pca_n_components = 10, suffix = suffix)
     perform_MDS(tree_features, X, overall_trees, mds_n_components = 10, metric = False, pca_n_components = 10, suffix = suffix)
     perform_MDS(tree_features, X, overall_trees, mds_n_components=15, metric=True, pca_n_components=15, suffix=suffix)
@@ -275,22 +277,22 @@ def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_n
 
     all_pars_tree_distances = np.array(list(pars_extended_tree_features_df["tree_distances"])).reshape(
         len(pars_extended_tree_features_df.index), -1)
-    all_rand_tree_distances = np.array(list(rand_extended_tree_features_df["tree_distances"])).reshape(
-        len(rand_extended_tree_features_df.index), -1)
+    #all_rand_tree_distances = np.array(list(rand_extended_tree_features_df["tree_distances"])).reshape(
+    #    len(rand_extended_tree_features_df.index), -1)
 
     st = time.time()
     logging.info("Performing first PCA")
     n_PCA_components = 20
 
-    pars_pca = Pipeline([('scaling',StandardScaler()),('pca',PCA(n_components=n_PCA_components))])
-    pars_pca.fit(all_pars_tree_distances)
+    pars_pca_model = Pipeline([('scaling',StandardScaler()),('pca',PCA(n_components=n_PCA_components))])
+    pars_pca_model.fit(all_pars_tree_distances)
     all_tree_distances = np.array(list(extended_tree_features_df["tree_distances"])).reshape(
         len(extended_tree_features_df.index), -1)
-    all_tree_distances_PCA = pars_pca.transform(all_tree_distances)
+    all_tree_distances_PCA = pars_pca_model.transform(all_tree_distances)
 
     en  = time.time()
     PCA_time = en-st
-    extended_tree_features_df["feature_explained_var"] = np.sum(pars_pca['pca'].explained_variance_ratio_)
+    extended_tree_features_df["feature_explained_var"] = np.sum(pars_pca_model['pca'].explained_variance_ratio_)
     #var_explained = ""
     # logging.info("Perofrming LLE and ISOMAP")
     # extended_tree_features_df = enrich_with_LLE_and_ISOMAP(all_pars_tree_distances, all_rand_tree_distances,
@@ -302,6 +304,7 @@ def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_n
     for i in range(n_PCA_components):
         extended_tree_features_df[f"feature_PCA_{i}"] = all_tree_distances_PCA[:,i]
 
+    extended_tree_features_df["feature_PCA_time"] = PCA_time
     logging.info("Perofrming TSNE")
     st = time.time()
     TSNE_model = TSNE(n_components=3, init='pca')
