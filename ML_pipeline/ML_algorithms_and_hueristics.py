@@ -57,7 +57,7 @@ def RFE(model, X, y, group_splitter, n_jobs, scoring, do_RFE):
                      scoring=scoring)  # min_features_to_select= 30,X.shape[1] X.shape[1]
     selector = selector.fit(X, y.ravel())
     model = selector.estimator
-    X_new = selector.transform(X)
+    X_new = X[X.columns[selector.get_support(indices=True)]]
     logging.info(f"Number of features after feature selection: {X_new.shape[1]} out of {(X.shape[1])}")
     return selector, X_new, model
 
@@ -119,7 +119,7 @@ def calibration_plot(model, test_data, y_test):
 def print_model_statistics(model, train_X, test_X, y_train, y_test, is_classification, vi_path, metrics_path,
                            group_metrics_path, name, sampling_frac, test_MSAs, feature_importance=True):
     if feature_importance:
-        var_impt = variable_importance((model['selector'].transform(train_X)).columns, model['best_model'])
+        var_impt = variable_importance(train_X.columns[model['selector'].get_support(indices=True)], model['best_model'])
         if vi_path:
             var_impt.to_csv(vi_path, sep=CSV_SEP)
         logging.info(f"{name} variable importance: \n {var_impt}")
