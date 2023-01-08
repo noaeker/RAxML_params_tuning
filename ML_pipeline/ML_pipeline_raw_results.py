@@ -127,8 +127,7 @@ def get_default_performance(enriched_default_data,args,performance_on_test_set, 
                                                                                              enriched_default_data.msa_path.isin(
                                                                                                  list(
                                                                                                      performance_on_test_set[
-                                                                                                         "msa_path"].unique()))],
-                                                                                         n_sample_points=args.n_sample_points,
+                                                                                                         "msa_path"].unique()))],                                                                                         n_sample_points=args.n_sample_points,
                                                                                          seed=SEED)
         default_data_performance.to_csv(out_path, sep=CSV_SEP)
 

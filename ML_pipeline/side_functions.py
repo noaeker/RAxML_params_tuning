@@ -18,4 +18,5 @@ def get_ML_parser():
     parser.add_argument('--do_RFE', action='store_true', default=False)
     parser.add_argument('--n_CV_folds',type=int, default = 3)
     parser.add_argument('--name', type=str, default="new_run")
+    parser.add_argument('--n_sample_points', type=int, default=100)
     return parser
