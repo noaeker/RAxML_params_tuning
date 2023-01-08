@@ -84,7 +84,7 @@ def ML_model(X_train, groups, y_train, n_jobs, path, classifier = False, model =
             scoring = 'r2'
         selector, X_train, model = RFE(model, X_train, y_train, group_splitter, n_jobs, scoring)
         grid_search = GridSearchCV(estimator= model, param_grid=param_grid,
-                                   cv=group_splitter, n_jobs=n_jobs, pre_dispatch='1*n_jobs', verbose=2)
+                                   cv=group_splitter, n_jobs=n_jobs, pre_dispatch='1*n_jobs', verbose=2, scoring = scoring)
         grid_search.fit(X_train, y_train.ravel())
         best_model = grid_search.best_estimator_
     if classifier and calibrate:
@@ -141,8 +141,8 @@ def print_model_statistics(model,train_X, test_X, y_train, y_test, is_classifica
     train_metrics = pd.DataFrame.from_dict([train_metrics])
     train_metrics["sample_fraction"] = sampling_frac
     add_to_csv(csv_path=metrics_path,new_data = train_metrics)
-    if is_classification:
-        calibration_plot(model, test_X, y_test)
+    #if is_classification:
+    #    calibration_plot(model, test_X, y_test)
 
 
 def add_to_csv(csv_path, new_data):

@@ -59,13 +59,15 @@ def edit_raw_data_for_ML(data, epsilon):
     mean_transformations = non_default_data.groupby('msa_path').transform(lambda vec: np.mean(vec))
     averaged_cols = []
     for col in starting_tree_level_columns:
-        if not 'cluster' in col:
-            name = col + "_averaged_per_entire_MSA"
-            non_default_data[col + "_averaged_per_entire_MSA"] = mean_transformations[col]
-            averaged_cols.append(name)
-    std_transformations = non_default_data.groupby('msa_path').transform(lambda vec: (vec - vec.min()) / (vec.max()-vec.min()))#(vec - vec.mean()) / vec.std()
+       if not 'PCA' in col:
+           name = col + "_averaged_per_entire_MSA"
+           non_default_data[col + "_averaged_per_entire_MSA"] = mean_transformations[col]
+           averaged_cols.append(name)
+    std_transformations = non_default_data.groupby('msa_path').transform(lambda vec: vec - (vec - vec.mean()) / vec.std())#(vec - vec.mean()) / vec.std() #(vec - vec.min()) / (vec.max()-vec.min())
     for col in starting_tree_level_columns:
-       non_default_data[col] =std_transformations[col]
+        #if not 'PCA' in col:
+            non_default_data[col] =std_transformations[col]
+    #non_default_data = non_default_data.drop(columns = starting_tree_level_columns)
     return {"non_default": non_default_data, "default_by_params": default_by_params,"MSA_level_columns": MSA_level_columns,"averaged_MSA_level_columns":averaged_cols  }
 
 

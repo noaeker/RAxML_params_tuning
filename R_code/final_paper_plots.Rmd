@@ -14,11 +14,11 @@ library(ggpubr)
 
 Error and time  as a function of training size:
 ```{r}
-error_vs_size = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/error_metrics.tsv")
-error_vs_size_plt = error_vs_size %>% ggplot(aes(x=sample_fraction, y = AUC))+geom_line()+ expand_limits(y = 0.5)+xlab("Fraction of training-data")+ theme(text = element_text(size = 15))+ylab("AUC")+geom_point()
+error_vs_size = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/Changing_training_sizes/error_metrics.tsv")
+error_vs_size_plt = error_vs_size %>% ggplot(aes(x=sample_fraction, y = AUC))+geom_line()+ expand_limits(y = 0.5)+xlab("Fraction of training-data")+ theme(text = element_text(size = 13))+ylab("AUC")+geom_point()
 
-time_vs_size = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/time_metrics.tsv")
-time_vs_size_plt = time_vs_size %>% ggplot(aes(x=sample_fraction, y = r2))+geom_line()+ expand_limits(y = 0)+xlab("Fraction of training-data")+theme(text = element_text(size = 15))+ylab("R-squared")+geom_point()
+time_vs_size = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/Changing_training_sizes/time_metrics.tsv")
+time_vs_size_plt = time_vs_size %>% ggplot(aes(x=sample_fraction, y = r2))+geom_line()+ expand_limits(y = 0)+xlab("Fraction of training-data")+theme(text = element_text(size = 13))+ylab("R-squared")+geom_point()
 
 
 ggarrange(error_vs_size_plt, time_vs_size_plt,labels = c("A", "B"),ncol = 2, nrow = 1)
@@ -27,24 +27,26 @@ ggarrange(error_vs_size_plt, time_vs_size_plt,labels = c("A", "B"),ncol = 2, nro
 Error as a function of binning:
 
 ```{r}
-error_vs_group = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/error_group_metrics.tsv")
+error_vs_group = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/Changing_training_sizes/error_group_metrics.tsv")
 
 error_vs_group = error_vs_group %>% group_by(grouping_col_name) %>% filter (grouping_col_name!="starting_tree_type_bool") %>% mutate(rownum = row_number()) %>% mutate(Parameter = case_when(grouping_col_name=="n_seq_group"~"Number of sequences",grouping_col_name=="msa_difficulty_group"~"MSA difficulty",grouping_col_name=="feature_msa_n_loci"~"Number of MSA positions")) %>% ungroup()
 
-error_vs_group_plt<-error_vs_group  %>% ggplot(aes(color=Parameter,x=rownum, y = AUC))+geom_line()+geom_point()+ expand_limits(y = 0.5)+xlab("Quantile")+theme(text = element_text(size = 15))
+error_vs_group_plt<-error_vs_group  %>% ggplot(aes(color=Parameter,x=rownum, y = AUC))+geom_line()+geom_point()+ expand_limits(y = 0.5)+xlab("Quantile")+theme(text = element_text(size = 13))
 
 
-time_vs_group = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/time_group_metrics.tsv")
+time_vs_group = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/Changing_training_sizes/time_group_metrics.tsv")
 
 time_vs_group = time_vs_group %>% group_by(grouping_col_name) %>% filter (grouping_col_name!="starting_tree_type_bool") %>% mutate(rownum = row_number()) %>% mutate(Parameter = case_when(grouping_col_name=="n_seq_group"~"Number of sequences",grouping_col_name=="msa_difficulty_group"~"MSA difficulty",grouping_col_name=="feature_msa_n_loci"~"Number of MSA positions")) %>% ungroup()
-time_vs_group_plt<-time_vs_group %>% ggplot(aes(color=Parameter,x=rownum, y = R2))+geom_line()+geom_point()+ expand_limits(y = 0)+xlab("Quantile")+ylab("R-squared")+theme(text = element_text(size = 15))
+time_vs_group_plt<-time_vs_group %>% ggplot(aes(color=Parameter,x=rownum, y = R2))+geom_line()+geom_point()+ expand_limits(y = 0)+xlab("Quantile")+ylab("R-squared")+theme(text = element_text(size = 13))
 
 ggarrange(error_vs_group_plt, time_vs_group_plt,labels = c("A", "B"),ncol = 1, nrow = 2,common.legend = TRUE)
 ```
 Test single tree data
 
 ```{r}
-test_data = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/Working_results/test_single_tree_data.tsv")
+
+test_data  = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/ready_raw_data/Pandit/ML/Working_results/test_single_tree_data.tsv") 
+
 
 ```
 
@@ -59,17 +61,22 @@ library(ggplot2)
 library(pROC)
 
 rocobj <- roc(test_data$is_global_max, test_data$predicted_uncalibrated_failure_probabilities)
-auc <- round(auc(test_data$is_global_max, test_data$predicted_uncalibrated_failure_probabilities),4)
+auc <- round(auc(test_data$is_global_max, test_data$predicted_uncalibrated_failure_probabilities),3)
 
 global_max_auc<-ggroc(rocobj,colour = 'steelblue', size = 2)+
-  ggtitle(paste0('AUC = ', auc))+theme(text = element_text(size = 15))
+  ggtitle(paste0('AUC = ', auc))+theme(text = element_text(size = 13))
+
+
 
 
 ```
-```{r}
-R.squared = round(cor(test_data$predicted_time,test_data$normalized_relative_time ) ^ 2,4)
 
-time_r2<-test_data %>% ggplot(aes(x=predicted_time, y= normalized_relative_time))+geom_point(size=0.01)+xlab("Predicted")+ ylab("True")+theme(text = element_text(size = 15))+ ggtitle(paste0('R-squared = ', R.squared ))+theme(text = element_text(size = 15))
+
+
+```{r}
+R.squared = round(cor(test_data$predicted_time,test_data$normalized_relative_time ) ^ 2,3)
+
+time_r2<-test_data %>% ggplot(aes(x=predicted_time, y= normalized_relative_time))+geom_point(size=0.01)+xlab("Predicted")+ ylab("True")+theme(text = element_text(size = 13))+ ggtitle(paste0('R-squared = ', R.squared ))+theme(text = element_text(size = 13))
 
 
 ```
@@ -79,29 +86,49 @@ time_r2<-test_data %>% ggplot(aes(x=predicted_time, y= normalized_relative_time)
 ggarrange(global_max_auc, time_r2,labels = c("A", "B"),ncol = 2, nrow = 1)
 ```
 
+Summarizing plots
+```{r}
 
+
+ggarrange(global_max_auc,error_vs_size_plt,error_vs_group_plt, labels = c("A","B","C"), nrow = 2, ncol = 2, legend = "bottom",vjust= 1)
+ggarrange(time_r2,time_vs_size_plt,time_vs_group_plt, labels = c("A","B","C"), nrow = 2, ncol = 2,legend = "bottom",vjust=  1)
+
+```
+
+
+
+
+
+Showing the MDS feature
 
 ```{r}
-test_pct_of_success<-test_data %>% group_by(msa_path, feature_msa_pypythia_msa_difficulty, feature_mds_True_stress_10_only_base) %>% summarise(pct_success = mean(is_global_max)) 
+test_pct_of_success<-test_data %>% mutate(feature_mds2 = feature_mds_False_stress_10_only_base/feature_tree_parsimony_rf_values_mean_averaged_per_entire_MSA**2) %>% group_by(msa_path,feature_mds2 , feature_msa_pypythia_msa_difficulty, feature_mds_True_stress_10_only_base, feature_msa_n_seq, feature_tree_parsimony_rf_values_mean_averaged_per_entire_MSA) %>% summarise(pct_success = mean(is_global_max)) 
 
 pythia<-test_pct_of_success%>% ggplot(aes(x=feature_msa_pypythia_msa_difficulty, y=pct_success))+geom_point()+geom_smooth()+ylab("% global maxima")+xlab("MSA difficulty score")+theme(text = element_text(size = 12))
 mds<-test_pct_of_success%>% ggplot(aes(x=feature_mds_True_stress_10_only_base, y=pct_success))+geom_point()+geom_smooth()+ylab("% global maxima")+xlab("MDS stress score (10)")+theme(text = element_text(size = 12))
 ggarrange(pythia, mds,labels = c("A", "B"),ncol = 1, nrow = 2)
-```
-```{r}
-prob_per_tree<-test_data %>% group_by(msa_path, starting_tree_ind, starting_tree_type) %>% summarise(min_prob = min(predicted_calibrated_failure_probabilities), max_prob =max(predicted_calibrated_failure_probabilities), min_time = min(predicted_time), max_time= max(predicted_time)) %>% mutate(acc_diff = max_prob-min_prob, time_diff = max_time-min_time)
 
-prob_per_tree%>% ggplot(aes(x=acc_diff))+geom_histogram()
-prob_per_tree%>% ggplot(aes(x=time_diff))+geom_histogram()
-print("Results:")
-summary(prob_per_tree %>% pull (acc_diff))
-summary(prob_per_tree %>% pull (time_diff))
 ```
+
+
+```{r}
+mds2<-test_pct_of_success%>% ggplot(aes(x=log(feature_mds2), y=pct_success))+geom_point()+geom_smooth()+ylab("% global maxima")+xlab("MDS stress score (10)")+theme(text = element_text(size = 12))
+mds2
+
+
+cor(log(test_pct_of_success %>% pull(feature_mds_True_stress_10_only_base)),test_pct_of_success %>% pull(pct_success ))
+cor((test_pct_of_success %>% pull(feature_msa_pypythia_msa_difficulty)),test_pct_of_success %>% pull(pct_success ))
+cor((test_pct_of_success %>% pull(feature_msa_n_seq)),test_pct_of_success %>% pull(pct_success ))
+```
+
+
+Testing different SPR radius and SPR cutoff
+
 ```{r}
 
 test_data %>% filter (equal_to_default_config==TRUE) %>% select (msa_path, starting_tree_ind, starting_tree_type,spr_radius, spr_cutoff,predicted_time, predicted_calibrated_failure_probabilities, is_global_max, normalized_relative_time) %>% summarise(mean_success = mean(is_global_max), mean_time = mean(normalized_relative_time), mean_predicted_time = mean(predicted_time),mean_predicted_failure= mean(predicted_calibrated_failure_probabilities))
 
-test_accuracy_per_config<-test_data  %>% select (msa_path, starting_tree_ind, starting_tree_type,spr_radius, spr_cutoff,predicted_time, predicted_calibrated_failure_probabilities, is_global_max, normalized_relative_time) %>% group_by(spr_cutoff, spr_radius) %>% summarise(mean_success = mean(is_global_max), mean_predicted_failure= mean(predicted_calibrated_failure_probabilities)) %>% ggplot(aes(x=mean_success, y = 1-mean_predicted_failure))+geom_point()+geom_line()+xlab("True % success")+ylab("Predicted % success")+theme(text = element_text(size = 12))
+test_accuracy_per_config<-test_data  %>% select (msa_path, starting_tree_ind, starting_tree_type,spr_radius, spr_cutoff,predicted_time, predicted_calibrated_failure_probabilities, is_global_max, normalized_relative_time) %>% group_by(spr_cutoff, spr_radius) %>% summarise(mean_success = mean(is_global_max), mean_predicted_failure= mean(predicted_calibrated_failure_probabilities)) %>% ggplot(aes(x=mean_success, y = 1-mean_predicted_failure))+geom_point()+geom_line()+xlab("True success")+ylab("Predicted success")+theme(text = element_text(size = 12))
 
 test_running_time_per_config<-test_data   %>% select (msa_path, starting_tree_ind, starting_tree_type,spr_radius, spr_cutoff,predicted_time, predicted_calibrated_failure_probabilities, is_global_max, normalized_relative_time) %>% group_by(spr_cutoff, spr_radius) %>% summarise(mean_time = mean(normalized_relative_time), mean_predicted_time = mean(predicted_time)) %>% ggplot(aes(x=mean_time, y =mean_predicted_time))+geom_point()+geom_line()+xlab("True time")+ylab("Predicted time")+theme(text = element_text(size = 12))
 
@@ -111,13 +138,6 @@ ggarrange(test_accuracy_per_config, test_running_time_per_config,labels = c("A",
 
 ```
 
-```{r}
-test_data  %>% select (msa_path, starting_tree_ind, starting_tree_type,spr_radius, spr_cutoff,predicted_time, predicted_calibrated_failure_probabilities, is_global_max, normalized_relative_time) %>% group_by(spr_cutoff, spr_radius) %>% summarise(mean_time = mean(normalized_relative_time), mean_predicted_time = mean(predicted_time), mean_success = mean(is_global_max), mean_predicted_failure= mean(predicted_calibrated_failure_probabilities) ) %>% ggplot(aes(x=mean_time, y =mean_success, color = spr_radius))+geom_point()+geom_line()
-
-
-
-test_data  %>% select (msa_path, starting_tree_ind, starting_tree_type,spr_radius, spr_cutoff,predicted_time, predicted_calibrated_failure_probabilities, is_global_max, normalized_relative_time) %>% group_by(spr_cutoff, spr_radius) %>% summarise(mean_time = mean(normalized_relative_time), mean_predicted_time = mean(predicted_time), mean_success = mean(is_global_max), mean_predicted_failure= mean(predicted_calibrated_failure_probabilities) ) %>% ggplot(aes(x=mean_predicted_time, y =1-mean_predicted_failure, color = spr_radius))+geom_point()+geom_line()
-```
 
 ```{r}
 data<-test_data  %>% select (msa_path, starting_tree_ind, starting_tree_type,spr_radius, spr_cutoff,predicted_time, predicted_calibrated_failure_probabilities, is_global_max, normalized_relative_time,equal_to_default_config) %>% group_by(spr_cutoff, spr_radius) %>% summarise(mean_time = mean(normalized_relative_time), mean_predicted_time = mean(predicted_time), mean_success = mean(is_global_max), mean_predicted_failure= mean(predicted_calibrated_failure_probabilities) ) %>% mutate(mean_predicted_success = 1-mean_predicted_failure)
@@ -127,10 +147,79 @@ data %>% arrange(-mean_predicted_success) %>% select (spr_radius, spr_cutoff,mea
 data %>% arrange(-mean_success) %>% select (spr_radius, spr_cutoff,mean_predicted_success, mean_predicted_time, mean_success, mean_time)
 ```
 
+Overall percentage of global max in training data
+
+```{r}
+mean(test_data %>% pull(is_global_max))
+mean(test_data %>% filter (equal_to_default_config) %>% pull(is_global_max))
+nrow(test_data)
+```
+
+Showing the impact of different starting trees given the SPR cutoff and SPR radius
+
+Default configuration statistics
+```{r}
+test_data   %>%  filter(equal_to_default_config) %>% group_by(msa_path, starting_tree_type) %>%   arrange(predicted_calibrated_failure_probabilities) %>% mutate(r = row_number()) %>% ungroup() %>% filter (r==1)  %>% group_by(starting_tree_type) %>% summarise(mean_prob = mean(is_global_max), mean_predicted = 1- mean(predicted_calibrated_failure_probabilities)) %>% ungroup()  
+
+test_data   %>%  filter(equal_to_default_config) %>% group_by(msa_path, starting_tree_type) %>%   arrange(-predicted_calibrated_failure_probabilities) %>% mutate(r = row_number()) %>% ungroup() %>% filter (r==1)  %>% group_by(starting_tree_type) %>% summarise(mean_prob = mean(is_global_max), mean_predicted = 1- mean(predicted_calibrated_failure_probabilities)) %>% ungroup() 
+
+
+test_data   %>%  filter(equal_to_default_config) %>% group_by(msa_path, starting_tree_type) %>%   arrange(-predicted_calibrated_failure_probabilities) %>% mutate(r = row_number()) %>% ungroup() %>% group_by(r, starting_tree_type) %>% summarise(mean_prob = mean(is_global_max), mean_predicted = 1- mean(predicted_calibrated_failure_probabilities)) %>% ungroup() 
+```
+
+
+```{r}
+
+
+#data<-test_data   %>% group_by(msa_path, starting_tree_type, spr_radius, spr_cutoff) %>%   arrange(predicted_calibrated_failure_probabilities) %>% #mutate(r = row_number()) %>% ungroup() %>% group_by (r,spr_radius, spr_cutoff,starting_tree_type) %>% group_by(starting_tree_type, r) %>% #summarise(mean_prob = mean(is_global_max), mean_predicted = 1- mean(predicted_calibrated_failure_probabilities)) %>% ungroup()
+
+data<-test_data   %>% group_by(msa_path, starting_tree_type, spr_radius, spr_cutoff) %>%   arrange(predicted_calibrated_failure_probabilities) %>% mutate(r = row_number()) %>% ungroup() %>% group_by (r,spr_radius, spr_cutoff,starting_tree_type) %>% group_by(starting_tree_type, r, spr_ra) %>% summarise(mean_prob = mean(is_global_max), mean_predicted = 1- mean(predicted_calibrated_failure_probabilities)) %>% ungroup()
+ 
+
+#data<-test_data    %>% group_by(msa_path, starting_tree_type) %>%   arrange(predicted_calibrated_failure_probabilities) %>% mutate(r = #row_number()) %>% ungroup() %>% group_by (r,starting_tree_type) %>% summarise(mean_prob = mean(is_global_max), mean_predicted = 1- #mean(predicted_calibrated_failure_probabilities)) %>% ungroup() 
+
+
+# filter(starting_tree_type=='rand') %>%
+data %>% mutate(Type = case_when(starting_tree_type=='pars'~'Parsimony',TRUE~'Random')) %>%  ggplot(aes(x=r, y = mean_prob, colour = Type))+geom_point()+geom_smooth(method = 'lm') +ylab("% Global maxima")+xlab("Tree ranking")+theme(text = element_text(size = 12))+ guides(colour=guide_legend(title="Starting tree type"))
+
+
+data %>% mutate(Type = case_when(starting_tree_type=='pars'~'Parsimony',TRUE~'Random')) %>%  ggplot(aes(x=mean_predicted, y = mean_prob, colour = Type))+geom_point()+geom_smooth(method = 'lm') +ylab("Global maxima")+xlab("Tree ranking")+theme(text = element_text(size = 12))+ guides(colour=guide_legend(title="Starting tree type"))
+
+
+#data%>% ggplot(aes(x=r, y = mean_total_predicted, color = starting_tree_type))+geom_point()+geom_smooth(method = 'lm')
+#data %>% ggplot(aes(x=r, y = mean_predicetd))+geom_point()
+#data%>% ggplot(aes(x=mean_prob,y=mean_predicetd, color = starting_tree_type))+geom_point()+geom_abline(slope=1, intercept=0)
+cor(data %>%filter(starting_tree_type=='pars') %>% pull(mean_predicted), data %>% filter(starting_tree_type=='pars') %>% pull(mean_prob))
+cor(data %>%filter(starting_tree_type=='rand') %>% pull(mean_predicted), data %>% filter(starting_tree_type=='rand') %>% pull(mean_prob))
+
+
+```
 
 
 
+```{r}
+actual_pars_vs_rand<-test_data %>% 
+ group_by(starting_tree_type, msa_path) %>% summarise( mean_prob_actual = mean(is_global_max)) %>% ungroup() %>% pivot_wider(names_from = starting_tree_type, values_from =  mean_prob_actual ) %>% rename(pars_actual_prob = pars,rand_actual_prob = rand)
 
+predicted_pars_vs_rand<-test_data %>% group_by(starting_tree_type, msa_path) %>% summarise( mean_prob_predicted = 1-mean(predicted_calibrated_failure_probabilities)) %>% ungroup() %>% pivot_wider(names_from = starting_tree_type, values_from =  mean_prob_predicted ) %>% rename(pars_predicted_prob = pars,rand_predicted_prob = rand)
+#%>% summarise(mean_prob = 1-mean(predicted_calibrated_failure_probabilities), mean_prob_actual = mean(is_global_max)) %>% mutate #(pars_vs_rand = pars-rand) %>%  ggplot(aes(x=mean_prob, y = mean_prob_actual))+geom_point()+geom_smooth(method = 'lm') 
+
+
+actual_pars_vs_rand %>% inner_join(predicted_pars_vs_rand, on = msa_path) %>% mutate(actual_diff = pars_actual_prob-rand_actual_prob, predicted_diff = pars_predicted_prob-rand_predicted_prob)  %>% ggplot(aes(x=(predicted_diff),y=(actual_diff)))+geom_point()+geom_smooth(method = 'lm')
+
+
+actual_pars_vs_rand %>% inner_join(predicted_pars_vs_rand, on = msa_path) %>% mutate(actual_diff = pars_actual_prob-rand_actual_prob, predicted_diff = pars_predicted_prob-rand_predicted_prob)  %>% ggplot(aes(x=(rand_predicted_prob),y=(rand_actual_prob)))+geom_point()+geom_smooth(method = 'lm')
+
+```
+
+Looking at PCA
+```{r}
+
+test_data %>%  group_by(msa_path, starting_tree_type) %>% mutate (min_prob = min (is_global_max), max_prob = max(is_global_max)) %>% ungroup() %>% filter (max_prob>min_prob) %>% group_by (msa_path, starting_tree_ind, starting_tree_type,feature_tree_optimized_alpha, is_global_max) %>%  summarise(corr = cor(feature_tree_optimized_alpha,predicted_calibrated_failure_probabilities))+  ungroup()+ggplot(aes(x=corr))+geom_histogram()
+
+
+#test_data %>% filter (starting_tree_type=='pars') %>% group_by(starting_tree_type,feature_tree_branch_lengths_pct_75, starting_tree_ind,feature_tree_optimized_alpha,feature_PCA_2,feature_PCA_3,feature_tree_MAD,) %>% summarise(mean_global = max(is_global_max)) %>% ggplot(aes(x=feature_tree_optimized_alpha, y = as.factor(mean_global)))+geom_boxplot()
+```
 
 
 
