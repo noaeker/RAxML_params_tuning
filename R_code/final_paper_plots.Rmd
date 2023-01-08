@@ -173,7 +173,7 @@ test_data   %>%  filter(equal_to_default_config) %>% group_by(msa_path, starting
 
 #data<-test_data   %>% group_by(msa_path, starting_tree_type, spr_radius, spr_cutoff) %>%   arrange(predicted_calibrated_failure_probabilities) %>% #mutate(r = row_number()) %>% ungroup() %>% group_by (r,spr_radius, spr_cutoff,starting_tree_type) %>% group_by(starting_tree_type, r) %>% #summarise(mean_prob = mean(is_global_max), mean_predicted = 1- mean(predicted_calibrated_failure_probabilities)) %>% ungroup()
 
-data<-test_data   %>% group_by(msa_path, starting_tree_type, spr_radius, spr_cutoff) %>%   arrange(predicted_calibrated_failure_probabilities) %>% mutate(r = row_number()) %>% ungroup() %>% group_by (r,spr_radius, spr_cutoff,starting_tree_type) %>% group_by(starting_tree_type, r, spr_ra) %>% summarise(mean_prob = mean(is_global_max), mean_predicted = 1- mean(predicted_calibrated_failure_probabilities)) %>% ungroup()
+data<-test_data   %>% group_by(msa_path, starting_tree_type, spr_radius, spr_cutoff) %>%   arrange(predicted_calibrated_failure_probabilities) %>% mutate(r = row_number()) %>% ungroup() %>% group_by (r,starting_tree_type)  %>% summarise(mean_prob = mean(is_global_max), mean_predicted = 1- mean(predicted_calibrated_failure_probabilities)) %>% ungroup()
  
 
 #data<-test_data    %>% group_by(msa_path, starting_tree_type) %>%   arrange(predicted_calibrated_failure_probabilities) %>% mutate(r = #row_number()) %>% ungroup() %>% group_by (r,starting_tree_type) %>% summarise(mean_prob = mean(is_global_max), mean_predicted = 1- #mean(predicted_calibrated_failure_probabilities)) %>% ungroup() 
@@ -195,16 +195,6 @@ cor(data %>%filter(starting_tree_type=='rand') %>% pull(mean_predicted), data %>
 
 ```
 
-```{r}
-data<-test_data %>% group_by(msa_path, feature_msa_pypythia_msa_difficulty, feature_mds_False_stress_10_only_base) %>% summarise(c= n_distinct(tree_clusters_ind), mean_prob = mean(predicted_calibrated_failure_probabilities)) 
-
-cor(log(test_pct_of_success %>% pull(feature_mds_True_stress_10_only_base)),test_pct_of_success %>% pull(pct_success ))
-
-data %>% ggplot(aes(x= feature_msa_pypythia_msa_difficulty, y = c))+geom_point()
-data %>% ggplot(aes(x=  mean_prob, y = c))+geom_point()+geom_smooth()
-
-cor((data %>% pull(c)),data %>% pull(mean_prob ))
-```
 
 
 

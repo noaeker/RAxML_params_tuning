@@ -18,7 +18,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 
 def get_ML_ready_data(full_data, data_feature_names, search_feature_names, test_pct, val_pct, subsample_train = False, subsample_train_frac = -1):
-    train_data, test_data, validation_data = train_test_validation_splits(
+    train_data, test_data,validation_data = train_test_validation_splits(
         full_data, test_pct=test_pct, val_pct= val_pct, subsample_train = subsample_train, subsample_train_frac = subsample_train_frac)
     X_train = train_data[data_feature_names + search_feature_names]
     y_train_err = train_data["is_global_max"]
@@ -30,8 +30,8 @@ def get_ML_ready_data(full_data, data_feature_names, search_feature_names, test_
     y_val_err = validation_data["is_global_max"]
     y_val_time = validation_data["normalized_relative_time"]
     return {"X_train": X_train, "train_MSAs": train_data["msa_path"], "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test": X_test,
-            'test_MSAs': test_data["msa_path"],"y_test_err": y_test_err, "y_test_time": y_test_time, "X_val": X_val, "y_val_err": y_val_err, "y_val_time": y_val_time,
-            "full_test_data": test_data, "full_train_data" : train_data, "full_validation_data": validation_data}
+            'test_MSAs': test_data["msa_path"],"y_test_err": y_test_err, "y_test_time": y_test_time,
+            "full_test_data": test_data, "full_train_data" : train_data, "X_val": X_val, "y_val_err": y_val_err,"full_validation_data": validation_data,"y_val_time": y_val_time }
 
 
 
@@ -83,13 +83,13 @@ def generate_basic_data_dict(data_for_ML, args,subsample_train = False, subsampl
 def generate_single_tree_models(data_dict, file_paths, args, sampling_frac):
 
     error_model= ML_model(X_train= data_dict["X_train"], groups= data_dict["train_MSAs"], y_train= data_dict["y_train_err"],n_jobs=args.n_jobs,
-                          path = file_paths["error_model_path"], classifier = True, name = str(sampling_frac))
+                          path = file_paths["error_model_path"], classifier = True, name = str(sampling_frac), large_grid= args.large_grid, do_RFE= args.do_RFE, n_cv_folds= args.n_CV_folds)
     print_model_statistics(model=error_model,train_X =data_dict["X_train"],  test_X=data_dict["X_test"],y_train=data_dict["y_train_err"],
                            y_test=data_dict["y_test_err"], is_classification=True, vi_path=file_paths["error_vi"], metrics_path = file_paths["error_metrics"], group_metrics_path=file_paths["error_group_metrics"],
                            name=f"Error classification model frac ={sampling_frac}", sampling_frac = sampling_frac,test_MSAs= data_dict["full_test_data"]["msa_path"])
     time_model = ML_model(X_train=data_dict["X_train"], groups=data_dict["train_MSAs"],
                           y_train=data_dict["y_train_time"], n_jobs=args.n_jobs, path=file_paths["time_model_path"],
-                          classifier=False, name=str(sampling_frac))
+                          classifier=False, name=str(sampling_frac), large_grid= args.large_grid, do_RFE= args.do_RFE,n_cv_folds= args.n_CV_folds)
     print_model_statistics(model=time_model, train_X=data_dict["X_train"], test_X=data_dict["X_test"],
                            y_train=data_dict["y_train_time"],
                            y_test=data_dict["y_test_time"], is_classification=False, vi_path=file_paths["time_vi"],metrics_path = file_paths["time_metrics"],group_metrics_path=file_paths["time_group_metrics"],
@@ -166,13 +166,10 @@ def main():
 
 
     embedding_features = [col for col in  features_data.columns if ('mds' in col or 'lle' in col in col or 'PCA' in col or 'TSNE' in col or 'iso' in col) ]
-    excluded_features = ['feature_tree_LL_neighbour_score']+[f for f in embedding_features if 'time' in f or 'TSNE' in f or 'lle' in f  or 'iso' in f]
+    excluded_features = [f for f in embedding_features if 'time' in f]
     included_embedding_features = [f for f in embedding_features if f not in excluded_features]
 
     #pca_features =  features_data[["msa_path","starting_tree_type"]+[f"feature_PCA_{i}" for i in range(10)]]
-
-
-
 
     if os.path.exists(file_paths["edited_data"]):
         edited_data = pickle.load(open(file_paths["edited_data"],'rb'))
@@ -196,14 +193,15 @@ def main():
         #     transformed_MSAs.append(msa_data)
         # features_data = pd.concat(transformed_MSAs)
         features_data = features_data[[col for col in features_data.columns if col not in excluded_features ]]
-        for col in [col for col in features_data.columns if 'PCA' in col]:
+        logging.info("Taking absolute values of each Embedding column")
+        for col in [col for col in features_data.columns if 'PCA' in col or 'TSNE' in col]:
                 features_data[col] = (features_data[col].abs())
-        for col in ['feature_mds_True_stress_10_only_base','feature_mds_True_stress_3_only_base','feature_mds_True_stress_30_only_base']:
-            features_data[col+"_log"] = np.log(features_data[col])
+        #for col in ['feature_mds_True_stress_10_only_base','feature_mds_True_stress_3_only_base','feature_mds_True_stress_30_only_base']:
+        #    features_data[col+"_log"] = np.log(features_data[col])
                 #features_data[col] = features_data.groupby('msa_path')[col].transform(lambda x: (x/max(x)-np.mean(x)))
         #features_data = features_data.loc[features_data.starting_tree_type == 'rand']
         logging.info(f"Number of MSAs in feature data is {len(features_data['msa_path'].unique())}")
-
+        
         logging.info(f"Enriching features data in {file_paths['features_path']} and saving to {file_paths['ML_edited_features_path']}")
         edited_data = edit_raw_data_for_ML(features_data, epsilon)
         with open(file_paths["edited_data"],"wb") as EDITED_DATA:
@@ -223,8 +221,14 @@ def main():
         time_model, error_model = generate_single_tree_models(data_dict, file_paths, args,sampling_frac)
 
     default_by_params_data_performance = get_default_performance(edited_data["default_by_params"], args, data_dict["full_test_data"], out_path= file_paths["default_by_params_path"])
+    logging.info("Using model to predict on test data")
     test_data = apply_single_tree_models_on_data(data_dict["full_test_data"], data_dict["X_test"], time_model, error_model,
                                      file_paths["test_single_tree_data"])
+    logging.info("Using model to predict on validation data")
+    if len(data_dict["full_validation_data"].index)>0:
+        validation_data = apply_single_tree_models_on_data(data_dict["full_validation_data"], data_dict["X_val"], time_model,
+                                                     error_model,
+                                                     file_paths["validation_single_tree_data"])
 
     #default_data_performance = get_default_performance(edited_data["default"],args,performance_on_test_set, out_path = file_paths["default_path"])
 

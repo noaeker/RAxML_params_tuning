@@ -59,7 +59,7 @@ def edit_raw_data_for_ML(data, epsilon):
     mean_transformations = non_default_data.groupby('msa_path').transform(lambda vec: np.mean(vec))
     averaged_cols = []
     for col in starting_tree_level_columns:
-       if not 'PCA' in col:
+       if not 'PCA' in col and not 'TSNE' in col:
            name = col + "_averaged_per_entire_MSA"
            non_default_data[col + "_averaged_per_entire_MSA"] = mean_transformations[col]
            averaged_cols.append(name)
