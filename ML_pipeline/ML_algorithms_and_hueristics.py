@@ -199,8 +199,7 @@ def train_test_validation_splits(full_data, test_pct, val_pct, msa_col_name="msa
     msa_n_seq_group = pd.qcut(full_data["feature_msa_n_seq"], 4)
     msas = full_data[msa_col_name]
     full_sampling_data = pd.DataFrame({'msa_n_seq': msa_n_seq_group, 'msa': msas}).drop_duplicates().sample(frac=1,random_state = SEED)
-    test_msas = full_sampling_data.groupby('msa_n_seq_group').sample(frac=test_pct, random_state= SEED)
-
+    test_msas = full_sampling_data.groupby('msa_n_seq').sample(frac=test_pct, random_state= SEED)
     train_msas = full_sampling_data.loc[~full_sampling_data['msa'].isin(test_msas['msa'])]
     if subsample_train:
         logging.info(f"Subsampling training data to {subsample_train_frac}")
