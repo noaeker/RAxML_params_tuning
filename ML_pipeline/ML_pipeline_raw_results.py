@@ -36,30 +36,32 @@ def get_ML_ready_data(full_data, data_feature_names, search_feature_names, test_
 
 
 def get_file_paths(args):
+    new_folder = os.path.join(args.baseline_folder, args.name)
+    os.mkdir(new_folder)
     return {"features_path": f"{args.baseline_folder}/all_features{CSV_SUFFIX}",
-     "ML_edited_features_path": f"{args.baseline_folder}/ML_edited_features{CSV_SUFFIX}",
-            "edited_data": f"{args.baseline_folder}/edited_data",
-     "default_path": f"{args.baseline_folder}/default_sampling{CSV_SUFFIX}",
-            "default_by_params_path": f"{args.baseline_folder}/default_by_params_sampling{CSV_SUFFIX}",
+     "ML_edited_features_path": f"{new_folder}/ML_edited_features{CSV_SUFFIX}",
+            "edited_data": f"{new_folder}/edited_data",
+     "default_path": f"{new_folder}/default_sampling{CSV_SUFFIX}",
+            "default_by_params_path": f"{new_folder}/default_by_params_sampling{CSV_SUFFIX}",
      "error_model_path": f"{args.baseline_folder}/error.model",
-     "required_accuracy_model_path": f"{args.baseline_folder}/accuracy.model",
-    "validation_multi_tree_data": f"{args.baseline_folder}/validation_multi_tree_data{CSV_SUFFIX}",
-            "test_multi_tree_data": f"{args.baseline_folder}/test_multi_tree_data{CSV_SUFFIX}",
-            "test_multi_tree_data_with_predictions": f"{args.baseline_folder}/test_multi_tree_data_with_predictions{CSV_SUFFIX}",
-            "validation_single_tree_data": f"{args.baseline_folder}/validation_single_tree_data{CSV_SUFFIX}",
-            "test_single_tree_data": f"{args.baseline_folder}/test_single_tree_data{CSV_SUFFIX}",
-    "performance_on_test_set":f"{args.baseline_folder}/overall_performance_on_test_set{CSV_SUFFIX}",
-     "time_model_path": f"{args.baseline_folder}/time.model",
-     "final_comparison_path": f"{args.baseline_folder}/final_performance_comp{CSV_SUFFIX}",
-            "final_comparison_path_agg": f"{args.baseline_folder}/final_performance_comp_agg{CSV_SUFFIX}",
-     "log_file": f"{args.baseline_folder}/ML_log_file.log","time_vi": f"{args.baseline_folder}/time_vi{CSV_SUFFIX}",
-            "time_metrics": f"{args.baseline_folder}/time_metrics{CSV_SUFFIX}",
-            "time_group_metrics": f"{args.baseline_folder}/time_group_metrics{CSV_SUFFIX}",
-            "error_vi": f"{args.baseline_folder}/error_vi{CSV_SUFFIX}",
-            "error_metrics": f"{args.baseline_folder}/error_metrics{CSV_SUFFIX}",
-            "error_group_metrics": f"{args.baseline_folder}/error_group_metrics{CSV_SUFFIX}",
-            "final_error_vi": f"{args.baseline_folder}/final_error_vi{CSV_SUFFIX}",
-            "ML_edited_default_data_path": f"{args.baseline_folder}/ML_edited_default_data{CSV_SUFFIX}"
+     "required_accuracy_model_path": f"{new_folder}/accuracy.model",
+    "validation_multi_tree_data": f"{new_folder}/validation_multi_tree_data{CSV_SUFFIX}",
+            "test_multi_tree_data": f"{new_folder}/test_multi_tree_data{CSV_SUFFIX}",
+            "test_multi_tree_data_with_predictions": f"{new_folder}/test_multi_tree_data_with_predictions{CSV_SUFFIX}",
+            "validation_single_tree_data": f"{new_folder}/validation_single_tree_data{CSV_SUFFIX}",
+            "test_single_tree_data": f"{new_folder}/test_single_tree_data{CSV_SUFFIX}",
+    "performance_on_test_set":f"{new_folder}/overall_performance_on_test_set{CSV_SUFFIX}",
+     "time_model_path": f"{new_folder}/time.model",
+     "final_comparison_path": f"{new_folder}/final_performance_comp{CSV_SUFFIX}",
+            "final_comparison_path_agg": f"{new_folder}/final_performance_comp_agg{CSV_SUFFIX}",
+     "log_file": f"{new_folder}/ML_log_file.log","time_vi": f"{args.baseline_folder}/time_vi{CSV_SUFFIX}",
+            "time_metrics": f"{new_folder}/time_metrics{CSV_SUFFIX}",
+            "time_group_metrics": f"{new_folder}/time_group_metrics{CSV_SUFFIX}",
+            "error_vi": f"{new_folder}/error_vi{CSV_SUFFIX}",
+            "error_metrics": f"{new_folder}/error_metrics{CSV_SUFFIX}",
+            "error_group_metrics": f"{new_folder}/error_group_metrics{CSV_SUFFIX}",
+            "final_error_vi": f"{new_folder}/final_error_vi{CSV_SUFFIX}",
+            "ML_edited_default_data_path": f"{new_folder}/ML_edited_default_data{CSV_SUFFIX}"
             }
 
 
@@ -201,7 +203,7 @@ def main():
                 #features_data[col] = features_data.groupby('msa_path')[col].transform(lambda x: (x/max(x)-np.mean(x)))
         #features_data = features_data.loc[features_data.starting_tree_type == 'rand']
         logging.info(f"Number of MSAs in feature data is {len(features_data['msa_path'].unique())}")
-        
+
         logging.info(f"Enriching features data in {file_paths['features_path']} and saving to {file_paths['ML_edited_features_path']}")
         edited_data = edit_raw_data_for_ML(features_data, epsilon)
         with open(file_paths["edited_data"],"wb") as EDITED_DATA:
@@ -220,7 +222,6 @@ def main():
         data_dict = generate_basic_data_dict(edited_data["non_default"], args,subsample_train = args.test_different_training_sizes, subsample_train_frac = sampling_frac)
         time_model, error_model = generate_single_tree_models(data_dict, file_paths, args,sampling_frac)
 
-    default_by_params_data_performance = get_default_performance(edited_data["default_by_params"], args, data_dict["full_test_data"], out_path= file_paths["default_by_params_path"])
     logging.info("Using model to predict on test data")
     test_data = apply_single_tree_models_on_data(data_dict["full_test_data"], data_dict["X_test"], time_model, error_model,
                                      file_paths["test_single_tree_data"])
@@ -230,7 +231,8 @@ def main():
                                                      error_model,
                                                      file_paths["validation_single_tree_data"])
 
-    #default_data_performance = get_default_performance(edited_data["default"],args,performance_on_test_set, out_path = file_paths["default_path"])
+    default_by_params_data_performance = get_default_performance(edited_data["default_by_params"], args, data_dict["full_test_data"], out_path= file_paths["default_by_params_path"])
+
 
 
 

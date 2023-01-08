@@ -70,7 +70,9 @@ def RFE(model, X, y, group_splitter, n_jobs, scoring, do_RFE):
 
 def ML_model(X_train, groups, y_train, n_jobs, path, classifier=False, model='lightgbm', calibrate=True, name="", large_grid = False, do_RFE = False, n_cv_folds = 3):
     path = path + name
+    logging.info(f"Building a {name} model and saving to {path}")
     if path and os.path.exists(path):
+        logging.info(f"Using existing model in {path}")
         model = pickle.load(open(path, "rb"))
         return model
     else:
@@ -96,6 +98,7 @@ def ML_model(X_train, groups, y_train, n_jobs, path, classifier=False, model='li
         grid_search.fit(X_train, y_train.ravel())
         best_model = grid_search.best_estimator_
     if classifier and calibrate:
+        logging.info("Generating calibrated model for classification model")
         calibrated_model = CalibratedClassifierCV(base_estimator=best_model, cv=group_splitter, method='isotonic')
         calibrated_model.fit(X_train, y_train.ravel())
     else:
