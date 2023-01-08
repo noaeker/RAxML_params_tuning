@@ -140,14 +140,7 @@ def get_default_performance(enriched_default_data,args,performance_on_test_set, 
 
 
 
-from sklearn.cluster import KMeans
 
-def cluster(X):
-    k_means = KMeans(n_clusters=5).fit(X)
-    return X.groupby(k_means.labels_)\
-            .transform('mean').sum(1)\
-            .rank(method='dense').sub(1)\
-            .astype(int).to_frame()
 
 
 
