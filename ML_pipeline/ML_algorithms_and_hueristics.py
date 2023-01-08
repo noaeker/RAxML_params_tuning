@@ -11,16 +11,10 @@ import numpy as np
 import os
 import lightgbm
 from matplotlib import pyplot
-from sklearn.model_selection import StratifiedGroupKFold
-from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV, GroupKFold
 from sklearn.feature_selection import RFECV
 from sklearn.calibration import CalibratedClassifierCV, calibration_curve
-from sklearn.metrics import make_scorer
-from sklearn.linear_model import SGDClassifier
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import make_pipeline
-from sklearn.linear_model import LogisticRegression
+
 
 
 def regression_per_group(df):
