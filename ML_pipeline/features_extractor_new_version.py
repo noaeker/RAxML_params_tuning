@@ -48,14 +48,13 @@ def pct_75(values):
     return np.percentile(values, 75)
 
 
-def max_vs_min(values):
-    return (np.max(values) - np.min(values)) / (
-            np.max(values) + 0.00001)
+def IQR(values):
+    return np.percentile(values, 75)-np.percentile(values, 25)
 
 
-def get_summary_statistics_dict(feature_name, values, funcs={'mean': np.mean, 'var': np.var,
+def get_summary_statistics_dict(feature_name, values, funcs={'mean': np.mean,'median': np.mean,'var': np.var,
                                                              'pct_25': pct_25, 'pct_75': pct_75,
-                                                             'max_vs_min': max_vs_min, 'min': np.min, 'max': np.max,
+                                                             'min': np.min, 'max': np.max,
                                                              }):
     res = {}
     for func in funcs:
@@ -81,7 +80,8 @@ def get_msa_stats(msa_path,args):
     alignment_data = get_alignment_data(msa_path)
     alignment_df = alignment_list_to_df(alignment_data)
     alignment_df_fixed = alignment_df.replace('-', np.nan)
-    gap_lengths = alignment_df_fixed.isna().sum(axis=1)/n_loci
+    gap_fracs_per_seq = alignment_df_fixed.isna().sum(axis=1)/n_loci
+    gap_fracs_per_loci = alignment_df_fixed.isna().sum(axis=0) / n_seq
     alignment_df_unique = alignment_df.T.drop_duplicates().T
     counts_per_position = [dict(alignment_df_fixed[col].value_counts(dropna=True)) for col in list(alignment_df)]
     probabilities = [list(map(lambda x: x / sum(counts_per_position[col].values()), counts_per_position[col].values()))
@@ -91,10 +91,10 @@ def get_msa_stats(msa_path,args):
     constant_sites_pct = sum([1 for et in entropy if et == 0]) / len(entropy)
     msa_difficulty = pypythia(msa_path,args)
 
-    all_msa_features.update({"feature_msa_constant_sites_pct": constant_sites_pct,"feature_msa_n_unique_sites": len(alignment_df_unique.columns),"feature_frac_unique_sites": len(alignment_df_unique.columns) / len(alignment_df.columns),
+    all_msa_features.update({"feature_msa_constant_sites_pct": constant_sites_pct,"feature_msa_n_unique_sites": len(alignment_df_unique.columns),
                              "feature_msa_pypythia_msa_difficulty": msa_difficulty})
 
-    multi_dimensional_features = {"feature_msa_entropy": entropy, "feature_msa_gap_positions_pct": gap_lengths}
+    multi_dimensional_features = {"feature_msa_entropy": entropy, "feature_msa_gap_fracs_per_seq": gap_fracs_per_seq, "feature_msa_gap_fracs_per_loci": gap_fracs_per_loci}
 
 
     for feature in multi_dimensional_features:
@@ -119,9 +119,9 @@ def msa_features_pipeline(msa_path, existing_msa_features_path, args):
 def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_trees_LL, tree_object, tree_LL, msa_path, msa_type, spr_iterations = 50):
     tmp_folder = os.path.join(curr_run_directory, 'tmp_working_dir_tree_metrics')
     create_or_clean_dir(tmp_folder)
-    distances, neighbors = get_random_spr_moves_vs_distances(tree_object, n_iterations=spr_iterations)
-    SPR_trees_path = os.path.join(curr_run_directory, 'all_trees_SPR_neighbors')
-    unify_text_files(neighbors, SPR_trees_path, str_given=True)
+    #distances, neighbors = get_random_spr_moves_vs_distances(tree_object, n_iterations=spr_iterations)
+    #SPR_trees_path = os.path.join(curr_run_directory, 'all_trees_SPR_neighbors')
+    #unify_text_files(neighbors, SPR_trees_path, str_given=True)
     # optimized_neighbor_ll, optimized_neighbor_alpha, optimized_neighbor_trees_file = raxml_optimize_trees_for_given_msa(
     #     get_local_path(msa_path), "trees_eval_SPR", SPR_trees_path,
     #     tmp_folder,msa_type, opt_brlen=False
@@ -144,18 +144,18 @@ def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_tr
     #
     # corcoeff, pval = spearmanr(parsimony_LL_differences, rf_values)
     # LL_rf_corr =  0 if math.isnan(corcoeff) else corcoeff
-    affinity = [1-val for val in rf_values]
-    if np.sum(affinity)==0:
-        LL_neighbour_score = tree_LL
-    else:
-        LL_neighbour_score = np.dot(np.array(affinity), np.array(all_parsimony_trees_LL))/np.sum(affinity)
+ #   affinity = [1-val for val in rf_values]
+ #   if np.sum(affinity)==0:
+ #       LL_neighbour_score = tree_LL
+ #   else:
+ #       LL_neighbour_score = np.dot(np.array(affinity), np.array(all_parsimony_trees_LL))/np.sum(affinity)
 
-    all_tree_features = {"feature_tree_MAD": mad_tree_parameter(curr_tree_path), 'feature_tree_LL_neighbour_score': LL_neighbour_score, "tree_distances": tree_distances} #"final_tree_distances": final_tree_distances'feature_corcoeff_SPR': corcoeff_SPR ,'feature_tree_parsimony_dist_vs_LL_imprv_corr':LL_rf_corr,"feature_LL_diff_vs_parsimony": parsimony_LL_differences,'feature_ll_improvements': ll_improvements
+    all_tree_features = {"feature_tree_MAD": mad_tree_parameter(curr_tree_path),  "tree_distances": tree_distances} #"final_tree_distances": final_tree_distances'feature_corcoeff_SPR': corcoeff_SPR ,'feature_tree_parsimony_dist_vs_LL_imprv_corr':LL_rf_corr,"feature_LL_diff_vs_parsimony": parsimony_LL_differences,'feature_ll_improvements': ll_improvements,
     multidimensional_features = {'feature_tree_branch_lengths' : BL_metrics["BL_list"], "feature_tree_distances_between_taxa":tree_distances, "feature_tree_parsimony_rf_values" : rf_values}
     for feature in multidimensional_features:
         all_tree_features.update(get_summary_statistics_dict(feature, multidimensional_features[feature]))
 
-    return all_tree_features, neighbors
+    return all_tree_features
 
 
 def perform_MDS(tree_features, X, starting_trees, mds_n_components, metric, pca_n_components, suffix):
@@ -196,14 +196,15 @@ def enrich_with_MDS_features(curr_run_directory, tree_features, pars_neighbors, 
     X = X.T
     X[triu] = X.T[triu]
     perform_MDS(tree_features, X, overall_trees, mds_n_components = 3, metric = True, pca_n_components = 3, suffix = suffix)
-    perform_MDS(tree_features, X, overall_trees, mds_n_components = 3, metric = False, pca_n_components = 3, suffix = suffix)
+    #perform_MDS(tree_features, X, overall_trees, mds_n_components = 3, metric = False, pca_n_components = 3, suffix = suffix)
     perform_MDS(tree_features, X, overall_trees, mds_n_components=5, metric=True, pca_n_components=3, suffix=suffix)
-    perform_MDS(tree_features, X, overall_trees, mds_n_components=5, metric=False, pca_n_components=3, suffix=suffix)
+    #perform_MDS(tree_features, X, overall_trees, mds_n_components=5, metric=False, pca_n_components=3, suffix=suffix)
     perform_MDS(tree_features, X, overall_trees, mds_n_components = 10, metric = True, pca_n_components = 10, suffix = suffix)
-    perform_MDS(tree_features, X, overall_trees, mds_n_components = 10, metric = False, pca_n_components = 10, suffix = suffix)
+    #perform_MDS(tree_features, X, overall_trees, mds_n_components = 10, metric = False, pca_n_components = 10, suffix = suffix)
     perform_MDS(tree_features, X, overall_trees, mds_n_components=15, metric=True, pca_n_components=15, suffix=suffix)
+    #perform_MDS(tree_features, X, overall_trees, mds_n_components=15, metric=False, pca_n_components=15, suffix=suffix)
     perform_MDS(tree_features, X, overall_trees, mds_n_components = 30, metric = True, pca_n_components = 10, suffix = suffix)
-    perform_MDS(tree_features, X, overall_trees, mds_n_components = 30, metric = False, pca_n_components = 10, suffix = suffix)
+    #perform_MDS(tree_features, X, overall_trees, mds_n_components = 30, metric = False, pca_n_components = 10, suffix = suffix)
 
 
 def enrich_with_LLE_and_ISOMAP(all_pars_tree_distances,all_rand_tree_distances,pars_extended_tree_features_df,rand_extended_tree_features_df):
@@ -268,12 +269,12 @@ def get_basic_tree_features(msa_raw_data, curr_run_directory,msa_path,tmp_folder
 
 
 
-def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_neighbors):
+def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory):
 
     pars_extended_tree_features_df = extended_tree_features_df.loc[
         extended_tree_features_df.starting_tree_type == "pars"].copy().reset_index(drop = True)
-    rand_extended_tree_features_df = extended_tree_features_df.loc[
-        extended_tree_features_df.starting_tree_type == "rand"].copy().reset_index(drop = True)
+    #rand_extended_tree_features_df = extended_tree_features_df.loc[
+    #    extended_tree_features_df.starting_tree_type == "rand"].copy().reset_index(drop = True)
 
     all_pars_tree_distances = np.array(list(pars_extended_tree_features_df["tree_distances"])).reshape(
         len(pars_extended_tree_features_df.index), -1)
@@ -307,10 +308,10 @@ def tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_n
     extended_tree_features_df["feature_PCA_time"] = PCA_time
     logging.info("Perofrming TSNE")
     st = time.time()
-    TSNE_model = TSNE(n_components=3, init='pca')
+    TSNE_model = TSNE(n_components=2, init='pca')
     TSNE_embedded = TSNE_model.fit_transform(all_tree_distances)
     en = time.time()
-    TSNE_embedded_df = pd.DataFrame(TSNE_embedded, columns=['feature_TSNE_0', 'feature_TSNE_1','feature_TSNE_2']).reset_index(drop = True)
+    TSNE_embedded_df = pd.DataFrame(TSNE_embedded, columns=['feature_TSNE_0', 'feature_TSNE_1']).reset_index(drop = True)
     extended_tree_features_df.reset_index(inplace=True, drop=True)
     extended_tree_features_df = pd.concat([extended_tree_features_df, TSNE_embedded_df], axis=1)
     extended_tree_features_df["feature_TSNE_time"] = en - st
@@ -334,15 +335,15 @@ def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_
     all_parsimony_trees_LL = basic_tree_features[basic_tree_features["starting_tree_type"] == "pars"][
         "feature_tree_optimized_ll"].drop_duplicates().tolist()
     extended_tree_metrics_lst = []
-    all_neighbors = []
+    #all_neighbors = []
     for index, basic_features in basic_tree_features.iterrows():
-        general_tree_metrics, neighbors= single_tree_metrics(tmp_folder, all_parsimony_trees,all_parsimony_trees_LL, basic_features["optimized_tree_object"],basic_features["starting_tree_ll"], msa_path, args.msa_type, spr_iterations = args.spr_iters)
+        general_tree_metrics= single_tree_metrics(tmp_folder, all_parsimony_trees,all_parsimony_trees_LL, basic_features["optimized_tree_object"],basic_features["starting_tree_ll"], msa_path, args.msa_type, spr_iterations = args.spr_iters)
         general_tree_metrics.update(dict(basic_features))
-        if basic_features["starting_tree_type"]=='pars':
-            all_neighbors.extend(neighbors)
+        #if basic_features["starting_tree_type"]=='pars':
+            #all_neighbors.extend(neighbors)
         extended_tree_metrics_lst.append(general_tree_metrics)
     extended_tree_features_df = pd.DataFrame(extended_tree_metrics_lst)
-    extended_tree_features_df = tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory, all_neighbors)
+    extended_tree_features_df = tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory)
     tree_features = extended_tree_features_df[[col for col in extended_tree_features_df.columns if col.startswith('feature')]+["starting_tree_ind", "starting_tree_type"]]
     pickle.dump(tree_features, open(existing_tree_features_path, 'wb'))
     return tree_features
