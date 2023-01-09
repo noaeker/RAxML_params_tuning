@@ -42,7 +42,7 @@ def get_ML_ready_data(full_data, data_feature_names, search_feature_names, test_
 
     return {"X_train_err": X_train_err,"X_train_time": X_train_time, "train_MSAs_err": train_data_err["msa_path"],"train_MSAs_time": train_data_time["msa_path"], "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test_time": X_test_time,"X_test_err": X_test_err,
             'test_MSAs_err': test_data_err["msa_path"],'test_MSAs_time': test_data_time["msa_path"],"y_test_err": y_test_err, "y_test_time": y_test_time,
-            "full_test_data_err": test_data_err,"full_test_data_time": test_data_time, "full_train_data_err" : train_data_err, "X_val_err": X_val_err,"X_val_time": X_val_time, "y_val_err": y_val_err,"full_validation_data_err": validation_data_err,"y_val_time": y_val_time }
+            "full_test_data_err": test_data_err,"full_test_data_time": test_data_time, "full_train_data_err" : train_data_err, "X_val_err": X_val_err,"X_val_time": X_val_time, "y_val_err": y_val_err,"full_validation_data_err": validation_data_err,"full_validation_data_time": validation_data_time,"y_val_time": y_val_time }
 
 
 
@@ -95,15 +95,15 @@ def generate_single_tree_models(data_dict, file_paths, args, sampling_frac):
 
     error_model= ML_model(X_train= data_dict["X_train_err"], groups= data_dict["train_MSAs_err"], y_train= data_dict["y_train_err"],n_jobs=args.n_jobs,
                           path = file_paths["error_model_path"], classifier = True, name = str(sampling_frac), large_grid= args.large_grid, do_RFE= args.do_RFE, n_cv_folds= args.n_CV_folds)
-    print_model_statistics(model=error_model,train_X =data_dict["X_train_err"],  test_X=data_dict["X_test_err"],y_train=data_dict["y_train_err"],
-                           y_test=data_dict["y_test_err"], is_classification=True, vi_path=file_paths["error_vi"], metrics_path = file_paths["error_metrics"], group_metrics_path=file_paths["error_group_metrics"],
+    print_model_statistics(model=error_model,train_X =data_dict["X_train_err"],  test_X=data_dict["X_test_err"], val_X =data_dict["X_val_err"] ,y_train=data_dict["y_train_err"],
+                           y_test=data_dict["y_test_err"],y_val=data_dict["y_val_err"], is_classification=True, vi_path=file_paths["error_vi"], metrics_path = file_paths["error_metrics"], group_metrics_path=file_paths["error_group_metrics"],
                            name=f"Error classification model frac ={sampling_frac}", sampling_frac = sampling_frac,test_MSAs= data_dict["full_test_data_err"]["msa_path"])
     time_model = ML_model(X_train=data_dict["X_train_time"], groups=data_dict["train_MSAs_time"],
                           y_train=data_dict["y_train_time"], n_jobs=args.n_jobs, path=file_paths["time_model_path"],
                           classifier=False, name=str(sampling_frac), large_grid= args.large_grid, do_RFE= args.do_RFE,n_cv_folds= args.n_CV_folds)
-    print_model_statistics(model=time_model, train_X=data_dict["X_train_time"], test_X=data_dict["X_test_time"],
+    print_model_statistics(model=time_model, train_X=data_dict["X_train_time"], test_X=data_dict["X_test_time"],val_X = data_dict["X_val_time"],
                            y_train=data_dict["y_train_time"],
-                           y_test=data_dict["y_test_time"], is_classification=False, vi_path=file_paths["time_vi"],metrics_path = file_paths["time_metrics"],group_metrics_path=file_paths["time_group_metrics"],
+                           y_test=data_dict["y_test_time"],y_val=data_dict["y_val_time"], is_classification=False, vi_path=file_paths["time_vi"],metrics_path = file_paths["time_metrics"],group_metrics_path=file_paths["time_group_metrics"],
                            name=f"Time regression model frac={sampling_frac}", sampling_frac = sampling_frac,test_MSAs= data_dict["full_test_data_time"]["msa_path"])
 
     return time_model,error_model
@@ -168,14 +168,18 @@ def main():
     if args.filter_pandit:
         logging.info("Only filtering on Pandit datasets")
         features_data = features_data.loc[features_data.msa_path.str.contains('Pandit')]
+    logging.info(f"Overall Number of MSAs in feature data is {len(features_data['msa_path'].unique())}")
     features_data["Source"] = features_data["msa_path"].apply(lambda x: 'Pandit' if 'Pandit' in x else 'Selectome')
+    logging.info(f"Overall Number of Pandit MSAs: {len(features_data.loc[features_data.Source=='Pandit'].index)} ,Overall Number of Slectome MSAs {len(features_data.loc[features_data.Source=='Selectome'].index)}")
+
     msa_check_reliability = features_data.groupby("msa_path").agg(min_test_time = ('test_norm_const', np.min),max_test_time = ('test_norm_const', np.max),
                                           min_time=('elapsed_running_time', np.min),max_time=('elapsed_running_time', np.max)).reset_index()
     msa_check_reliability["non_reliable_timings"] = (msa_check_reliability["max_test_time"]/msa_check_reliability["min_test_time"]>3) |( msa_check_reliability["max_time"]/msa_check_reliability["min_time"]>100) | (msa_check_reliability["max_test_time"]>np.percentile(msa_check_reliability["max_test_time"], 90))
+    logging.info(f"Overall number on MSAs with non reliable timings: {len(msa_check_reliability.loc[msa_check_reliability.non_reliable_timings].index)}")
     features_data = features_data.merge(msa_check_reliability, on = "msa_path")
 
-    embedding_features = [col for col in  features_data.columns if ('mds' in col or 'lle' in col in col or 'PCA' in col or 'TSNE' in col or 'iso' in col) ]
-    excluded_features = [f for f in embedding_features if 'time' in f]
+    embedding_features = [col for col in  features_data.columns if ('mds' in col or 'PCA' in col or 'TSNE' in col or 'iso' in col) ]
+    excluded_features = [f for f in embedding_features if 'time' in f or 'TSNE' if f]
     included_embedding_features = [f for f in embedding_features if f not in excluded_features]
 
     #pca_features =  features_data[["msa_path","starting_tree_type"]+[f"feature_PCA_{i}" for i in range(10)]]
@@ -209,14 +213,12 @@ def main():
         #    features_data[col+"_log"] = np.log(features_data[col])
                 #features_data[col] = features_data.groupby('msa_path')[col].transform(lambda x: (x/max(x)-np.mean(x)))
         #features_data = features_data.loc[features_data.starting_tree_type == 'rand']
-        logging.info(f"Number of MSAs in feature data is {len(features_data['msa_path'].unique())}")
 
         logging.info(f"Enriching features data in {file_paths['features_path']} and saving to {file_paths['ML_edited_features_path']}")
         edited_data = edit_raw_data_for_ML(features_data, epsilon)
         with open(file_paths["edited_data"],"wb") as EDITED_DATA:
             pickle.dump(edited_data,EDITED_DATA)
         enriched_features_data = edited_data["non_default"]
-        logging.info(f"Number of positive samples: {len(enriched_features_data.loc[enriched_features_data.is_global_max==1].index)}, Number of negative samples {len(enriched_features_data.loc[enriched_features_data.is_global_max==0].index)}")
         #enriched_default_data = edited_data["default"]
         enriched_default_data_by_params = edited_data["default_by_params"]
         enriched_features_data.to_csv(file_paths["ML_edited_features_path"], sep=CSV_SEP)

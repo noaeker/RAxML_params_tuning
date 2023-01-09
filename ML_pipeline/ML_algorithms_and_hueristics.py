@@ -116,7 +116,7 @@ def calibration_plot(model, test_data, y_test):
     pyplot.show()
 
 
-def print_model_statistics(model, train_X, test_X, y_train, y_test, is_classification, vi_path, metrics_path,
+def print_model_statistics(model, train_X, test_X,val_X, y_train, y_test,y_val, is_classification, vi_path, metrics_path,
                            group_metrics_path, name, sampling_frac, test_MSAs, feature_importance=True):
     if feature_importance:
         var_impt = variable_importance(train_X.columns[model['selector'].get_support(indices=True)], model['best_model'])
@@ -125,12 +125,15 @@ def print_model_statistics(model, train_X, test_X, y_train, y_test, is_classific
         logging.info(f"{name} variable importance: \n {var_impt}")
     predicted_train = model['best_model'].predict((model['selector']).transform(train_X))
     predicted_test = model['best_model'].predict((model['selector']).transform(test_X))
+    predicted_val = model['best_model'].predict((model['selector']).transform(val_X))
     if is_classification:
         predicted_proba_train = model['best_model'].predict_proba((model['selector']).transform(train_X))[:, 1]
         predicted_proba_test = model['best_model'].predict_proba((model['selector']).transform(test_X))[:, 1]
+        predicted_proba_val = model['best_model'].predict_proba((model['selector']).transform(val_X))[:, 1]
     else:
         predicted_proba_train = predicted_train
         predicted_proba_test = predicted_test
+        predicted_proba_val = predicted_val
     groups_data_test = test_X[
         ["feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty", "starting_tree_bool"]]
 
@@ -145,8 +148,12 @@ def print_model_statistics(model, train_X, test_X, y_train, y_test, is_classific
     test_metrics = model_metrics(y_test, predicted_test, predicted_proba_test, group_metrics_path, sampling_frac,
                                  is_classification=is_classification, groups_data=groups_dict_test)
 
+    validation_metrics = model_metrics(y_val, predicted_val, predicted_proba_val, group_metrics_path, sampling_frac,
+                                 is_classification=is_classification, groups_data=None)
+
     logging.info(f"{name} train metrics: \n {train_metrics}")
     logging.info(f"{name} test metrics: \n {test_metrics}")
+    logging.info(f"{name} validation metrics: \n {validation_metrics}")
 
     train_metrics.update(test_metrics)
     train_metrics = pd.DataFrame.from_dict([train_metrics])
@@ -198,6 +205,8 @@ def train_test_validation_splits(full_data, test_pct, val_pct, msa_col_name="msa
         full_data = full_data.loc[~full_data.non_reliable_timings]
         logging.info(f"New Number of MSAs in full data is {len(full_data.msa_path.unique())}")
     validation_data = full_data.loc[(full_data[msa_col_name].str.contains("Single_gene_PROTEIN") | full_data[msa_col_name].str.contains("Single_gene_DNA"))]
+    logging.info(f"Number of MSAs in validation data is {len(validation_data.msa_path.unique())}")
+    logging.info(f"Number of overall positive samples in train: {len(validation_data.loc[validation_data.is_global_max == 1].index)}, Number of overall negative samples in validation is {len(validation_data.loc[validation_data.is_global_max == 0].index)}")
     full_data = full_data.loc[~(full_data[msa_col_name].str.contains("Single_gene_PROTEIN") | full_data[msa_col_name].str.contains("Single_gene_DNA"))]
     np.random.seed(SEED)
     logging.info("Partitioning MSAs according to number of sequences")
@@ -206,13 +215,16 @@ def train_test_validation_splits(full_data, test_pct, val_pct, msa_col_name="msa
     full_sampling_data = pd.DataFrame({'msa_n_seq': msa_n_seq_group, 'msa': msas}).drop_duplicates().sample(frac=1,random_state = SEED)
     test_msas = full_sampling_data.groupby('msa_n_seq').sample(frac=test_pct, random_state= SEED)
     train_msas = full_sampling_data.loc[~full_sampling_data['msa'].isin(test_msas['msa'])]
+
     if subsample_train:
         logging.info(f"Subsampling training data to {subsample_train_frac}")
         train_msas = train_msas.groupby('msa_n_seq').sample(frac=subsample_train_frac, random_state=SEED)
     train_data = full_data[full_data[msa_col_name].isin(train_msas['msa'])]
+    logging.info(f"Number of MSAs in training data is {len(train_data.msa_path.unique())}")
+    logging.info(f"Number of overall positive samples in train: {len(train_data.loc[train_data.is_global_max == 1].index)}, Number of overall negative samples in test {len(train_data.loc[train_data.is_global_max == 0].index)}")
     test_data = full_data[full_data[msa_col_name].isin(test_msas['msa'])]
-    logging.info(f"Train data size is {len(train_data.index)} Test data size is{len(test_data.index)}")
-
+    logging.info(f"Number of MSAs in test data is {len(test_data.msa_path.unique())}")
+    logging.info(f"Number of overall positive samples in test: {len(test_data.loc[test_data.is_global_max == 1].index)}, Number of overall negative samples in test {len(test_data.loc[test_data.is_global_max == 0].index)}")
     return train_data, test_data, validation_data
 
 
