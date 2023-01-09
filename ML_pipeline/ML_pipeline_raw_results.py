@@ -40,7 +40,7 @@ def get_ML_ready_data(full_data, data_feature_names, search_feature_names, test_
     X_val_time = validation_data_time[data_feature_names + search_feature_names]
     y_val_time =validation_data_time["normalized_relative_time"]
 
-    return {"X_train_err": X_train_err,"X_train_time": X_train_time, "train_MSAs_err": train_data_err["msa_path"], "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test_time": X_test_time,"X_test_err": X_test_err,
+    return {"X_train_err": X_train_err,"X_train_time": X_train_time, "train_MSAs_err": train_data_err["msa_path"],"train_MSAs_time": train_data_time["msa_path"], "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test_time": X_test_time,"X_test_err": X_test_err,
             'test_MSAs_err': test_data_err["msa_path"],'test_MSAs_time': test_data_time["msa_path"],"y_test_err": y_test_err, "y_test_time": y_test_time,
             "full_test_data_err": test_data_err, "full_train_data_err" : train_data_err, "X_val_err": X_val_err,"X_val_time": X_val_time, "y_val_err": y_val_err,"full_validation_data_err": validation_data_err,"y_val_time": y_val_time }
 
@@ -98,7 +98,7 @@ def generate_single_tree_models(data_dict, file_paths, args, sampling_frac):
     print_model_statistics(model=error_model,train_X =data_dict["X_train_err"],  test_X=data_dict["X_test_err"],y_train=data_dict["y_train_err"],
                            y_test=data_dict["y_test_err"], is_classification=True, vi_path=file_paths["error_vi"], metrics_path = file_paths["error_metrics"], group_metrics_path=file_paths["error_group_metrics"],
                            name=f"Error classification model frac ={sampling_frac}", sampling_frac = sampling_frac,test_MSAs= data_dict["full_test_data_err"]["msa_path"])
-    time_model = ML_model(X_train=data_dict["X_train_to,e"], groups=data_dict["train_MSAs_time"],
+    time_model = ML_model(X_train=data_dict["X_train_time"], groups=data_dict["train_MSAs_time"],
                           y_train=data_dict["y_train_time"], n_jobs=args.n_jobs, path=file_paths["time_model_path"],
                           classifier=False, name=str(sampling_frac), large_grid= args.large_grid, do_RFE= args.do_RFE,n_cv_folds= args.n_CV_folds)
     print_model_statistics(model=time_model, train_X=data_dict["X_train_time"], test_X=data_dict["X_test_time"],
