@@ -42,7 +42,7 @@ def get_ML_ready_data(full_data, data_feature_names, search_feature_names, test_
 
     return {"X_train_err": X_train_err,"X_train_time": X_train_time, "train_MSAs_err": train_data_err["msa_path"],"train_MSAs_time": train_data_time["msa_path"], "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test_time": X_test_time,"X_test_err": X_test_err,
             'test_MSAs_err': test_data_err["msa_path"],'test_MSAs_time': test_data_time["msa_path"],"y_test_err": y_test_err, "y_test_time": y_test_time,
-            "full_test_data_err": test_data_err, "full_train_data_err" : train_data_err, "X_val_err": X_val_err,"X_val_time": X_val_time, "y_val_err": y_val_err,"full_validation_data_err": validation_data_err,"y_val_time": y_val_time }
+            "full_test_data_err": test_data_err,"full_test_data_time": test_data_time, "full_train_data_err" : train_data_err, "X_val_err": X_val_err,"X_val_time": X_val_time, "y_val_err": y_val_err,"full_validation_data_err": validation_data_err,"y_val_time": y_val_time }
 
 
 
@@ -233,7 +233,7 @@ def main():
     test_data = apply_single_tree_models_on_data(data_dict["full_test_data_err"],data_dict["full_test_data_time"], data_dict["X_test_err"],data_dict["X_test_time"], time_model, error_model,
                                      file_paths["test_single_tree_data_err"],file_paths["test_single_tree_data_time"])
     logging.info("Using model to predict on validation data")
-    if len(data_dict["full_validation_data"].index)>0:
+    if len(data_dict["full_validation_data_err"].index)>0 and len(data_dict["full_validation_data_time"].index)>0:
         validation_data = apply_single_tree_models_on_data(data_dict["full_validation_data_err"], data_dict["full_validation_data_time"],
                                                      data_dict["X_val_err"], data_dict["X_val_time"], time_model,
                                                      error_model,
