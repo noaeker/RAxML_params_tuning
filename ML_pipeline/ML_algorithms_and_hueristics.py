@@ -206,7 +206,7 @@ def train_test_validation_splits(full_data, test_pct, val_pct, msa_col_name="msa
         logging.info(f"New Number of MSAs in full data is {len(full_data.msa_path.unique())}")
     validation_data = full_data.loc[(full_data[msa_col_name].str.contains("Single_gene_PROTEIN") | full_data[msa_col_name].str.contains("Single_gene_DNA"))]
     logging.info(f"Number of MSAs in validation data is {len(validation_data.msa_path.unique())}")
-    logging.info(f"Number of overall positive samples in train: {len(validation_data.loc[validation_data.is_global_max == 1].index)}, Number of overall negative samples in validation is {len(validation_data.loc[validation_data.is_global_max == 0].index)}")
+    logging.info(f"Number of overall positive samples in validation: {len(validation_data.loc[validation_data.is_global_max == 1].index)}, Number of overall negative samples in validation is {len(validation_data.loc[validation_data.is_global_max == 0].index)}")
     full_data = full_data.loc[~(full_data[msa_col_name].str.contains("Single_gene_PROTEIN") | full_data[msa_col_name].str.contains("Single_gene_DNA"))]
     np.random.seed(SEED)
     logging.info("Partitioning MSAs according to number of sequences")
