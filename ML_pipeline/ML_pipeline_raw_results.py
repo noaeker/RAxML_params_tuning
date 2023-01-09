@@ -179,7 +179,7 @@ def main():
     features_data = features_data.merge(msa_check_reliability, on = "msa_path")
 
     embedding_features = [col for col in  features_data.columns if ('mds' in col or 'PCA' in col or 'TSNE' in col) ]
-    excluded_features = [f for f in embedding_features if 'time' in f or 'TSNE' in f]
+    excluded_features = [f for f in embedding_features if 'time' in f or 'PCA' in f]
     included_embedding_features = [f for f in embedding_features if f not in excluded_features]
 
     #pca_features =  features_data[["msa_path","starting_tree_type"]+[f"feature_PCA_{i}" for i in range(10)]]
