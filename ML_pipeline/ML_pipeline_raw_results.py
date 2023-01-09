@@ -155,10 +155,10 @@ def main():
         os.remove(file_paths["log_file"])
     logging.basicConfig(filename=file_paths["log_file"], level=logging_level)
 
-
-
     features_data = features_data.loc[~features_data.msa_path.str.contains("single-gene_alignments")]
-
+    if args.filter_pandit:
+        logging.info("Only filtering on Pandit datasets")
+        features_data = features_data.loc[features_data.msa_name.str.contains('Pandit')]
 
     embedding_features = [col for col in  features_data.columns if ('mds' in col or 'lle' in col in col or 'PCA' in col or 'TSNE' in col or 'iso' in col) ]
     excluded_features = [f for f in embedding_features if 'time' in f]
