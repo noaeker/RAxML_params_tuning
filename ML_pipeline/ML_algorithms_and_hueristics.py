@@ -191,7 +191,12 @@ def model_metrics(y_test, predictions, prob_predictions, metrics_path, sampling_
 
 
 def train_test_validation_splits(full_data, test_pct, val_pct, msa_col_name="msa_name", subsample_train=False,
-                                 subsample_train_frac=-1):
+                                 subsample_train_frac=-1,remove_unrelaible_times = False):
+    logging.info(f"Original number of MSAs in full data is {len(full_data.msa_path.unique())}")
+    if remove_unrelaible_times:
+        logging.info("Remove unrelaible times from data")
+        full_data = full_data.loc[~full_data.non_reliable_timings]
+        logging.info(f"New Number of MSAs in full data is {len(full_data.msa_path.unique())}")
     validation_data = full_data.loc[(full_data[msa_col_name].str.contains("Single_gene_PROTEIN") | full_data[msa_col_name].str.contains("Single_gene_DNA"))]
     full_data = full_data.loc[~(full_data[msa_col_name].str.contains("Single_gene_PROTEIN") | full_data[msa_col_name].str.contains("Single_gene_DNA"))]
     np.random.seed(SEED)

@@ -19,20 +19,30 @@ from sklearn.preprocessing import MinMaxScaler
 
 
 def get_ML_ready_data(full_data, data_feature_names, search_feature_names, test_pct, val_pct, subsample_train = False, subsample_train_frac = -1):
-    train_data, test_data,validation_data = train_test_validation_splits(
+    train_data_err, test_data_err,validation_data_err  = train_test_validation_splits(
         full_data, test_pct=test_pct, val_pct= val_pct, subsample_train = subsample_train, subsample_train_frac = subsample_train_frac)
-    X_train = train_data[data_feature_names + search_feature_names]
-    y_train_err = train_data["is_global_max"]
-    y_train_time = train_data["normalized_relative_time"]
-    X_test = test_data[data_feature_names + search_feature_names]
-    y_test_err = test_data["is_global_max"]
-    y_test_time = test_data["normalized_relative_time"]
-    X_val = validation_data[data_feature_names + search_feature_names]
-    y_val_err = validation_data["is_global_max"]
-    y_val_time = validation_data["normalized_relative_time"]
-    return {"X_train": X_train, "train_MSAs": train_data["msa_path"], "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test": X_test,
-            'test_MSAs': test_data["msa_path"],"y_test_err": y_test_err, "y_test_time": y_test_time,
-            "full_test_data": test_data, "full_train_data" : train_data, "X_val": X_val, "y_val_err": y_val_err,"full_validation_data": validation_data,"y_val_time": y_val_time }
+
+    train_data_time, test_data_time,validation_data_time  = train_test_validation_splits(
+        full_data, test_pct=test_pct, val_pct= val_pct, subsample_train = subsample_train, subsample_train_frac = subsample_train_frac, remove_unrelaible_times = True)
+
+    X_train_err = train_data_err[data_feature_names + search_feature_names]
+    y_train_err = train_data_err["is_global_max"]
+    X_train_time = train_data_time[data_feature_names + search_feature_names]
+    y_train_time = train_data_time["normalized_relative_time"]
+
+    X_test_err = test_data_err[data_feature_names + search_feature_names]
+    y_test_err = test_data_err["is_global_max"]
+    X_test_time = test_data_time[data_feature_names + search_feature_names]
+    y_test_time = test_data_time["normalized_relative_time"]
+
+    X_val_err = validation_data_err[data_feature_names + search_feature_names]
+    y_val_err = validation_data_err["is_global_max"]
+    X_val_time = validation_data_time[data_feature_names + search_feature_names]
+    y_val_time =validation_data_time["normalized_relative_time"]
+
+    return {"X_train_err": X_train_err,"X_train_time": X_train_time, "train_MSAs_err": train_data_err["msa_path"], "y_train_err": y_train_err, "y_train_time": y_train_time, "X_test_time": X_test_time,"X_test_err": X_test_err,
+            'test_MSAs_err': test_data_err["msa_path"],'test_MSAs_time': test_data_time["msa_path"],"y_test_err": y_test_err, "y_test_time": y_test_time,
+            "full_test_data_err": test_data_err, "full_train_data_err" : train_data_err, "X_val_err": X_val_err,"X_val_time": X_val_time, "y_val_err": y_val_err,"full_validation_data_err": validation_data_err,"y_val_time": y_val_time }
 
 
 
@@ -45,12 +55,10 @@ def get_file_paths(args):
      "default_path": f"{new_folder}/default_sampling{CSV_SUFFIX}",
             "default_by_params_path": f"{new_folder}/default_by_params_sampling{CSV_SUFFIX}",
      "error_model_path": f"{new_folder}/error.model",
-     "required_accuracy_model_path": f"{new_folder}/accuracy.model",
-    "validation_multi_tree_data": f"{new_folder}/validation_multi_tree_data{CSV_SUFFIX}",
-            "test_multi_tree_data": f"{new_folder}/test_multi_tree_data{CSV_SUFFIX}",
-            "test_multi_tree_data_with_predictions": f"{new_folder}/test_multi_tree_data_with_predictions{CSV_SUFFIX}",
-            "validation_single_tree_data": f"{new_folder}/validation_single_tree_data{CSV_SUFFIX}",
-            "test_single_tree_data": f"{new_folder}/test_single_tree_data{CSV_SUFFIX}",
+            "validation_single_tree_data_err": f"{new_folder}/validation_single_tree_data{CSV_SUFFIX}",
+            "validation_single_tree_data_time": f"{new_folder}/validation_single_tree_data{CSV_SUFFIX}",
+            "test_single_tree_data_err": f"{new_folder}/test_single_tree_data_err{CSV_SUFFIX}",
+            "test_single_tree_data_time": f"{new_folder}/test_single_tree_data_time{CSV_SUFFIX}",
     "performance_on_test_set":f"{new_folder}/overall_performance_on_test_set{CSV_SUFFIX}",
      "time_model_path": f"{new_folder}/time.model",
      "final_comparison_path": f"{new_folder}/final_performance_comp{CSV_SUFFIX}",
@@ -85,37 +93,38 @@ def generate_basic_data_dict(data_for_ML, args,subsample_train = False, subsampl
 
 def generate_single_tree_models(data_dict, file_paths, args, sampling_frac):
 
-    error_model= ML_model(X_train= data_dict["X_train"], groups= data_dict["train_MSAs"], y_train= data_dict["y_train_err"],n_jobs=args.n_jobs,
+    error_model= ML_model(X_train= data_dict["X_train_err"], groups= data_dict["train_MSAs_err"], y_train= data_dict["y_train_err"],n_jobs=args.n_jobs,
                           path = file_paths["error_model_path"], classifier = True, name = str(sampling_frac), large_grid= args.large_grid, do_RFE= args.do_RFE, n_cv_folds= args.n_CV_folds)
-    print_model_statistics(model=error_model,train_X =data_dict["X_train"],  test_X=data_dict["X_test"],y_train=data_dict["y_train_err"],
+    print_model_statistics(model=error_model,train_X =data_dict["X_train_err"],  test_X=data_dict["X_test_err"],y_train=data_dict["y_train_err"],
                            y_test=data_dict["y_test_err"], is_classification=True, vi_path=file_paths["error_vi"], metrics_path = file_paths["error_metrics"], group_metrics_path=file_paths["error_group_metrics"],
-                           name=f"Error classification model frac ={sampling_frac}", sampling_frac = sampling_frac,test_MSAs= data_dict["full_test_data"]["msa_path"])
-    time_model = ML_model(X_train=data_dict["X_train"], groups=data_dict["train_MSAs"],
+                           name=f"Error classification model frac ={sampling_frac}", sampling_frac = sampling_frac,test_MSAs= data_dict["full_test_data_err"]["msa_path"])
+    time_model = ML_model(X_train=data_dict["X_train_to,e"], groups=data_dict["train_MSAs_time"],
                           y_train=data_dict["y_train_time"], n_jobs=args.n_jobs, path=file_paths["time_model_path"],
                           classifier=False, name=str(sampling_frac), large_grid= args.large_grid, do_RFE= args.do_RFE,n_cv_folds= args.n_CV_folds)
-    print_model_statistics(model=time_model, train_X=data_dict["X_train"], test_X=data_dict["X_test"],
+    print_model_statistics(model=time_model, train_X=data_dict["X_train_time"], test_X=data_dict["X_test_time"],
                            y_train=data_dict["y_train_time"],
                            y_test=data_dict["y_test_time"], is_classification=False, vi_path=file_paths["time_vi"],metrics_path = file_paths["time_metrics"],group_metrics_path=file_paths["time_group_metrics"],
-                           name=f"Time regression model frac={sampling_frac}", sampling_frac = sampling_frac,test_MSAs= data_dict["full_test_data"]["msa_path"])
+                           name=f"Time regression model frac={sampling_frac}", sampling_frac = sampling_frac,test_MSAs= data_dict["full_test_data_time"]["msa_path"])
 
     return time_model,error_model
 
 
 
-def apply_single_tree_models_on_data(full_data,X, time_model,error_model,singletree_out_path):
-        time_data = time_model['selector'].transform(X)
-        full_data["predicted_time"] = time_model['best_model'].predict(time_data)
-        error_data = error_model['selector'].transform(X)
-        full_data["predicted_calibrated_failure_probabilities"] = error_model['calibrated_model'].predict_proba(
+def apply_single_tree_models_on_data(full_data_err,full_data_time,X_err,X_time,time_model,error_model,singletree_out_path_err,singletree_out_path_time):
+        time_data = time_model['selector'].transform(X_time)
+        full_data_time["predicted_time"] = time_model['best_model'].predict(time_data)
+        error_data = error_model['selector'].transform(X_err)
+        full_data_err["predicted_calibrated_failure_probabilities"] = error_model['calibrated_model'].predict_proba(
             error_data)[:,
                                                                   0]
 
-        full_data["predicted_uncalibrated_failure_probabilities"] = error_model[
+        full_data_err["predicted_uncalibrated_failure_probabilities"] = error_model[
                                                                         'best_model'].predict_proba(
             error_data)[:,
                                                                     0]
-        full_data.to_csv(singletree_out_path, sep=CSV_SEP)
-        return full_data
+        full_data_err.to_csv(singletree_out_path_err, sep=CSV_SEP)
+        full_data_time.to_csv(singletree_out_path_time, sep=CSV_SEP)
+
 
 
 
@@ -159,6 +168,11 @@ def main():
     if args.filter_pandit:
         logging.info("Only filtering on Pandit datasets")
         features_data = features_data.loc[features_data.msa_path.str.contains('Pandit')]
+    features_data["Source"] = features_data["msa_path"].apply(lambda x: 'Pandit' if 'Pandit' in x else 'Selectome')
+    msa_check_reliability = features_data.groupby("msa_path").agg(min_test_time = ('test_norm_const', np.min),max_test_time = ('test_norm_const', np.max),
+                                          min_time=('elapsed_running_time', np.min),max_time=('elapsed_running_time', np.max)).reset_index()
+    msa_check_reliability["non_reliable_timings"] = (msa_check_reliability["max_test_time"]/msa_check_reliability["min_test_time"]>3) |( msa_check_reliability["max_time"]/msa_check_reliability["min_time"]>100) | (msa_check_reliability["max_test_time"]>np.percentile(msa_check_reliability["max_test_time"], 90))
+    features_data = features_data.merge(msa_check_reliability, on = "msa_path")
 
     embedding_features = [col for col in  features_data.columns if ('mds' in col or 'lle' in col in col or 'PCA' in col or 'TSNE' in col or 'iso' in col) ]
     excluded_features = [f for f in embedding_features if 'time' in f]
@@ -216,15 +230,17 @@ def main():
         time_model, error_model = generate_single_tree_models(data_dict, file_paths, args,sampling_frac)
 
     logging.info("Using model to predict on test data")
-    test_data = apply_single_tree_models_on_data(data_dict["full_test_data"], data_dict["X_test"], time_model, error_model,
-                                     file_paths["test_single_tree_data"])
+    test_data = apply_single_tree_models_on_data(data_dict["full_test_data_err"],data_dict["full_test_data_time"], data_dict["X_test_err"],data_dict["X_test_time"], time_model, error_model,
+                                     file_paths["test_single_tree_data_err"],file_paths["test_single_tree_data_time"])
     logging.info("Using model to predict on validation data")
     if len(data_dict["full_validation_data"].index)>0:
-        validation_data = apply_single_tree_models_on_data(data_dict["full_validation_data"], data_dict["X_val"], time_model,
+        validation_data = apply_single_tree_models_on_data(data_dict["full_validation_data_err"], data_dict["full_validation_data_time"],
+                                                     data_dict["X_val_err"], data_dict["X_val_time"], time_model,
                                                      error_model,
-                                                     file_paths["validation_single_tree_data"])
+                                                     file_paths["validation_single_tree_data_err"],
+                                                     file_paths["validation_single_tree_data_time"])
 
-    default_by_params_data_performance = get_default_performance(edited_data["default_by_params"], args, data_dict["full_test_data"], out_path= file_paths["default_by_params_path"])
+    #default_by_params_data_performance = get_default_performance(edited_data["default_by_params"], args, data_dict["full_test_data"], out_path= file_paths["default_by_params_path"])
 
 
 
