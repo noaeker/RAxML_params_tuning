@@ -206,11 +206,14 @@ def main():
     os.mkdir(curr_run_dir)
     relevant_data = pd.read_csv(args.file_path, sep = '\t')
     if args.filter_on_default_data:
-        relevant_data = relevant_data[relevant_data["type"] == "default"]
+        if not LOCAL_RUN:
+            relevant_data = relevant_data[relevant_data["type"] == "default"]
+        else:
+            relevant_data = relevant_data.loc[relevant_data.equal_to_default_config]
     relevant_data["is_global_max"] = (relevant_data["delta_ll_from_overall_msa_best_topology"] <= 0.1).astype('int')
-    relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
-    msas = relevant_data["msa_path"].unique()[:10]
-    relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
+    #relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
+    #msas = relevant_data["msa_path"].unique()[:10]
+    #relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
     log_file_path = os.path.join(curr_run_dir,"log_file")
     logging.basicConfig(filename=log_file_path, level=logging.INFO)
