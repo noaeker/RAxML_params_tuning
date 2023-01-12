@@ -188,6 +188,26 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
     return default_results
 
 
+def generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path):
+    msa_res = {}
+    raxml_trash_dir = os.path.join(curr_run_dir, 'raxml_trash')
+    create_dir_if_not_exists(raxml_trash_dir)
+    for msa_path in relevant_data["msa_path"].unique():
+        msa_n_seq = max(relevant_data.loc[relevant_data.msa_path == msa_path]["feature_msa_n_seq"])
+        pars_path = generate_n_tree_topologies(args.n_pars_trees_sample, get_local_path(msa_path), raxml_trash_dir,
+                                               seed=1, tree_type='pars', msa_type='AA')
+        with open(pars_path) as trees_path:
+            newicks = trees_path.read().split("\n")
+            pars = [t for t in newicks if len(t) > 0]
+            MDS_res = perform_MDS(curr_run_dir, pars, msa_n_seq)
+            MDS_raw = MDS_res.iloc[0]
+            mean_dist_raw = MDS_res.iloc[1]
+            msa_res[msa_path] = {'MDS_raw': MDS_raw, 'mean_dist_raw': mean_dist_raw, 'pars_trees': pars}
+            create_or_clean_dir(raxml_trash_dir)
+    with open(msa_res_path, 'wb') as MSA_RES:
+        pickle.dump(msa_res, MSA_RES)
+    return msa_res
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -200,6 +220,7 @@ def main():
     parser.add_argument('--n_pars_trees_sample',type=int, default=50)
     parser.add_argument('--name', type=str, default="groups_run")
     parser.add_argument('--filter_on_default_data',action = 'store_true', default= False)
+    parser.add_argument('--n_jobs', type=int, default= 1)
 
     args = parser.parse_args()
     curr_run_dir = os.path.join(args.curr_working_dir, args.name)
@@ -218,40 +239,26 @@ def main():
     log_file_path = os.path.join(curr_run_dir,"log_file")
     logging.basicConfig(filename=log_file_path, level=logging.INFO)
 
-    msa_res = {}
-    msa_res_path = os.path.join(curr_run_dir,'msa_res')
-    if os.path.exists(msa_res_path):
-        msa_res = pickle.load(open(msa_res_path,"rb"))
-    else:
-        raxml_trash_dir = os.path.join(curr_run_dir, 'raxml_trash')
-        create_dir_if_not_exists(raxml_trash_dir)
-        for msa_path in relevant_data["msa_path"].unique():
-            msa_n_seq = max(relevant_data.loc[relevant_data.msa_path==msa_path]["feature_msa_n_seq"])
-            pars_path = generate_n_tree_topologies(args.n_pars_trees_sample, get_local_path(msa_path), raxml_trash_dir,
-                                                   seed=1, tree_type='pars', msa_type='AA')
-            with open(pars_path) as trees_path:
-                newicks = trees_path.read().split("\n")
-                pars = [t for t in newicks if len(t) > 0]
-                MDS_res = perform_MDS(curr_run_dir, pars, msa_n_seq)
-                MDS_raw = MDS_res.iloc[0]
-                mean_dist_raw = MDS_res.iloc[1]
-                msa_res[msa_path] = {'MDS_raw':MDS_raw, 'mean_dist_raw': mean_dist_raw, 'pars_trees': pars}
-                create_or_clean_dir(raxml_trash_dir)
-        with open(msa_res_path,'wb') as MSA_RES:
-            pickle.dump(msa_res, MSA_RES)
-
-    logging.info(f"MSA res is of len {len(msa_res)}")
+    #msa_res = {}
+    #msa_res_path = os.path.join(curr_run_dir,'msa_res')
+    #if os.path.exists(msa_res_path):
+    #    msa_res = pickle.load(open(msa_res_path,"rb"))
+    #else:
+    #    msa_res = generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path)
+    #logging.info(f"MSA res is of len {len(msa_res)}")
     if not os.path.exists(results_path):
+        logging.info("Generating results file")
         results = get_average_results_on_default_configurations_per_msa(curr_run_dir,relevant_data, n_sample_points=args.n_iterations, seed=1, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, MSA_res= msa_res)
         results["n_pars_trees"] = args.n_pars_trees
         results["n_rand_trees"] = args.n_rand_trees
-        results.to_csv(os.path.join(curr_run_dir,'group_results.tsv'), sep= '\t')
+        results.to_csv(results_path, sep= '\t')
     else:
+        logging.info("Reading existing results file")
         results = pd.read_csv(results_path, sep = '\t', index_col= False)
 
 
-    results["feature_mds_raw_on_pars_trees"] = results["msa_path"].apply(lambda x: msa_res[x]['MDS_raw'])
-    results["feature_mean_dist_raw_on_pars_trees"] = results["msa_path"].apply(lambda x: msa_res[x]['mean_dist_raw'])
+    #results["feature_mds_raw_on_pars_trees"] = results["msa_path"].apply(lambda x: msa_res[x]['MDS_raw'])
+    #results["feature_mean_dist_raw_on_pars_trees"] = results["msa_path"].apply(lambda x: msa_res[x]['mean_dist_raw'])
     results["feature_mean_ll_pars_vs_rand"] = results["feature_mean_pars_ll_diff"]/results["feature_mean_rand_ll_diff"]
     results["feature_var_ll_pars_vs_rand"] = results["feature_var_pars_ll_diff"] / results[
         "feature_var_rand_ll_diff"]
@@ -263,9 +270,8 @@ def main():
     train, test, val = train_test_validation_splits(results,test_pct= 0.3, val_pct=0, msa_col_name = 'msa_path')
     #X_train = train[["feature_mean_rf_final_trees","feature_msa_n_seq","feature_msa_n_loci","feature_msa_pypythia_msa_difficulty"]]
     #X_test = test[["feature_mean_rf_final_trees","feature_msa_n_seq","feature_msa_n_loci","feature_msa_pypythia_msa_difficulty"]]
-    X_train = train[[col for col in train.columns if col.startswith('feature') and 'mds' not in col and 'raw' not in col ]+
-    ['feature_mds_rf_dist_final_trees_raw']]
-    X_test = test[[col for col in train.columns if col.startswith('feature') and 'mds' not in col and 'raw' not in col   ]+['feature_mds_rf_dist_final_trees_raw']]#+['mean_predicted_failure']
+    X_train = train[[col for col in train.columns if col.startswith('feature') ]]
+    X_test = test[[col for col in train.columns if col.startswith('feature') ]]#+['mean_predicted_failure']
     y_train = train["default_status"]
     y_test = test["default_status"]
     groups = train["msa_path"]
@@ -275,7 +281,7 @@ def main():
     group_metrics_path = os.path.join(curr_run_dir, 'group_classification_group_metrics.tsv')
     #final_csv_path = os.path.join(curr_run_dir,"performance_on_test.tsv")
 
-    model = ML_model(X_train, groups, y_train, n_jobs = 1, path = model_path, classifier=True, model='lightgbm', calibrate=True, name="", large_grid = False, do_RFE = True, n_cv_folds = 3)
+    model = ML_model(X_train, groups, y_train, n_jobs = args.n_jobs, path = model_path, classifier=True, model='lightgbm', calibrate=True, name="", large_grid = args.large_grid, do_RFE = True, n_cv_folds = 3)
     #model = lightgbm.LGBMClassifier().fit(X_train, y_train)
     #model = LogisticRegressionCV(random_state=0).fit(X_train, y_train)
     #predicted_proba_test = model['best_model'].predict_proba((model['selector'].transform(X_test)))[:, 1]
