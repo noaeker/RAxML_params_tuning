@@ -170,7 +170,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
         pars_run_metrics = sampled_data.loc[sampled_data.starting_tree_type=='pars'].groupby('msa_path').agg(feature_mean_pars_ll_diff = ('log_likelihood_diff', np.mean),feature_var_pars_ll_diff = ('log_likelihood_diff', np.var), feature_mean_pars_rf_diff = ('start_vs_end', np.mean), feature_var_pars_vs_final_rf_diff = ('start_vs_end', np.var),feature_min_pars_vs_final_rf_diff = ('start_vs_end', np.min),feature_max_pars_vs_final_rf_diff = ('start_vs_end', np.max),  feature_pars_ll_skew=('feature_tree_optimized_ll', skew),
                                                 feature_pars_ll_kutosis=('feature_tree_optimized_ll', kurtosis), feature_mean_pars_global_max = ('is_best_tree', np.mean))
 
-        pars_final_corr = sampled_data.groupby('msa_path')[['final_ll','feature_tree_optimized_ll']].corr().unstack().iloc[:,1]
+        pars_final_corr = sampled_data.groupby('msa_path')[['final_ll','feature_tree_optimized_ll']].corr().unstack().iloc[:,1].reset_index()
         pars_final_corr.columns = ['msa_path','feature_corr_pars_final']
         rand_run_metrics = sampled_data.loc[sampled_data.starting_tree_type == 'rand'].groupby('msa_path').agg(
             feature_mean_rand_ll_diff=('log_likelihood_diff', np.mean),
