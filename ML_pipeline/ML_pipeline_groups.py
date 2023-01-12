@@ -223,6 +223,7 @@ def main():
     parser.add_argument('--name', type=str, default="groups_run")
     parser.add_argument('--filter_on_default_data',action = 'store_true', default= False)
     parser.add_argument('--n_jobs', type=int, default= 1)
+    parser.add_argument('--level', type=str, default='info')
 
     args = parser.parse_args()
     curr_run_dir = os.path.join(args.curr_working_dir, args.name)
@@ -239,7 +240,8 @@ def main():
     #relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
     log_file_path = os.path.join(curr_run_dir,"log_file")
-    logging.basicConfig(filename=log_file_path, level=logging.DEBUG)
+    level = logging.INFO if args.level=='info' else logging.DEBUG
+    logging.basicConfig(filename=log_file_path, level=level)
 
     #msa_res = {}
     #msa_res_path = os.path.join(curr_run_dir,'msa_res')
