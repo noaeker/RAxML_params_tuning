@@ -83,7 +83,7 @@ def estimate_entropy(vec):
     entropy = sum(list(map(lambda x: -x * np.log(x), probs)))
     return entropy
 
-def generate_distance_matrix_statistics(curr_run_directory,df, col_output,msa_res):
+def generate_distance_matrix_statistics(curr_run_directory,df, col_output):
     n_seq = np.max(df["feature_msa_n_seq"])
     best_tree_ind = df["is_best_tree"].reset_index().idxmax()[0]
     distance_mat_opt = generate_distance_matrix(curr_run_directory, df[col_output])/(2*n_seq-6)
@@ -120,7 +120,7 @@ def get_file_paths(args):
 
 
 
-def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_data, n_sample_points, seed, n_pars, n_rand, MSA_res
+def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_data, n_sample_points, seed, n_pars, n_rand
                                                           ):
     msa_level_cols = ["msa_path", "feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty"]
     tree_level_cols = ["starting_tree_type","starting_tree_object","final_tree_topology","delta_ll_from_overall_msa_best_topology","is_global_max", "feature_tree_optimized_ll","final_ll"]
@@ -148,7 +148,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
         sampled_data["start_vs_end"] = get_rf_dist_between_cols(sampled_data["starting_tree_object"],sampled_data["final_tree_topology"], curr_run_dir)
         sampled_data["normalized_final_ll"] = sampled_data.groupby('msa_path')["final_ll"].transform(lambda x: (x-x.mean()/x.std()))
         #sampled_data["final_o"] = sampled_data["final_tree_topology"].apply(lambda x:Tree(x, format=1))
-        distance_matrix_summary_statistics = sampled_data.groupby('msa_path').apply(lambda x:generate_distance_matrix_statistics(curr_run_dir,x, col_output = 'final_tree_topology',msa_res = MSA_res)).reset_index()
+        distance_matrix_summary_statistics = sampled_data.groupby('msa_path').apply(lambda x:generate_distance_matrix_statistics(curr_run_dir,x, col_output = 'final_tree_topology')).reset_index()
 
         distance_matrix_summary_statistics.columns = ["msa_path","feature_DBSCAN_best_tree_outlier", "feature_DBSCAN_pct_non_outliers","feature_DBSCAN_number_of_clusters","feature_DBSCAN_pct_of_best_tree_cluster"]
         general_run_metrics = sampled_data.groupby(
@@ -248,7 +248,7 @@ def main():
     #logging.info(f"MSA res is of len {len(msa_res)}")
     if not os.path.exists(results_path):
         logging.info("Generating results file")
-        results = get_average_results_on_default_configurations_per_msa(curr_run_dir,relevant_data, n_sample_points=args.n_iterations, seed=1, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, MSA_res= msa_res)
+        results = get_average_results_on_default_configurations_per_msa(curr_run_dir,relevant_data, n_sample_points=args.n_iterations, seed=1, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees)
         results["n_pars_trees"] = args.n_pars_trees
         results["n_rand_trees"] = args.n_rand_trees
         results.to_csv(results_path, sep= '\t')
