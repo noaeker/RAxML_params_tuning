@@ -237,7 +237,7 @@ def main():
     #relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
     log_file_path = os.path.join(curr_run_dir,"log_file")
-    logging.basicConfig(filename=log_file_path, level=logging.DEBUG)
+    logging.basicConfig(filename=log_file_path, level=logging.INFO)
 
     #msa_res = {}
     #msa_res_path = os.path.join(curr_run_dir,'msa_res')
