@@ -199,7 +199,7 @@ def main():
     parser.add_argument('--n_iterations', action='store', type=int, default=10)
     parser.add_argument('--n_pars_trees_sample',type=int, default=50)
     parser.add_argument('--name', type=str, default="groups_run")
-    parser.add_argument('--filter_on_default_data', type = bool, default= False)
+    parser.add_argument('--filter_on_default_data',action = 'store_true', type = bool, default= False)
 
     args = parser.parse_args()
     curr_run_dir = os.path.join(args.curr_working_dir, args.name)
