@@ -45,6 +45,7 @@ class GENERAL_RAXML_ERROR(Exception):
 
 def extract_param_from_raxmlNG_log(raxml_log_path, param_name, raise_error=True):
     with open(raxml_log_path) as raxml_log_file:
+        logging.debug(f"Opened succesfully file {raxml_log_path}")
         data = raxml_log_file.read()
         if (param_name == "alpha"):
             pattern = r'alpha: ([\d.]+)'

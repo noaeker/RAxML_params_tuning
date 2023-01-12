@@ -54,7 +54,9 @@ def IQR(values):
 def get_rf_dist_between_cols(tree_a, tree_b, curr_run_dir):
     rf_dists=[]
     for start_tree, out_tree in zip(tree_a, tree_b):
-        rf_dists.append (rf_distance(curr_run_dir, start_tree, out_tree, name="start_vs_final"))
+        rf_distance = rf_distance(curr_run_dir, start_tree, out_tree, name="start_vs_final")
+        logging.debug(f"RF dist = {rf_distance}")
+        rf_dists.append(rf_distance)
     return rf_dists
 
 def generate_distance_matrix(curr_run_directory, overall_trees):
@@ -237,7 +239,7 @@ def main():
     #relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
     log_file_path = os.path.join(curr_run_dir,"log_file")
-    logging.basicConfig(filename=log_file_path, level=logging.INFO)
+    logging.basicConfig(filename=log_file_path, level=logging.DEBUG)
 
     #msa_res = {}
     #msa_res_path = os.path.join(curr_run_dir,'msa_res')
