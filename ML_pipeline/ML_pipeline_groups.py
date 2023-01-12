@@ -199,11 +199,14 @@ def main():
     parser.add_argument('--n_iterations', action='store', type=int, default=10)
     parser.add_argument('--n_pars_trees_sample',type=int, default=50)
     parser.add_argument('--name', type=str, default="groups_run")
+    parser.add_argument('--filter_on_default_data', type = bool, default= False)
 
     args = parser.parse_args()
     curr_run_dir = os.path.join(args.curr_working_dir, args.name)
     os.mkdir(curr_run_dir)
     relevant_data = pd.read_csv(args.file_path, sep = '\t')
+    if args.filter_on_default_data:
+        relevant_data = relevant_data[relevant_data["type"] == "default"]
     relevant_data["is_global_max"] = (relevant_data["delta_ll_from_overall_msa_best_topology"] <= 0.1).astype('int')
     relevant_data = relevant_data.loc[relevant_data.equal_to_default_config]
     relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
