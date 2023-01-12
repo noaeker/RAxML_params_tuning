@@ -208,7 +208,6 @@ def main():
     if args.filter_on_default_data:
         relevant_data = relevant_data[relevant_data["type"] == "default"]
     relevant_data["is_global_max"] = (relevant_data["delta_ll_from_overall_msa_best_topology"] <= 0.1).astype('int')
-    relevant_data = relevant_data.loc[relevant_data.equal_to_default_config]
     relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
     msas = relevant_data["msa_path"].unique()[:10]
     relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
