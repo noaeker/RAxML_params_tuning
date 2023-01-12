@@ -100,6 +100,32 @@ def get_average_results_on_default_configurations_per_msa(default_data, n_sample
     return default_results
 
 
+
+
+def get_average_results_on_default_configurations_per_msa(default_data, n_sample_points, seed, n_trees
+                                                          ):
+    default_results = pd.DataFrame()
+    for i in range(n_sample_points):
+        seed = seed + 1
+        sampled_data = default_data.sample(n=n_trees, random_state=seed)
+
+        run_metrics = sampled_data.groupby(
+            by=["msa_path", "best_msa_ll"]).agg(default_final_err = ('delta_ll_from_overall_msa_best_topology', np.min),
+                                                default_status = ('is_global_max',np.max), default_total_time = ('normalized_relative_time', np.sum),
+                                                ).reset_index()
+
+        diff_topologies = sampled_data.groupby(
+            by=["msa_path", "best_msa_ll",'tree_clusters_ind']).max().reset_index()
+        diff_topologies_run_metrics = diff_topologies.groupby(
+            by=["msa_path"]).agg(
+                                                default_n_distinct_topologies=(
+                                                'tree_clusters_ind', np.count_nonzero)).reset_index().drop(columns = ['msa_path'])
+
+        all_default_metrics = pd.concat([diff_topologies_run_metrics,run_metrics], axis = 1)
+        default_results = default_results.append(all_default_metrics )
+    return default_results
+
+
 #
 # def get_best_parsimony_config_per_cluster(curr_run_directory, best_configuration_per_starting_tree_pars, normalizing_const, max_dist_options):
 #     logging.debug(f"Clustering parsimony trees based on distances:{max_dist_options} ")

@@ -50,10 +50,10 @@ def score_func(y, y_pred, classification, groups_data):
 
 def RFE(model, X, y, group_splitter, n_jobs, scoring, do_RFE):
     if do_RFE:
-        min_features = 30
+        min_features = 3
     else:
         min_features = X.shape[1]
-    selector = RFECV(model, step=2, cv=group_splitter, n_jobs=n_jobs, min_features_to_select=min_features,
+    selector = RFECV(model, step=1, cv=group_splitter, n_jobs=n_jobs, min_features_to_select=min_features,
                      scoring=scoring)  # min_features_to_select= 30,X.shape[1] X.shape[1]
     selector = selector.fit(X, y.ravel())
     model = selector.estimator
@@ -125,21 +125,22 @@ def print_model_statistics(model, train_X, test_X,val_X, y_train, y_test,y_val, 
         logging.info(f"{name} variable importance: \n {var_impt}")
     predicted_train = model['best_model'].predict((model['selector']).transform(train_X))
     predicted_test = model['best_model'].predict((model['selector']).transform(test_X))
-    predicted_val = model['best_model'].predict((model['selector']).transform(val_X))
+    #if val_X:
+    #    predicted_val = model['best_model'].predict((model['selector']).transform(val_X))
     if is_classification:
         predicted_proba_train = model['best_model'].predict_proba((model['selector']).transform(train_X))[:, 1]
         predicted_proba_test = model['best_model'].predict_proba((model['selector']).transform(test_X))[:, 1]
-        predicted_proba_val = model['best_model'].predict_proba((model['selector']).transform(val_X))[:, 1]
+        #if val_X:
+        #    predicted_proba_val = model['best_model'].predict_proba((model['selector']).transform(val_X))[:, 1]
     else:
         predicted_proba_train = predicted_train
         predicted_proba_test = predicted_test
-        predicted_proba_val = predicted_val
+        #predicted_proba_val = predicted_val
     groups_data_test = test_X[
-        ["feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty", "starting_tree_bool"]]
+        ["feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty"]]
 
     groups_dict_test = {'msa_difficulty_group': pd.qcut(groups_data_test["feature_msa_pypythia_msa_difficulty"], 4),
                         "n_seq_group": pd.qcut(groups_data_test["feature_msa_n_seq"], 4),
-                        "starting_tree_type_bool": groups_data_test["starting_tree_bool"],
                         "feature_msa_n_loci": pd.qcut(groups_data_test["feature_msa_n_loci"], 4)}
 
     train_metrics = model_metrics(y_train, predicted_train, predicted_proba_train, group_metrics_path, sampling_frac,
@@ -148,12 +149,12 @@ def print_model_statistics(model, train_X, test_X,val_X, y_train, y_test,y_val, 
     test_metrics = model_metrics(y_test, predicted_test, predicted_proba_test, group_metrics_path, sampling_frac,
                                  is_classification=is_classification, groups_data=groups_dict_test)
 
-    validation_metrics = model_metrics(y_val, predicted_val, predicted_proba_val, group_metrics_path, sampling_frac,
-                                 is_classification=is_classification, groups_data=None)
+    #validation_metrics = model_metrics(y_val, predicted_val, predicted_proba_val, group_metrics_path, sampling_frac,
+    #                             is_classification=is_classification, groups_data=None)
 
     logging.info(f"{name} train metrics: \n {train_metrics}")
     logging.info(f"{name} test metrics: \n {test_metrics}")
-    logging.info(f"{name} validation metrics: \n {validation_metrics}")
+    #logging.info(f"{name} validation metrics: \n {validation_metrics}")
 
     train_metrics.update(test_metrics)
     train_metrics = pd.DataFrame.from_dict([train_metrics])
@@ -206,7 +207,7 @@ def train_test_validation_splits(full_data, test_pct, val_pct, msa_col_name="msa
         logging.info(f"New Number of MSAs in full data is {len(full_data.msa_path.unique())}")
     validation_data = full_data.loc[(full_data[msa_col_name].str.contains("Single_gene_PROTEIN") | full_data[msa_col_name].str.contains("Single_gene_DNA"))]
     logging.info(f"Number of MSAs in validation data is {len(validation_data.msa_path.unique())}")
-    logging.info(f"Number of overall positive samples in validation: {len(validation_data.loc[validation_data.is_global_max == 1].index)}, Number of overall negative samples in validation is {len(validation_data.loc[validation_data.is_global_max == 0].index)}")
+    #logging.info(f"Number of overall positive samples in validation: {len(validation_data.loc[validation_data.is_global_max == 1].index)}, Number of overall negative samples in validation is {len(validation_data.loc[validation_data.is_global_max == 0].index)}")
     full_data = full_data.loc[~(full_data[msa_col_name].str.contains("Single_gene_PROTEIN") | full_data[msa_col_name].str.contains("Single_gene_DNA"))]
     np.random.seed(SEED)
     logging.info("Partitioning MSAs according to number of sequences")
@@ -221,10 +222,10 @@ def train_test_validation_splits(full_data, test_pct, val_pct, msa_col_name="msa
         train_msas = train_msas.groupby('msa_n_seq').sample(frac=subsample_train_frac, random_state=SEED)
     train_data = full_data[full_data[msa_col_name].isin(train_msas['msa'])]
     logging.info(f"Number of MSAs in training data is {len(train_data.msa_path.unique())}")
-    logging.info(f"Number of overall positive samples in train: {len(train_data.loc[train_data.is_global_max == 1].index)}, Number of overall negative samples in test {len(train_data.loc[train_data.is_global_max == 0].index)}")
+    #logging.info(f"Number of overall positive samples in train: {len(train_data.loc[train_data.is_global_max == 1].index)}, Number of overall negative samples in test {len(train_data.loc[train_data.is_global_max == 0].index)}")
     test_data = full_data[full_data[msa_col_name].isin(test_msas['msa'])]
     logging.info(f"Number of MSAs in test data is {len(test_data.msa_path.unique())}")
-    logging.info(f"Number of overall positive samples in test: {len(test_data.loc[test_data.is_global_max == 1].index)}, Number of overall negative samples in test {len(test_data.loc[test_data.is_global_max == 0].index)}")
+    #logging.info(f"Number of overall positive samples in test: {len(test_data.loc[test_data.is_global_max == 1].index)}, Number of overall negative samples in test {len(test_data.loc[test_data.is_global_max == 0].index)}")
     return train_data, test_data, validation_data
 
 

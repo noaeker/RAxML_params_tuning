@@ -124,6 +124,7 @@ def apply_single_tree_models_on_data(full_data_err,full_data_time,X_err,X_time,t
                                                                     0]
         full_data_err.to_csv(singletree_out_path_err, sep=CSV_SEP)
         full_data_time.to_csv(singletree_out_path_time, sep=CSV_SEP)
+        return full_data_time, full_data_err
 
 
 
@@ -224,6 +225,8 @@ def main():
         enriched_features_data.to_csv(file_paths["ML_edited_features_path"], sep=CSV_SEP)
         #enriched_default_data.to_csv(file_paths["ML_edited_default_data_path"], sep=CSV_SEP)
 
+    get_average_results_on_default_configurations_per_msa(edited_data["default_by_params"], n_sample_points=10, seed=1, n_trees=5
+                                                          )
     training_fracs = args.different_training_sizes if args.test_different_training_sizes else [-1]
 
     for sampling_frac in training_fracs:
@@ -232,17 +235,18 @@ def main():
         time_model, error_model = generate_single_tree_models(data_dict, file_paths, args,sampling_frac)
 
     logging.info("Using model to predict on test data")
-    test_data = apply_single_tree_models_on_data(data_dict["full_test_data_err"],data_dict["full_test_data_time"], data_dict["X_test_err"],data_dict["X_test_time"], time_model, error_model,
+    full_data_time, full_data_err = apply_single_tree_models_on_data(data_dict["full_test_data_err"],data_dict["full_test_data_time"], data_dict["X_test_err"],data_dict["X_test_time"], time_model, error_model,
                                      file_paths["test_single_tree_data_err"],file_paths["test_single_tree_data_time"])
     logging.info("Using model to predict on validation data")
     if len(data_dict["full_validation_data_err"].index)>0 and len(data_dict["full_validation_data_time"].index)>0:
-        validation_data = apply_single_tree_models_on_data(data_dict["full_validation_data_err"], data_dict["full_validation_data_time"],
+        validation_data_time, validation_data_err = apply_single_tree_models_on_data(data_dict["full_validation_data_err"], data_dict["full_validation_data_time"],
                                                      data_dict["X_val_err"], data_dict["X_val_time"], time_model,
                                                      error_model,
                                                      file_paths["validation_single_tree_data_err"],
                                                      file_paths["validation_single_tree_data_time"])
 
-    #default_by_params_data_performance = get_default_performance(edited_data["default_by_params"], args, data_dict["full_test_data"], out_path= file_paths["default_by_params_path"])
+    default_by_params_data_performance = get_default_performance(edited_data["default_by_params"], args, data_dict["full_test_data"], out_path= file_paths["default_by_params_path"])
+
 
 
 
