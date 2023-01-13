@@ -123,10 +123,10 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid):
                              "feature_min_rf_pars_trees", "feature_max_rf_pars_trees", "feature_pars_dist"]
     if args.include_output_tree_features:
         logging.info("Including output features in model")
-        X_train = train[[col for col in train.columns if col.startswith('feature') and 'DBSCAN' not in col and 'corr' not in col]]
+        X_train = train[[col for col in train.columns if col.startswith('feature') and 'DBSCAN' not in col ]]
         X_test = test[[col for col in train.columns if
                        col.startswith('feature') and 'DBSCAN' not in col]]  # +['mean_predicted_failure']
-        X_val = val[[col for col in train.columns if col.startswith('feature') and 'DBSCAN' not in col] and 'corr' not in col]
+        X_val = val[[col for col in train.columns if col.startswith('feature') and 'DBSCAN' not in col]]
     else:
         X_train = train[known_output_features]
         X_test = test[known_output_features]
