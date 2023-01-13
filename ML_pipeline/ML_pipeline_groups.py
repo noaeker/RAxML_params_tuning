@@ -191,25 +191,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
     return default_results
 
 
-def generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path):
-    msa_res = {}
-    raxml_trash_dir = os.path.join(curr_run_dir, 'raxml_trash')
-    create_dir_if_not_exists(raxml_trash_dir)
-    for msa_path in relevant_data["msa_path"].unique():
-        msa_n_seq = max(relevant_data.loc[relevant_data.msa_path == msa_path]["feature_msa_n_seq"])
-        pars_path = generate_n_tree_topologies(args.n_pars_trees_sample, get_local_path(msa_path), raxml_trash_dir,
-                                               seed=1, tree_type='pars', msa_type='AA')
-        with open(pars_path) as trees_path:
-            newicks = trees_path.read().split("\n")
-            pars = [t for t in newicks if len(t) > 0]
-            MDS_res = perform_MDS(curr_run_dir, pars, msa_n_seq)
-            MDS_raw = MDS_res.iloc[0]
-            mean_dist_raw = MDS_res.iloc[1]
-            msa_res[msa_path] = {'MDS_raw': MDS_raw, 'mean_dist_raw': mean_dist_raw, 'pars_trees': pars}
-            create_or_clean_dir(raxml_trash_dir)
-    with open(msa_res_path, 'wb') as MSA_RES:
-        pickle.dump(msa_res, MSA_RES)
-    return msa_res
+
 
 
 def main():

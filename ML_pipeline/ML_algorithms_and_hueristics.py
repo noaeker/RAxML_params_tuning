@@ -14,6 +14,7 @@ from matplotlib import pyplot
 from sklearn.model_selection import GridSearchCV, GroupKFold
 from sklearn.feature_selection import RFECV
 from sklearn.calibration import CalibratedClassifierCV, calibration_curve
+from sklearn.linear_model import LogisticRegressionCV
 
 
 
@@ -70,8 +71,9 @@ def ML_model(X_train, groups, y_train, n_jobs, path, classifier=False, model='li
         model = pickle.load(open(path, "rb"))
         return model
     else:
+        group_splitter = list(GroupKFold(n_splits=n_cv_folds).split(X_train, y_train.ravel(), groups=groups))
         if classifier:
-            model = lightgbm.LGBMClassifier()
+            model =lightgbm.LGBMClassifier(importance_type='gain')
             param_grid = CLASSIFICATION_PARAM_GRID
             if large_grid:
                 CLASSIFICATION_PARAM_GRID.update(GENERAL_PARAM_GRID)
@@ -80,7 +82,6 @@ def ML_model(X_train, groups, y_train, n_jobs, path, classifier=False, model='li
             param_grid = REGRESSION_PARAM_GRID
             if large_grid:
                 REGRESSION_PARAM_GRID.update(GENERAL_PARAM_GRID)
-        group_splitter = list(GroupKFold(n_splits=n_cv_folds).split(X_train, y_train.ravel(), groups=groups))
         if classifier:
             scoring = 'roc_auc'
         else:
@@ -120,7 +121,7 @@ def print_model_statistics(model, train_X, test_X,val_X, y_train, y_test,y_val, 
                            group_metrics_path, name, sampling_frac, test_MSAs, feature_importance=True):
     if feature_importance:
         var_impt = variable_importance(train_X.columns[model['selector'].get_support(indices=True)], model['best_model'])
-        if vi_path:
+        if vi_path and (sampling_frac==1 or sampling_frac==-1):
             var_impt.to_csv(vi_path, sep=CSV_SEP)
         logging.info(f"{name} variable importance: \n {var_impt}")
     predicted_train = model['best_model'].predict((model['selector']).transform(train_X))
@@ -135,7 +136,7 @@ def print_model_statistics(model, train_X, test_X,val_X, y_train, y_test,y_val, 
         predicted_proba_test = predicted_test
         predicted_proba_val = predicted_val
     groups_data_test = test_X[
-        ["feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty"]]
+        ["feature_msa_n_seq", "feature_msa_n_loci","feature_msa_pypythia_msa_difficulty"]]#
 
     groups_dict_test = {'msa_difficulty_group': pd.qcut(groups_data_test["feature_msa_pypythia_msa_difficulty"], 4),
                         "n_seq_group": pd.qcut(groups_data_test["feature_msa_n_seq"], 4),
@@ -158,7 +159,8 @@ def print_model_statistics(model, train_X, test_X,val_X, y_train, y_test,y_val, 
     train_metrics = pd.DataFrame.from_dict([train_metrics])
     train_metrics["sample_fraction"] = sampling_frac
     add_to_csv(csv_path=metrics_path, new_data=train_metrics)
-    # if is_classification:
+
+    #if is_classification:
     #    calibration_plot(model, test_X, y_test)
 
 
@@ -173,11 +175,11 @@ def add_to_csv(csv_path, new_data):
 
 def model_metrics(y_test, predictions, prob_predictions, metrics_path, sampling_frac, is_classification, groups_data):
     if is_classification:
-        if groups_data:
-            auc_per_group = score_func(y_test, prob_predictions, classification=True, groups_data=groups_data)
-            auc_per_group["sampling_frac"] = sampling_frac
-            add_to_csv(metrics_path, auc_per_group)
-            logging.info(auc_per_group)
+        if groups_data and (sampling_frac==1 or sampling_frac==-1):
+                auc_per_group = score_func(y_test, prob_predictions, classification=True, groups_data=groups_data)
+                auc_per_group["sampling_frac"] = sampling_frac
+                add_to_csv(metrics_path, auc_per_group)
+                logging.info(auc_per_group)
         # PrecisionRecallDisplay.from_predictions(y_test, prob_predictions)
         # plt.show()
         return {'AUC': roc_auc_score(y_test, prob_predictions),
@@ -186,7 +188,7 @@ def model_metrics(y_test, predictions, prob_predictions, metrics_path, sampling_
                 'precision': precision_score(y_test, predictions), 'recall': recall_score(y_test, predictions),
                 'mcc': matthews_corrcoef(y_test, predictions)}
     else:
-        if groups_data:
+        if groups_data and (sampling_frac==1 or sampling_frac==-1):
             r2_per_group = score_func(y_test, predictions, classification=False, groups_data=groups_data)
             r2_per_group["sampling_frac"] = sampling_frac
             add_to_csv(metrics_path, r2_per_group)

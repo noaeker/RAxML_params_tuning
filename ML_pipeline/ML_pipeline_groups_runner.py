@@ -47,6 +47,7 @@ import pandas as pd
 import os
 import numpy as np
 import time
+from ML_pipeline.ML_pipeline_groups import perform_MDS
 
 def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_folder,args):
     job_dict = {}
@@ -87,6 +88,72 @@ def finish_all_running_jobs(job_names):
     for job_name in job_names: # remove all remaining folders
             delete_current_job_cmd = f"qstat | grep {job_name} | xargs qdel"
             execute_command_and_write_to_log(delete_current_job_cmd, print_to_log=True)
+
+
+def generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path):
+    if os.path.exists(msa_res_path):
+        return pickle.load(open(msa_res_path,'rb'))
+    msa_res = {}
+    raxml_trash_dir = os.path.join(curr_run_dir, 'raxml_trash')
+    create_dir_if_not_exists(raxml_trash_dir)
+    for msa_path in relevant_data["msa_path"].unique():
+        print(msa_path)
+        msa_n_seq = max(relevant_data.loc[relevant_data.msa_path == msa_path]["feature_msa_n_seq"])
+        pars_path = generate_n_tree_topologies(100, get_local_path(msa_path), raxml_trash_dir,
+                                               seed=1, tree_type='pars', msa_type='AA')
+        with open(pars_path) as trees_path:
+            newicks = trees_path.read().split("\n")
+            pars = [t for t in newicks if len(t) > 0]
+            MDS_res = perform_MDS(curr_run_dir, pars, msa_n_seq)
+            MDS_raw = MDS_res.iloc[0]
+            mean_dist_raw = MDS_res.iloc[1]
+            msa_res[msa_path] = {'MDS_raw': MDS_raw, 'mean_dist_raw': mean_dist_raw, 'pars_trees': pars}
+            create_or_clean_dir(raxml_trash_dir)
+    with open(msa_res_path, 'wb') as MSA_RES:
+        pickle.dump(msa_res, MSA_RES)
+    return msa_res
+
+
+def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid):
+    name = f'M_frac_{sample_frac}_RFE_{RFE}_large_grid_{large_grid}_out_features_{args.include_output_tree_features}'
+    train, test, val = train_test_validation_splits(results, test_pct=0.3, val_pct=0, msa_col_name='msa_path',subsample_train=True, subsample_train_frac= sample_frac)
+
+    known_output_features = ["feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty",
+                             "feature_mds_pars","feature_pars_dist", "feature_var_rf_pars_trees", "feature_mean_rf_pars_trees",
+                             "feature_min_rf_pars_trees", "feature_max_rf_pars_trees", "feature_pars_dist"]
+    if args.include_output_tree_features:
+        logging.info("Including output features in model")
+        X_train = train[[col for col in train.columns if col.startswith('feature') and 'DBSCAN' not in col]]
+        X_test = test[[col for col in train.columns if
+                       col.startswith('feature') and 'DBSCAN' not in col]]  # +['mean_predicted_failure']
+        X_val = val[[col for col in train.columns if col.startswith('feature') and 'DBSCAN' not in col]]
+    else:
+        X_train = train[known_output_features]
+        X_test = test[known_output_features]
+        X_val = val[known_output_features]
+
+    y_train = train["default_status"]
+    y_test = test["default_status"]
+    y_val = val["default_status"]
+    groups = train["msa_path"]
+    model_path = os.path.join(curr_run_dir, 'group_classification_model')
+    vi_path = os.path.join(curr_run_dir, f'group_classification_vi_{name}.tsv')
+    metrics_path = os.path.join(curr_run_dir, 'group_classification_metrics.tsv')
+    group_metrics_path = os.path.join(curr_run_dir, 'group_classification_group_metrics.tsv')
+
+    model = ML_model(X_train, groups, y_train, n_jobs=args.n_jobs, path=model_path, classifier=True, model='lightgbm',
+                     calibrate=True, name=name, large_grid=large_grid, do_RFE=False, n_cv_folds=3)
+
+    print_model_statistics(model, X_train, X_test, X_val, y_train, y_test, y_val, is_classification=True,
+                           vi_path=vi_path,
+                           metrics_path=metrics_path,
+                           group_metrics_path=group_metrics_path, name=name, sampling_frac=sample_frac, test_MSAs=test["msa_path"],
+                           feature_importance=True)
+    if large_grid and RFE:
+        test["uncalibrated_prob"] = model['best_model'].predict_proba((model['selector']).transform(X_test))[:, 1]
+        test["calibrated_prob"] = model['calibrated_model'].predict_proba((model['selector']).transform(X_test))[:, 1]
+        final_csv_path = os.path.join(curr_run_dir, "final_performance_on_test.tsv")
+        test.to_csv(final_csv_path, sep='\t')
 
 
 def main():
@@ -138,34 +205,23 @@ def main():
         logging.info("Reading existing results file")
         results = pd.read_csv(results_path, sep = '\t', index_col= False)
 
-
+    msa_res_path = os.path.join(curr_run_dir, 'MSA_MDS')
+    MSA_res_dict = generate_calculations_per_MSA(curr_run_dir,  results, msa_res_path)
+    #results["feature_mds_pars_vs_final"] = np.log(results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw'])/results["feature_mds_rf_dist_final_trees_raw"])
+    results["feature_mds_pars"] = (results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw']) )
+    results["feature_pars_dist"] = results["msa_path"].apply(lambda x: MSA_res_dict[x]['mean_dist_raw'])
+    results["feature_pars_dist_vs_final_dist"] = results["msa_path"].apply(lambda x: MSA_res_dict[x]['mean_dist_raw'])/results["feature_mean_rf_dist_final_trees_raw"]
     results["feature_mean_ll_pars_vs_rand"] = results["feature_mean_pars_ll_diff"] / results[
         "feature_mean_rand_ll_diff"]
     results["feature_var_ll_pars_vs_rand"] = results["feature_var_pars_ll_diff"] / results[
         "feature_var_rand_ll_diff"]
-    train, test, val = train_test_validation_splits(results,test_pct= 0.3, val_pct=0, msa_col_name = 'msa_path')
-    #X_train = train[["feature_mean_rf_final_trees","feature_msa_n_seq","feature_msa_n_loci","feature_msa_pypythia_msa_difficulty"]]
-    #X_test = test[["feature_mean_rf_final_trees","feature_msa_n_seq","feature_msa_n_loci","feature_msa_pypythia_msa_difficulty"]]
-    X_train = train[[col for col in train.columns if col.startswith('feature') ]]
-    X_test = test[[col for col in train.columns if col.startswith('feature') ]]#+['mean_predicted_failure']
-    X_val = val[[col for col in train.columns if col.startswith('feature') ]]
-    y_train = train["default_status"]
-    y_test = test["default_status"]
-    y_val = val["default_status"]
-    groups = train["msa_path"]
-    model_path = os.path.join(curr_run_dir,'group_classification_model')
-    vi_path=  os.path.join(curr_run_dir,'group_classification_vi.tsv')
-    metrics_path = os.path.join(curr_run_dir, 'group_classification_metrics.tsv')
-    group_metrics_path = os.path.join(curr_run_dir, 'group_classification_group_metrics.tsv')
-    #final_csv_path = os.path.join(curr_run_dir,"performance_on_test.tsv")
 
-    model = ML_model(X_train, groups, y_train, n_jobs = args.n_jobs, path = model_path, classifier=True, model='lightgbm', calibrate=True, name="", large_grid = args.large_grid, do_RFE = True, n_cv_folds = 3)
-    #model = lightgbm.LGBMClassifier().fit(X_train, y_train)
-    #model = LogisticRegressionCV(random_state=0).fit(X_train, y_train)
-    #predicted_proba_test = model['best_model'].predict_proba((model['selector'].transform(X_test)))[:, 1]
-    print_model_statistics(model, X_train, X_test, X_val, y_train, y_test, y_val, is_classification = True, vi_path=vi_path,
-                           metrics_path=metrics_path,
-                           group_metrics_path=group_metrics_path, name = "", sampling_frac = -1, test_MSAs = test["msa_path"], feature_importance=True)
+    for sample_frac in args.sample_fracs:
+        ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False)
+    ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=True, large_grid = True)
+
+
+
 
 if __name__ == "__main__":
     main()
