@@ -51,7 +51,9 @@ import time
 def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_folder,args):
     job_dict = {}
     msa_names = list(np.unique(raw_data["msa_path"]))
+    logging.info(f"Total number of MSAs to work on {len(msa_names)}")
     msa_splits = np.array_split(list(msa_names), min(args.n_jobs, len(msa_names)))
+    logging.info(f"Total number of jobs {len(msa_splits)}")
     for job_ind, job_msas in enumerate(msa_splits):
         logging.info(f"Submitting job {job_ind}")
         time.sleep(10)
@@ -110,8 +112,8 @@ def main():
             relevant_data = relevant_data.loc[relevant_data.equal_to_default_config]
     relevant_data["is_global_max"] = (relevant_data["delta_ll_from_overall_msa_best_topology"] <= 0.1).astype('int')
     relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
-    msas = relevant_data["msa_path"].unique()[:3]
-    relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
+    #msas = relevant_data["msa_path"].unique()[:3]
+    #relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
     if not os.path.exists(results_path):
         logging.info("Generating results file")
