@@ -125,17 +125,15 @@ def print_model_statistics(model, train_X, test_X,val_X, y_train, y_test,y_val, 
         logging.info(f"{name} variable importance: \n {var_impt}")
     predicted_train = model['best_model'].predict((model['selector']).transform(train_X))
     predicted_test = model['best_model'].predict((model['selector']).transform(test_X))
-    #if val_X:
-    #    predicted_val = model['best_model'].predict((model['selector']).transform(val_X))
+    predicted_val = model['best_model'].predict((model['selector']).transform(val_X))
     if is_classification:
         predicted_proba_train = model['best_model'].predict_proba((model['selector']).transform(train_X))[:, 1]
         predicted_proba_test = model['best_model'].predict_proba((model['selector']).transform(test_X))[:, 1]
-        #if val_X:
-        #    predicted_proba_val = model['best_model'].predict_proba((model['selector']).transform(val_X))[:, 1]
+        predicted_proba_val = model['best_model'].predict_proba((model['selector']).transform(val_X))[:, 1]
     else:
         predicted_proba_train = predicted_train
         predicted_proba_test = predicted_test
-        #predicted_proba_val = predicted_val
+        predicted_proba_val = predicted_val
     groups_data_test = test_X[
         ["feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty"]]
 
@@ -149,12 +147,12 @@ def print_model_statistics(model, train_X, test_X,val_X, y_train, y_test,y_val, 
     test_metrics = model_metrics(y_test, predicted_test, predicted_proba_test, group_metrics_path, sampling_frac,
                                  is_classification=is_classification, groups_data=groups_dict_test)
 
-    #validation_metrics = model_metrics(y_val, predicted_val, predicted_proba_val, group_metrics_path, sampling_frac,
-    #                             is_classification=is_classification, groups_data=None)
+    validation_metrics = model_metrics(y_val, predicted_val, predicted_proba_val, group_metrics_path, sampling_frac,
+                                 is_classification=is_classification, groups_data=None)
 
     logging.info(f"{name} train metrics: \n {train_metrics}")
     logging.info(f"{name} test metrics: \n {test_metrics}")
-    #logging.info(f"{name} validation metrics: \n {validation_metrics}")
+    logging.info(f"{name} validation metrics: \n {validation_metrics}")
 
     train_metrics.update(test_metrics)
     train_metrics = pd.DataFrame.from_dict([train_metrics])

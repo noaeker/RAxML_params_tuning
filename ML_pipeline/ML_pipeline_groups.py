@@ -23,6 +23,7 @@ from ML_pipeline.features_job_functions import feature_job_parser
 from sklearn.manifold import MDS, Isomap, TSNE, LocallyLinearEmbedding
 from side_code.config import *
 from side_code.file_handling import create_dir_if_not_exists
+from ML_pipeline.group_side_functions import *
 from ML_pipeline.side_functions import get_ML_parser
 from ML_pipeline.ML_pipeline_procedures import get_average_results_on_default_configurations_per_msa,edit_raw_data_for_ML
 from ML_pipeline.ML_algorithms_and_hueristics import ML_model, print_model_statistics, train_test_validation_splits,variable_importance
@@ -133,9 +134,9 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
         logging.info(f"i = {i}/{n_sample_points}")
         seed = seed + 1
         sampled_data_parsimony = default_data[default_data["starting_tree_type"] == "pars"].groupby(
-            by=msa_level_cols).sample(n=n_pars, random_state=seed)
+            by=msa_level_cols).sample(n=n_pars) #random_state=seed
         sampled_data_random = default_data[default_data["starting_tree_type"] == "rand"].groupby(
-            by=msa_level_cols).sample(n=n_rand, random_state=seed)
+            by=msa_level_cols).sample(n=n_rand) #random_state=seed
         sampled_data = pd.concat([sampled_data_random, sampled_data_parsimony])
 
         sampled_data['best_sample_ll'] = sampled_data.groupby('msa_path')['final_ll'].transform(max)
@@ -212,86 +213,25 @@ def generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--file_path', action='store', type=str,
-                        default="/Users/noa/Workspace/raxml_deep_learning_results/test_single_tree_data_err.tsv")
-    parser.add_argument('--curr_working_dir', default =  "/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test")
-    parser.add_argument('--n_pars_trees',action='store', type=int, default= 5 )
-    parser.add_argument('--n_rand_trees', action='store', type=int, default=5)
-    parser.add_argument('--n_iterations', action='store', type=int, default=10)
-    parser.add_argument('--n_pars_trees_sample',type=int, default=50)
-    parser.add_argument('--name', type=str, default="groups_run")
-    parser.add_argument('--filter_on_default_data',action = 'store_true', default= False)
-    parser.add_argument('--n_jobs', type=int, default= 1)
-    parser.add_argument('--level', type=str, default='info')
-
+    parser = group_job_parser()
     args = parser.parse_args()
-    curr_run_dir = os.path.join(args.curr_working_dir, args.name)
+    curr_run_dir = args.curr_job_folder
     create_dir_if_not_exists(curr_run_dir)
-    relevant_data = pd.read_csv(args.file_path, sep = '\t')
-    if args.filter_on_default_data:
-        if not LOCAL_RUN:
-            relevant_data = relevant_data[relevant_data["type"] == "default"]
-        else:
-            relevant_data = relevant_data.loc[relevant_data.equal_to_default_config]
-    relevant_data["is_global_max"] = (relevant_data["delta_ll_from_overall_msa_best_topology"] <= 0.1).astype('int')
+    relevant_data = pd.read_csv(args.curr_job_raw_path, sep = '\t')
     #relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
     #msas = relevant_data["msa_path"].unique()[:10]
     #relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
-    results_path = os.path.join(curr_run_dir,'group_results.tsv')
     log_file_path = os.path.join(curr_run_dir,"log_file")
     level = logging.INFO if args.level=='info' else logging.DEBUG
     logging.basicConfig(filename=log_file_path, level=level)
-
-    #msa_res = {}
-    #msa_res_path = os.path.join(curr_run_dir,'msa_res')
-    #if os.path.exists(msa_res_path):
-    #    msa_res = pickle.load(open(msa_res_path,"rb"))
-    #else:
-    #    msa_res = generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path)
-    #logging.info(f"MSA res is of len {len(msa_res)}")
-    if not os.path.exists(results_path):
-        logging.info("Generating results file")
-        results = get_average_results_on_default_configurations_per_msa(curr_run_dir,relevant_data, n_sample_points=args.n_iterations, seed=1, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees)
-        results["n_pars_trees"] = args.n_pars_trees
-        results["n_rand_trees"] = args.n_rand_trees
-        results.to_csv(results_path, sep= '\t')
-    else:
-        logging.info("Reading existing results file")
-        results = pd.read_csv(results_path, sep = '\t', index_col= False)
+    logging.info("Generating results file")
+    results = get_average_results_on_default_configurations_per_msa(curr_run_dir,relevant_data, n_sample_points=args.n_iterations, seed=1, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees)
+    results["n_pars_trees"] = args.n_pars_trees
+    results["n_rand_trees"] = args.n_rand_trees
+    results.to_csv(args.curr_job_group_output_path, sep= '\t')
 
 
-    #results["feature_mds_raw_on_pars_trees"] = results["msa_path"].apply(lambda x: msa_res[x]['MDS_raw'])
-    #results["feature_mean_dist_raw_on_pars_trees"] = results["msa_path"].apply(lambda x: msa_res[x]['mean_dist_raw'])
-    results["feature_mean_ll_pars_vs_rand"] = results["feature_mean_pars_ll_diff"]/results["feature_mean_rand_ll_diff"]
-    results["feature_var_ll_pars_vs_rand"] = results["feature_var_pars_ll_diff"] / results[
-        "feature_var_rand_ll_diff"]
 
-
-    #for col in results.columns:
-    #    if 'mds' in col:
-    #        results[col] = np.sqrt(results[col]+0.001)
-    train, test, val = train_test_validation_splits(results,test_pct= 0.3, val_pct=0, msa_col_name = 'msa_path')
-    #X_train = train[["feature_mean_rf_final_trees","feature_msa_n_seq","feature_msa_n_loci","feature_msa_pypythia_msa_difficulty"]]
-    #X_test = test[["feature_mean_rf_final_trees","feature_msa_n_seq","feature_msa_n_loci","feature_msa_pypythia_msa_difficulty"]]
-    X_train = train[[col for col in train.columns if col.startswith('feature') ]]
-    X_test = test[[col for col in train.columns if col.startswith('feature') ]]#+['mean_predicted_failure']
-    y_train = train["default_status"]
-    y_test = test["default_status"]
-    groups = train["msa_path"]
-    model_path = os.path.join(curr_run_dir,'group_classification_model')
-    vi_path=  os.path.join(curr_run_dir,'group_classification_vi.tsv')
-    metrics_path = os.path.join(curr_run_dir, 'group_classification_metrics.tsv')
-    group_metrics_path = os.path.join(curr_run_dir, 'group_classification_group_metrics.tsv')
-    #final_csv_path = os.path.join(curr_run_dir,"performance_on_test.tsv")
-
-    model = ML_model(X_train, groups, y_train, n_jobs = args.n_jobs, path = model_path, classifier=True, model='lightgbm', calibrate=True, name="", large_grid = args.large_grid, do_RFE = True, n_cv_folds = 3)
-    #model = lightgbm.LGBMClassifier().fit(X_train, y_train)
-    #model = LogisticRegressionCV(random_state=0).fit(X_train, y_train)
-    #predicted_proba_test = model['best_model'].predict_proba((model['selector'].transform(X_test)))[:, 1]
-    print_model_statistics(model, X_train, X_test, None, y_train, y_test, None, is_classification = True, vi_path=vi_path,
-                           metrics_path=metrics_path,
-                           group_metrics_path=group_metrics_path, name = "", sampling_frac = -1, test_MSAs = test["msa_path"], feature_importance=True)
 
 if __name__ == "__main__":
     main()
