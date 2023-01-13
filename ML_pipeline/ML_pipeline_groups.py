@@ -169,7 +169,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
         mean_rf_per_final_tree.columns = ['msa_path','feature_mean_rf_final_trees','feature_var_rf_final_trees','feature_min_rf_final_trees','feature_max_rf_final_trees','feature_25_rf_final_trees','feature_75_rf_final_trees']
         if n_pars>0:
             mean_rf_per_pars_starting_tree = sampled_data.loc[sampled_data.starting_tree_type=='pars'].groupby('msa_path').apply(lambda df: get_mean_rf_distance(curr_run_dir,df,col='starting_tree_object')).reset_index()
-        mean_rf_per_pars_starting_tree.columns = ['msa_path','feature_mean_rf_pars_trees','feature_var_rf_pars_trees','feature_min_rf_pars_trees','feature_max_rf_pars_trees','feature_25_rf_pars_trees','feature_75_rf_pars_trees']
+            mean_rf_per_pars_starting_tree.columns = ['msa_path','feature_mean_rf_pars_trees','feature_var_rf_pars_trees','feature_min_rf_pars_trees','feature_max_rf_pars_trees','feature_25_rf_pars_trees','feature_75_rf_pars_trees']
 
         pars_run_metrics = sampled_data.loc[sampled_data.starting_tree_type=='pars'].groupby('msa_path').agg(feature_mean_pars_ll_diff = ('log_likelihood_diff', np.mean),feature_var_pars_ll_diff = ('log_likelihood_diff', np.var), feature_mean_pars_rf_diff = ('start_vs_end', np.mean), feature_var_pars_vs_final_rf_diff = ('start_vs_end', np.var),feature_min_pars_vs_final_rf_diff = ('start_vs_end', np.min),feature_max_pars_vs_final_rf_diff = ('start_vs_end', np.max),  feature_pars_ll_skew=('feature_tree_optimized_ll', skew),
                                                 feature_pars_ll_kutosis=('feature_tree_optimized_ll', kurtosis), feature_mean_pars_global_max = ('is_best_tree', np.mean))
@@ -181,14 +181,14 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
             feature_var_rand_ll_diff=('log_likelihood_diff', np.var),
             feature_mean_rand_global_max=('is_best_tree', np.mean)
             )
-        general_run_metrics = general_run_metrics.merge(pars_final_corr, on = 'msa_path')
-        general_run_metrics = general_run_metrics.merge(mds_per_final_tree, on = 'msa_path')
-        general_run_metrics = general_run_metrics.merge(rand_run_metrics, on = 'msa_path')
-        general_run_metrics = general_run_metrics.merge(pars_run_metrics, on = 'msa_path')
-        general_run_metrics = general_run_metrics.merge(mean_rf_per_final_tree, on = 'msa_path')
+        general_run_metrics = general_run_metrics.merge(pars_final_corr, on = 'msa_path', how = 'left')
+        general_run_metrics = general_run_metrics.merge(mds_per_final_tree, on = 'msa_path',how = 'left')
+        general_run_metrics = general_run_metrics.merge(rand_run_metrics, on = 'msa_path',how = 'left')
+        general_run_metrics = general_run_metrics.merge(pars_run_metrics, on = 'msa_path',how = 'left')
+        general_run_metrics = general_run_metrics.merge(mean_rf_per_final_tree, on = 'msa_path',how = 'left')
         if n_pars>0:
-            general_run_metrics = general_run_metrics.merge(mean_rf_per_pars_starting_tree, on = 'msa_path')
-        general_run_metrics = general_run_metrics.merge(distance_matrix_summary_statistics, on = 'msa_path')
+            general_run_metrics = general_run_metrics.merge(mean_rf_per_pars_starting_tree, on = 'msa_path',how = 'left')
+        general_run_metrics = general_run_metrics.merge(distance_matrix_summary_statistics, on = 'msa_path',how = 'left')
         default_results = default_results.append(general_run_metrics)
     return default_results
 
