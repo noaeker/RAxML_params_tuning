@@ -179,8 +179,9 @@ def main():
             relevant_data = relevant_data.loc[relevant_data.equal_to_default_config]
     relevant_data["is_global_max"] = (relevant_data["delta_ll_from_overall_msa_best_topology"] <= 0.1).astype('int')
     relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
-    #msas = relevant_data["msa_path"].unique()[:3]
-    #relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
+    if LOCAL_RUN:
+        msas = relevant_data["msa_path"].unique()[:3]
+        relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
     if not os.path.exists(results_path):
         logging.info("Generating results file")
