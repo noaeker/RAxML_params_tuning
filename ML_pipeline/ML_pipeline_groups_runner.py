@@ -209,6 +209,8 @@ def main():
     msa_res_path = os.path.join(curr_run_dir, 'MSA_MDS')
     MSA_res_dict = generate_calculations_per_MSA(curr_run_dir,  results, msa_res_path)
     #results["feature_mds_pars_vs_final"] = np.log(results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw'])/results["feature_mds_rf_dist_final_trees_raw"])
+    results = results.loc[results.msa_path.isin(MSA_res_dict.keys())]
+    logging.info(f"Number of rows in results is {len(results.index)}")
     results["feature_mds_pars"] = (results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw']) )
     results["feature_pars_dist"] = results["msa_path"].apply(lambda x: MSA_res_dict[x]['mean_dist_raw'])
     results["feature_pars_dist_vs_final_dist"] = results["msa_path"].apply(lambda x: MSA_res_dict[x]['mean_dist_raw'])/results["feature_mean_rf_dist_final_trees_raw"]

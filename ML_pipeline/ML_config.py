@@ -1,10 +1,10 @@
 GENERAL_PARAM_GRID = {
     'n_estimators': [100,300],
     'max_depth': [-1,3,6,12],
-    'num_leaves': [25, 50, 100, 200],
+    'num_leaves': [25, 50, 100,150, 200],
     'learning_rate':[0.001,0.01,0.1],
-    #'reg_alpha': [0, 10, 25, 50, 100],
-    #'reg_lambda': [0, 10, 25, 50, 100],
+    'reg_alpha': [0, 10, 25, 50, 100],
+    'reg_lambda': [0, 10, 25, 50, 100],
     #'min_split_gain': [0.3, 0.4],
     'subsample': [0.6, 0.8, 1],
     'subsample_freq': [20],
