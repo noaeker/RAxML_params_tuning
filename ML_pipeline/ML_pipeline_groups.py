@@ -115,11 +115,7 @@ def get_summary_statistics_dict(feature_name, values, funcs={'mean': np.mean,'me
         res.update({f'{feature_name}_{func}': (funcs[func])(values)})
     return res
 
-def get_file_paths(args):
-    new_folder = os.path.join(args.baseline_folder, args.name)
-    create_dir_if_not_exists(new_folder)
-    return {"features_path": f"{args.baseline_folder}/all_features{CSV_SUFFIX}",
-            }
+
 
 
 

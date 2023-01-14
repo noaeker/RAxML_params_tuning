@@ -26,30 +26,32 @@ def execute_command_and_write_to_log(command, print_to_log=True):
         logging.debug(f"About to run: {command}")
     subprocess.run(command, shell=True, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 
-def generate_argument_list(args):
+def generate_argument_list(args, exclude = []):
     output = []
     for arg in vars(args):
-        if not type(getattr(args, arg)) == bool:
-            value = ["--" + arg, str(getattr(args, arg))]
-        elif (getattr(args, arg)) == True:
-            value = ["--" + arg]
-        else:
-            value = []
-        output = output + value
+        if args not in exclude:
+            if not type(getattr(args, arg)) == bool:
+                value = ["--" + arg, str(getattr(args, arg))]
+            elif (getattr(args, arg)) == True:
+                value = ["--" + arg]
+            else:
+                value = []
+            output = output + value
     print(output)
     return output
 
 
-def generate_argument_str(args):
+def generate_argument_str(args, exclude = []):
     output = ""
     for arg in vars(args):
-        if not type(getattr(args, arg)) == bool:
-            value = "--" + arg + " " + str(getattr(args, arg))
-        elif (getattr(args, arg)) == True:
-            value = "--" + arg
-        else:
-            value = ""
-        output = output + value + " "
+        if args not in exclude:
+            if not type(getattr(args, arg)) == bool:
+                value = "--" + arg + " " + str(getattr(args, arg))
+            elif (getattr(args, arg)) == True:
+                value = "--" + arg
+            else:
+                value = ""
+            output = output + value + " "
     return output.strip()
 
 def submit_linux_job(job_name, job_folder,job_log_path, run_command, cpus, job_ind="job", queue='pupkolab'):

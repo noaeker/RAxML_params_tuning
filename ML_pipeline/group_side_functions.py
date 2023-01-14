@@ -9,7 +9,7 @@ import numpy as np
 def group_main_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--file_path', action='store', type=str,
-                        default="/Users/noa/Workspace/raxml_deep_learning_results/test_single_tree_data_err.tsv")
+                        default="/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/all_features.tsv")
     parser.add_argument('--curr_working_dir',
                         default="/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test")
     parser.add_argument('--n_pars_trees', action='store', type=int, default=0)

@@ -10,16 +10,61 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 ```{r}
 library(tidyverse)
 library(ggpubr)
+library(pROC)
 ```
 
 
 ```{r}
-error_vs_size_5_5_including = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/5_5_including/group_classification_metrics.tsv")
+error_vs_size_5_5_including = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/groups_5_5_100/group_classification_metrics.tsv")
 error_vs_size__5_5_plt = error_vs_size_5_5_including %>% ggplot(aes(x=sample_fraction, y = AUC))+geom_line()+ expand_limits(y = 0.5)+xlab("Fraction of training-data")+ theme(text = element_text(size = 13))+ylab("AUC")+geom_point()
 
-error_vs_size__5_5_plt
+error_vs_group_5_5_including = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/groups_5_5_100/group_classification_group_metrics.tsv") 
+
+error_vs_group_5_5_including = error_vs_group_5_5_including %>% group_by(grouping_col_name) %>% mutate(rownum = row_number()) %>% mutate(Parameter = case_when(grouping_col_name=="n_seq_group"~"Number of sequences",grouping_col_name=="msa_difficulty_group"~"MSA difficulty",grouping_col_name=="feature_msa_n_loci"~"Number of MSA positions")) %>% ungroup()
+
+error_vs_group_5_5_including_plt<-error_vs_group_5_5_including  %>% ggplot(aes(color=Parameter,x=rownum, y = AUC))+geom_line()+geom_point()+ expand_limits(y = 0.5)+xlab("Quantile")+theme(text = element_text(size = 13))
+
+
+test_data = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/groups_5_5_100/final_performance_on_test.tsv")
+
+rocobj <- roc(test_data$default_status, test_data$uncalibrated_prob)
+auc <- round(auc(test_data$default_status, test_data$uncalibrated_prob),3)
+
+global_max_auc_5_5_including<-ggroc(rocobj,colour = 'steelblue', size = 2)+
+  ggtitle(paste0('AUC = ', auc))+theme(text = element_text(size = 13))
+
+ggarrange(global_max_auc_5_5_including,error_vs_size__5_5_plt ,error_vs_group_5_5_including_plt, labels = c("A","B","C"), nrow = 2, ncol = 2, legend = "bottom",vjust= 1)
+#error_vs_group_5_5_including_plt
+
+#error_vs_size__5_5_plt
 
 ```
+
+```{r}
+
+error_vs_size_5_5= read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/groups_5_5_partial/group_classification_metrics.tsv")
+error_vs_size__5_5_plt = error_vs_size_5_5_including  %>% ggplot(aes(x=sample_fraction, y = AUC))+geom_line()+ expand_limits(y = 0.5)+xlab("Fraction of training-data")+ theme(text = element_text(size = 13))+ylab("AUC")+geom_point()
+
+error_vs_group_5_5 = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/groups_5_5_partial/group_classification_group_metrics.tsv") 
+
+error_vs_group_5_5 = error_vs_group_5_5 %>% group_by(grouping_col_name) %>% mutate(rownum = row_number()) %>% mutate(Parameter = case_when(grouping_col_name=="n_seq_group"~"Number of sequences",grouping_col_name=="msa_difficulty_group"~"MSA difficulty",grouping_col_name=="feature_msa_n_loci"~"Number of MSA positions")) %>% ungroup()
+
+error_vs_group_5_5_plt<-error_vs_group_5_5  %>% ggplot(aes(color=Parameter,x=rownum, y = AUC))+geom_line()+geom_point()+ expand_limits(y = 0.5)+xlab("Quantile")+theme(text = element_text(size = 13))
+
+
+test_data = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/groups_5_5_partial/final_performance_on_test.tsv")
+
+rocobj <- roc(test_data$default_status, test_data$uncalibrated_prob)
+auc <- round(auc(test_data$default_status, test_data$uncalibrated_prob),3)
+
+global_max_auc_5_5<-ggroc(rocobj,colour = 'steelblue', size = 2)+
+  ggtitle(paste0('AUC = ', auc))+theme(text = element_text(size = 13))
+
+ggarrange(global_max_auc_5_5,error_vs_size__5_5_plt,error_vs_group_5_5_plt, labels = c("A","B","C"), nrow = 2, ncol = 2, legend = "bottom",vjust= 1)
+
+```
+
+
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
 

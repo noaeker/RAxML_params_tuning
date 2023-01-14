@@ -65,7 +65,7 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_fo
         current_raw_data = raw_data[raw_data["msa_path"].isin(job_msas)]
         current_raw_data.to_csv(current_raw_data_path, sep=CSV_SEP)
 
-        run_command = f' python {GROUPS_FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --curr_job_group_output_path {current_job_group_output_path} {generate_argument_str(args)}'
+        run_command = f' python {GROUPS_FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --curr_job_group_output_path {current_job_group_output_path} {generate_argument_str(args, exclude=["sample_fracs"])}'
 
         job_name = args.jobs_prefix + str(job_ind)
         if not LOCAL_RUN:
@@ -78,7 +78,7 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_fo
                              ["--job_ind", str(job_ind), "--curr_job_folder", curr_job_folder, "--curr_job_raw_path",
                               current_raw_data_path,
                               "--curr_job_group_output_path", current_job_group_output_path
-                              ]+ generate_argument_list(args))
+                              ]+ generate_argument_list(args, exclude=['sample_fracs']))
         job_dict[job_ind] = {"curr_job_group_output_path": current_job_group_output_path, "job_name": job_name}
 
     return job_dict
@@ -181,13 +181,13 @@ def main():
     existing_msas_data_path = os.path.join(curr_run_dir,'MSAs')
     create_dir_if_not_exists(existing_msas_data_path)
     logging.info(f"Reading all data from {args.file_path}")
-    relevant_data = pd.read_csv(args.file_path, sep = '\t')
+    if LOCAL_RUN:
+        relevant_data = pd.read_csv(args.file_path, sep='\t',nrows=9999)
+    else:
+        relevant_data = pd.read_csv(args.file_path, sep = '\t')
     if args.filter_on_default_data:
         logging.info("Filtering on default data")
-        if not LOCAL_RUN:
-            relevant_data = relevant_data[relevant_data["type"] == "default"]
-        else:
-            relevant_data = relevant_data.loc[relevant_data.equal_to_default_config]
+    relevant_data = relevant_data[relevant_data["type"] == "default"]
     relevant_data["is_global_max"] = (relevant_data["delta_ll_from_overall_msa_best_topology"] <= 0.1).astype('int')
     relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
     if LOCAL_RUN:
