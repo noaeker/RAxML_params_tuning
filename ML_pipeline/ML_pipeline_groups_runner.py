@@ -120,12 +120,24 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid):
 
     known_output_features = ["feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty",
                              "feature_mds_pars","feature_pars_dist"]
+
+
+    final_trees_features = ["feature_mds_rf_dist_final_trees_raw","feature_pct_best","feature_max_rf_final_trees",
+                       "feature_min_rf_final_trees","feature_25_rf_final_trees","feature_75_rf_final_trees", "feature_mean_rf_final_trees",
+                       "feature_var_rf_final_trees","feature_max_ll_std","feature_final_ll_var","feature_final_ll_skew","feature_final_ll_kutosis"
+                       ]
+    ll_features_to_starting_trees = ["feature_mean_rand_global_max","feature_mean_pars_global_max","feature_mean_rand_ll_diff","feature_mean_pars_ll_diff","feature_var_pars_ll_diff","feature_var_rand_ll_diff"]
+    rf_features_to_starting_trees = ["feature_min_pars_vs_final_rf_diff","feature_max_pars_vs_final_rf_diff","feature_mean_pars_rf_diff"]
+
+    combining_features = ["feature_pars_dist_vs_final_dist","feature_mean_ll_pars_vs_rand"]
+
+    full_features = known_output_features+final_trees_features+ll_features_to_starting_trees+rf_features_to_starting_trees+combining_features
+
     if args.include_output_tree_features:
         logging.info("Including output features in model")
-        X_train = train[[col for col in train.columns if col.startswith('feature') and 'DBSCAN' not in col and 'corr' not in col ]]
-        X_test = test[[col for col in train.columns if
-                       col.startswith('feature') and 'DBSCAN' not in col]]  # +['mean_predicted_failure']
-        X_val = val[[col for col in train.columns if col.startswith('feature') and 'DBSCAN' not in col] and 'corr' not in col]
+        X_train = train[full_features]
+        X_test = test[full_features]  # +['mean_predicted_failure']
+        X_val = val[full_features]
     else:
         X_train = train[known_output_features]
         X_test = test[known_output_features]
@@ -215,8 +227,8 @@ def main():
     results["feature_pars_dist_vs_final_dist"] = results["msa_path"].apply(lambda x: MSA_res_dict[x]['mean_dist_raw'])/results["feature_mean_rf_dist_final_trees_raw"]
     results["feature_mean_ll_pars_vs_rand"] = results["feature_mean_pars_ll_diff"] / results[
         "feature_mean_rand_ll_diff"]
-    results["feature_var_ll_pars_vs_rand"] = results["feature_var_pars_ll_diff"] / results[
-        "feature_var_rand_ll_diff"]
+    #results["feature_var_ll_pars_vs_rand"] = results["feature_var_pars_ll_diff"] / results[
+    #    "feature_var_rand_ll_diff"]
 
     for sample_frac in args.sample_fracs:
         ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False)
