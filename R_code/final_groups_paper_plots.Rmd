@@ -1,0 +1,29 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+library(ggpubr)
+```
+
+
+```{r}
+error_vs_size_5_5_including = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/5_5_including/group_classification_metrics.tsv")
+error_vs_size__5_5_plt = error_vs_size_5_5_including %>% ggplot(aes(x=sample_fraction, y = AUC))+geom_line()+ expand_limits(y = 0.5)+xlab("Fraction of training-data")+ theme(text = element_text(size = 13))+ylab("AUC")+geom_point()
+
+error_vs_size__5_5_plt
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
