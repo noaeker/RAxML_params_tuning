@@ -120,7 +120,7 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid):
 
     known_output_features = ["feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty",
                              "feature_mds_pars","feature_pars_dist", "feature_var_rf_pars_trees", "feature_mean_rf_pars_trees",
-                             "feature_min_rf_pars_trees", "feature_max_rf_pars_trees", "feature_pars_dist"]
+                             "feature_min_rf_pars_trees", "feature_max_rf_pars_trees"]
     if args.include_output_tree_features:
         logging.info("Including output features in model")
         X_train = train[[col for col in train.columns if col.startswith('feature') and 'DBSCAN' not in col ]]
