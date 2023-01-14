@@ -29,7 +29,7 @@ def execute_command_and_write_to_log(command, print_to_log=True):
 def generate_argument_list(args, exclude = []):
     output = []
     for arg in vars(args):
-        if args not in exclude:
+        if arg not in exclude:
             if not type(getattr(args, arg)) == bool:
                 value = ["--" + arg, str(getattr(args, arg))]
             elif (getattr(args, arg)) == True:
@@ -37,6 +37,8 @@ def generate_argument_list(args, exclude = []):
             else:
                 value = []
             output = output + value
+        else:
+            pass
     print(output)
     return output
 
@@ -44,7 +46,7 @@ def generate_argument_list(args, exclude = []):
 def generate_argument_str(args, exclude = []):
     output = ""
     for arg in vars(args):
-        if args not in exclude:
+        if arg not in exclude:
             if not type(getattr(args, arg)) == bool:
                 value = "--" + arg + " " + str(getattr(args, arg))
             elif (getattr(args, arg)) == True:
