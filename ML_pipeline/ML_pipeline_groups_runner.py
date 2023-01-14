@@ -142,7 +142,7 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid):
     group_metrics_path = os.path.join(curr_run_dir, 'group_classification_group_metrics.tsv')
 
     model = ML_model(X_train, groups, y_train, n_jobs=args.cpus_per_main_job, path=model_path, classifier=True, model='lightgbm',
-                     calibrate=True, name=name, large_grid=large_grid, do_RFE=False, n_cv_folds=args.n_cv_folds)
+                     calibrate=True, name=name, large_grid=large_grid, do_RFE=RFE, n_cv_folds=args.n_cv_folds)
 
     print_model_statistics(model, X_train, X_test, X_val, y_train, y_test, y_val, is_classification=True,
                            vi_path=vi_path,
