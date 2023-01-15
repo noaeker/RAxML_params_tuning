@@ -128,7 +128,7 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
                              "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean",
                              ]
 
-    MDS_features=  [col for col in results.columns if "mds" in col or "MDS" in col]+["mean_dist_raw","feature_pars_dist"]
+    MDS_features=  [col for col in results.columns if "MDS" in col]+["mean_dist_raw","feature_pars_dist"]
 
     final_trees_features = ["feature_pct_best","feature_max_rf_final_trees",
                        "feature_min_rf_final_trees","feature_25_rf_final_trees","feature_75_rf_final_trees", "feature_mean_rf_final_trees",
@@ -155,10 +155,10 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
     y_test = test["default_status"]
     y_val = val["default_status"]
     groups = train["msa_path"]
-    model_path = os.path.join(curr_run_dir, 'group_classification_model')
+    model_path = os.path.join(curr_run_dir, f'group_classification_model_{name}')
     vi_path = os.path.join(curr_run_dir, f'group_classification_vi_{name}.tsv')
-    metrics_path = os.path.join(curr_run_dir, 'group_classification_metrics.tsv')
-    group_metrics_path = os.path.join(curr_run_dir, 'group_classification_group_metrics.tsv')
+    metrics_path = os.path.join(curr_run_dir, f'group_classification_metrics_{name}.tsv')
+    group_metrics_path = os.path.join(curr_run_dir, f'group_classification_group_metrics_{name}.tsv')
 
     model = ML_model(X_train, groups, y_train, n_jobs=args.cpus_per_main_job, path=model_path, classifier=True, model='lightgbm',
                      calibrate=True, name=name, large_grid=large_grid, do_RFE=RFE, n_cv_folds=args.n_cv_folds)
@@ -171,7 +171,7 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
     if large_grid and RFE:
         test["uncalibrated_prob"] = model['best_model'].predict_proba((model['selector']).transform(X_test))[:, 1]
         test["calibrated_prob"] = model['calibrated_model'].predict_proba((model['selector']).transform(X_test))[:, 1]
-        final_csv_path = os.path.join(curr_run_dir, f"{name}_final_performance_on_test.tsv")
+        final_csv_path = os.path.join(curr_run_dir, f"final_performance_on_test{name}.tsv")
         test.to_csv(final_csv_path, sep='\t')
 
 
