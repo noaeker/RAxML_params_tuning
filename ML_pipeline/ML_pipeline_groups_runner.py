@@ -120,8 +120,8 @@ def generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path):
     return msa_res
 
 
-def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid):
-    name = f'M_frac_{sample_frac}_RFE_{RFE}_large_grid_{large_grid}_out_features_{args.include_output_tree_features}'
+def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_output_tree_features):
+    name = f'M_frac_{sample_frac}_RFE_{RFE}_large_grid_{large_grid}_out_features_{include_output_tree_features}'
     train, test, val = train_test_validation_splits(results, test_pct=0.3, val_pct=0, msa_col_name='msa_path',subsample_train=True, subsample_train_frac= sample_frac)
 
     known_output_features = ["frac_pars_trees_sampled","feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty",
@@ -130,26 +130,26 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid):
 
     MDS_features=  [col for col in results.columns if "mds" in col or "MDS" in col]+["mean_dist_raw","feature_pars_dist"]
 
-    final_trees_features = ["feature_mds_rf_dist_final_trees_raw","feature_pct_best","feature_max_rf_final_trees",
+    final_trees_features = ["feature_pct_best","feature_max_rf_final_trees",
                        "feature_min_rf_final_trees","feature_25_rf_final_trees","feature_75_rf_final_trees", "feature_mean_rf_final_trees",
                        "feature_var_rf_final_trees","feature_max_ll_std","feature_final_ll_var","feature_final_ll_skew","feature_final_ll_kutosis"
-                       ]
+                       ] #"feature_mds_rf_dist_final_trees_raw",
     ll_features_to_starting_trees = ["feature_mean_rand_global_max","feature_mean_pars_global_max","feature_mean_rand_ll_diff","feature_mean_pars_ll_diff","feature_var_pars_ll_diff","feature_var_rand_ll_diff"]
     rf_features_to_starting_trees = ["feature_min_pars_vs_final_rf_diff","feature_max_pars_vs_final_rf_diff","feature_mean_pars_rf_diff"]
 
     combining_features = ["feature_pars_dist_vs_final_dist","feature_mean_ll_pars_vs_rand"]
 
     full_features = known_output_features+MDS_features+final_trees_features+ll_features_to_starting_trees+rf_features_to_starting_trees+combining_features
-
-    if args.include_output_tree_features:
+    MSA_level_features = known_output_features+MDS_features
+    if include_output_tree_features:
         logging.info("Including output features in model")
         X_train = train[[col for col in train.columns if col in full_features]]
         X_test = test[[col for col in train.columns if col in full_features]]  # +['mean_predicted_failure']
         X_val = val[[col for col in train.columns if col in full_features]]
     else:
-        X_train = train[known_output_features+MDS_features]
-        X_test = test[known_output_features+MDS_features]
-        X_val = val[known_output_features+MDS_features]
+        X_train = train[[col for col in train.columns if col in MSA_level_features]]
+        X_test = test[[col for col in train.columns if col in MSA_level_features]]
+        X_val = val[[col for col in train.columns if col in MSA_level_features]]
 
     y_train = train["default_status"]
     y_test = test["default_status"]
@@ -171,7 +171,7 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid):
     if large_grid and RFE:
         test["uncalibrated_prob"] = model['best_model'].predict_proba((model['selector']).transform(X_test))[:, 1]
         test["calibrated_prob"] = model['calibrated_model'].predict_proba((model['selector']).transform(X_test))[:, 1]
-        final_csv_path = os.path.join(curr_run_dir, "final_performance_on_test.tsv")
+        final_csv_path = os.path.join(curr_run_dir, f"{name}_final_performance_on_test.tsv")
         test.to_csv(final_csv_path, sep='\t')
 
 
@@ -238,12 +238,19 @@ def main():
     #results["feature_var_ll_pars_vs_rand"] = results["feature_var_pars_ll_diff"] / results[
     #    "feature_var_rand_ll_diff"]
 
+
+    logging.info(f"Using sample fracs = {args.sample_fracs}")
+    logging.info(f"Working on entire set of features")
     sample_fracs = args.sample_fracs if not LOCAL_RUN else [1]
     for sample_frac in  sample_fracs:
-        ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False)
+        ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False,include_output_tree_features = True)
     if not LOCAL_RUN:
-        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True)
-
+        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= True)
+    logging.info(f"Working on MSA level features")
+    for sample_frac in  sample_fracs:
+        ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False,include_output_tree_features = False)
+    if not LOCAL_RUN:
+        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= False)
 
 
 
