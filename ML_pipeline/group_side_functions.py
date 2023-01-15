@@ -28,7 +28,7 @@ def group_main_parser():
     parser.add_argument('--queue', type=str, default='power-pupko')
     parser.add_argument('--jobs_prefix', type = str, default = 'groups_job'
                         )
-    parser.add_argument('--include_output_tree_features', action = 'store_true', default= True)
+    parser.add_argument('--include_output_tree_features', action = 'store_true', default= False)
     parser.add_argument('--sample_fracs', default =np.linspace(0.1,1,7) )#np.linspace(0.1,1,5)#np.linspace(0.1,1,7)
     return parser
 
