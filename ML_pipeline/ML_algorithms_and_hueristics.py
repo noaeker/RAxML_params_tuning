@@ -117,32 +117,39 @@ def calibration_plot(model, test_data, y_test):
     pyplot.plot(mpv_calibrated, fop_calibrated, marker='.')
     pyplot.show()
 
+def enrich_with_single_feature_metrics(var_impt, train_X, y_train, test_X, y_test):
+    auc_scores = []
+    auprc_scores = []
+    mcc_scores = []
+    for feature in var_impt.index:
+        try:
+            #lg = LogisticRegression(random_state=0).fit(train_X[[feature]], y_train)
+            lg = lightgbm.LGBMClassifier(importance_type='gain').fit(train_X[[feature]], y_train)
+            proba = lg.predict_proba(test_X[[feature]])[:, 1]
+            pred = lg.predict(test_X[[feature]])
+            auc = roc_auc_score(y_test, proba)
+            auprc = average_precision_score(y_test, proba)
+            mcc = matthews_corrcoef(y_test, pred)
+
+        except:
+            auc = -1
+            auprc = -1
+            mcc = -1
+        auc_scores.append(auc)
+        auprc_scores.append(auprc)
+        mcc_scores.append(mcc)
+    var_impt["AUC"] = auc_scores
+    var_impt["AUPRC"] = auprc_scores
+    var_impt["mcc"] = mcc_scores
+
+
 
 def print_model_statistics(model, train_X, test_X,val_X, y_train, y_test,y_val, is_classification, vi_path, metrics_path,
                            group_metrics_path, name, sampling_frac, test_MSAs, feature_importance=True):
     if feature_importance:
         var_impt = variable_importance(train_X.columns[model['selector'].get_support(indices=True)], model['best_model'])
         if vi_path and (sampling_frac==1 or sampling_frac==-1):
-            auc_scores = []
-            auprc_scores = []
-            for feature in var_impt.index:
-                try:
-                    train_X[feature] = np.log(train_X[feature])
-                    test_X[feature] = np.log(test_X[feature])
-                    lg = LogisticRegression(random_state=0).fit(train_X[[feature]], y_train)
-                    proba = lg.predict_proba(test_X[[feature]])[:, 1]
-                    auc = roc_auc_score(y_test,proba)
-                    auprc = average_precision_score(y_test,proba)
-                    #mcc = matthews_corrcoef(y_test)
-
-                except:
-                    auc = -1
-                    auprc = -1
-                auc_scores.append(auc)
-                auprc_scores.append(auprc)
-            var_impt["AUC"] = auc_scores
-            var_impt["AUPRC"] = auprc_scores
-            var_impt["mcc"] = auprc_scores
+            enrich_with_single_feature_metrics(var_impt, train_X, y_train, test_X, y_test)
             var_impt.to_csv(vi_path, sep=CSV_SEP)
                 #logging.info(f"AUC for feature {feature} is {auc}" )
         logging.info(f"{name} variable importance: \n {var_impt}")

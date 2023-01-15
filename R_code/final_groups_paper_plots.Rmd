@@ -12,67 +12,90 @@ library(tidyverse)
 library(ggpubr)
 library(pROC)
 ```
+```{r}
 
+prefix = "/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper"
+current_run ="groups_10_10_100"
+error_vs_size_path = paste(prefix,current_run,"group_classification_metrics.tsv", sep = "/")
+error_vs_group_path = paste(prefix,current_run,"group_classification_group_metrics.tsv",sep = "/")
+test_path = paste(prefix,current_run,"final_performance_on_test.tsv",sep = "/")
+
+error_vs_size = read_tsv(error_vs_size_path)
+test_data = read_tsv(test_path)
+error_vs_group = read_tsv(error_vs_group_path )
+```
+
+AUC + error vs. siz plots
 
 ```{r}
-error_vs_size_5_5_including = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/groups_5_5_100/group_classification_metrics.tsv")
-error_vs_size__5_5_plt = error_vs_size_5_5_including %>% mutate(n_MSAs = round(868*sample_fraction)) %>% ggplot(aes(x=n_MSAs, y = AUC))+geom_line()+ expand_limits(y = 0.5)+xlab("Number of MSAs")+ theme(text = element_text(size = 13))+ylab("AUC")+geom_point()
+error_vs_size_plt = error_vs_size %>% mutate(n_MSAs = round(868*sample_fraction)) %>% ggplot(aes(x=n_MSAs, y = AUC))+geom_line()+ expand_limits(y = 0.5)+xlab("Number of MSAs")+ theme(text = element_text(size = 13))+ylab("AUC")+geom_point()
 
-test_data_including = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/groups_5_5_100/final_performance_on_test.tsv")
+rocobj <- roc(test_data$default_status, test_data$uncalibrated_prob)
+auc <- round(auc(test_data$default_status, test_data$uncalibrated_prob),3)
 
-rocobj <- roc(test_data_including$default_status, test_data_including$uncalibrated_prob)
-auc <- round(auc(test_data_including$default_status, test_data_including$uncalibrated_prob),3)
-
-global_max_auc_5_5_including<-ggroc(rocobj,colour = 'steelblue', size = 2)+
+global_max_auc_plt<-ggroc(rocobj,colour = 'steelblue', size = 2)+
   ggtitle(paste0('AUC = ', auc))+theme(text = element_text(size = 13))+xlab("Specificity")
 
-ggarrange(global_max_auc_5_5_including,error_vs_size__5_5_plt ,labels = c("A","B"),align = "h", nrow = 1, ncol = 2, legend = "bottom",vjust= 1)
-#error_vs_group_5_5_including_plt
+ggarrange(global_max_auc_plt,error_vs_size_plt ,labels = c("A","B"),align = "h", nrow = 1, ncol = 2, legend = "bottom",vjust= 1)
 
-#error_vs_size__5_5_plt
+test_data%>% group_by (default_status) %>% count()
+
+
 
 ```
 
 
+
 ```{r}
-error_vs_group_5_5_including = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/groups_5_5_100/group_classification_group_metrics.tsv") 
 
-error_vs_group_5_5_including = error_vs_group_5_5_including %>% group_by(grouping_col_name) %>% mutate(rownum = row_number()) %>% mutate(Parameter = case_when(grouping_col_name=="n_seq_group"~"Number of sequences",grouping_col_name=="msa_difficulty_group"~"MSA difficulty",grouping_col_name=="feature_msa_n_loci"~"Number of MSA positions")) %>% ungroup()
-
-Pypythia_error<-error_vs_group_5_5_including %>% filter (Parameter =='MSA difficulty') %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('MSA difficulty')+ xlab('AUC')+theme(text = element_text(size = 11))
+Pypythia_error<-error_vs_group %>% filter (grouping_col_name =='msa_difficulty_group') %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('MSA difficulty')+ xlab('AUC')+theme(text = element_text(size = 11))
 
 
-n_seq_error<-error_vs_group_5_5_including %>% filter (Parameter =='Number of sequences') %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('Number of sequences')+xlab('AUC')+theme(text = element_text(size = 11))
+n_seq_error<-error_vs_group %>% filter (grouping_col_name =='n_seq_group') %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('Number of sequences')+xlab('AUC')+theme(text = element_text(size = 11))
 
 
-Pypythia_scatter<-test_data_including %>% select (msa_path,uncalibrated_prob,calibrated_prob, feature_mds_pars, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_pypythia_msa_difficulty,feature_mds_pars) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_pypythia_msa_difficulty, y = mean_prob))+geom_point()+xlab("MSA difficulty")+ylab("Predicted probability")+theme(text = element_text(size = 11))
+Pypythia_scatter<-test_data%>% select (msa_path,uncalibrated_prob,calibrated_prob, feature_mds_pars, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_pypythia_msa_difficulty,feature_mds_pars) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_pypythia_msa_difficulty, y = mean_prob))+geom_point()+xlab("MSA difficulty")+ylab("Predicted probability")+theme(text = element_text(size = 11))
 
-seq_scatter<-test_data_including %>% select (msa_path,uncalibrated_prob,calibrated_prob, feature_mds_pars, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty,feature_mds_pars) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_n_seq, y = mean_prob))+geom_point()+xlab("Number of sequences")+ylab("Predicted probability")+theme(text = element_text(size = 11))
-
-
-ggarrange(Pypythia_error,Pypythia_scatter ,labels = c("A","B"),align = "h", nrow = 2, ncol = 1, legend = "bottom",vjust= 1)
-#error_vs_group_5_5_including_plt
+seq_scatter<-test_data %>% select (msa_path,uncalibrated_prob,calibrated_prob, feature_mds_pars, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty,feature_mds_pars) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_n_seq, y = mean_prob))+geom_point()+xlab("Number of sequences")+ylab("Predicted probability")+theme(text = element_text(size = 11))
 
 
 ggarrange(n_seq_error, seq_scatter,Pypythia_error,Pypythia_scatter,labels = c("A","B","C","D"),align = "h", nrow = 2, ncol = 2, legend = "bottom",vjust= 1)
 #error_vs_group_5_5_including_plt
 
 
+```
 
 
-#mds_scatter<-test_data_including %>% select (msa_path,uncalibrated_prob,calibrated_prob, feature_mds_pars, #feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% #group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty,feature_mds_pars) %>% summarise(mean_prob = #mean(calibrated_prob)) %>% ggplot(aes(x=log(feature_mds_pars), y = mean_prob))+geom_point()+xlab("MDS stress #score")+ylab("Mean predicted success probability")+theme(text = element_text(size = 13))
+MDS vs PARS dist
+```{r}
 
-#seq_scatter
-#mds_scatter
+test_data %>% select (msa_path,uncalibrated_prob,calibrated_prob, feature_mds_pars, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty,feature_mds_pars) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=log(feature_mds_pars), y = mean_prob))+geom_point()+xlab("MDS stress score")+ylab("Mean predicted success probability")+theme(text = element_text(size = 13))
 
+
+test_data %>% select (msa_path,uncalibrated_prob,calibrated_prob, feature_mds_pars, feature_msa_n_seq, feature_pars_dist, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty,feature_mds_pars,feature_pars_dist) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_pars_dist, y = mean_prob))+geom_point()+xlab("Pars dist")+ylab("Mean predicted success probability")+theme(text = element_text(size = 13))
 
 ```
+
+
+
+
+
+
+
 Testing the MDS score
 
 ```{r}
 test_data_including %>% group_by(msa_path, feature_mds_pars,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_success = mean(default_status)) %>% ggplot(aes(x=(feature_msa_pypythia_msa_difficulty), y = mean_success))+geom_point()
 
 test_data_including %>% group_by(msa_path, feature_mds_pars,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_success = mean(default_status)) %>% ggplot(aes(x=log(feature_mds_pars), y = mean_success))+geom_point()
+
+test_data_including %>% group_by(msa_path, feature_mds_pars,feature_msa_pypythia_msa_difficulty,feature_pars_dist) %>% summarise(mean_success = mean(default_status)) %>% ggplot(aes(x=feature_pars_dist, y = mean_success))+geom_point()
+
+data<-test_data_including %>% mutate(log_mds = log(feature_mds_pars)) %>% group_by(msa_path,feature_mds_pars, feature_pars_dist,feature_msa_pypythia_msa_difficulty, log_mds) %>% summarise(mean_success = mean(default_status)) 
+
+cor(data %>% pull ((feature_mds_pars)),data %>% pull (mean_success))
+cor(data %>% pull ((log_mds)),data %>% pull (mean_success))
+cor(data %>% pull (feature_pars_dist),data %>% pull (mean_success))
 ```
 
 
@@ -80,33 +103,8 @@ test_data_including %>% group_by(msa_path, feature_mds_pars,feature_msa_pypythia
 
 
 
-```{r}
+`
 
-error_vs_size_5_5= read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/groups_5_5_partial/group_classification_metrics.tsv")
-error_vs_size__5_5_plt = error_vs_size_5_5_including  %>% ggplot(aes(x=sample_fraction, y = AUC))+geom_line()+ expand_limits(y = 0.5)+xlab("Fraction of training-data")+ theme(text = element_text(size = 13))+ylab("AUC")+geom_point()
-
-error_vs_group_5_5 = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/groups_5_5_partial/group_classification_group_metrics.tsv") 
-
-error_vs_group_5_5 = error_vs_group_5_5 %>% group_by(grouping_col_name) %>% mutate(rownum = row_number()) %>% mutate(Parameter = case_when(grouping_col_name=="n_seq_group"~"Number of sequences",grouping_col_name=="msa_difficulty_group"~"MSA difficulty",grouping_col_name=="feature_msa_n_loci"~"Number of MSA positions")) %>% ungroup()
-
-error_vs_group_5_5_plt<-error_vs_group_5_5  %>% ggplot(aes(color=Parameter,x=rownum, y = AUC))+geom_line()+geom_point()+ expand_limits(y = 0.5)+xlab("Quantile")+theme(text = element_text(size = 13))
-
-
-test_data = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/groups_5_5_partial/final_performance_on_test.tsv")
-
-rocobj <- roc(test_data$default_status, test_data$uncalibrated_prob)
-auc <- round(auc(test_data$default_status, test_data$uncalibrated_prob),3)
-
-global_max_auc_5_5<-ggroc(rocobj,colour = 'steelblue', size = 2)+
-  ggtitle(paste0('AUC = ', auc))+theme(text = element_text(size = 13))
-
-ggarrange(global_max_auc_5_5,error_vs_size__5_5_plt,error_vs_group_5_5_plt, labels = c("A","B","C"), nrow = 2, ncol = 2, legend = "bottom",vjust= 1)
-
-```
-```{r}
-test_data_including = read_tsv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/groups_5_5_100/final_performance_on_test.tsv")
-test_data_including %>% group_by (default_status) %>% count()
-```
 
 
 

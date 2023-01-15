@@ -124,11 +124,11 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid):
     name = f'M_frac_{sample_frac}_RFE_{RFE}_large_grid_{large_grid}_out_features_{args.include_output_tree_features}'
     train, test, val = train_test_validation_splits(results, test_pct=0.3, val_pct=0, msa_col_name='msa_path',subsample_train=True, subsample_train_frac= sample_frac)
 
-    known_output_features = ["feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty",
+    known_output_features = ["frac_pars_trees_sampled","feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty",
                              "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean",
-                             "feature_pars_dist"]
+                             ]
 
-    MDS_features=  [col for col in results.columns if "feature_mds_pars" in col]
+    MDS_features=  [col for col in results.columns if "mds" in col or "MDS" in col]+["mean_dist_raw","feature_pars_dist"]
 
     final_trees_features = ["feature_mds_rf_dist_final_trees_raw","feature_pct_best","feature_max_rf_final_trees",
                        "feature_min_rf_final_trees","feature_25_rf_final_trees","feature_75_rf_final_trees", "feature_mean_rf_final_trees",
@@ -189,8 +189,8 @@ def main():
     existing_msas_data_path = os.path.join(curr_run_dir,'MSAs')
     create_dir_if_not_exists(existing_msas_data_path)
     logging.info(f"Reading all data from {args.file_path}")
-    if False:
-        relevant_data = pd.read_csv(args.file_path, sep='\t',nrows=9999)
+    if LOCAL_RUN:
+        relevant_data = pd.read_csv(args.file_path, sep='\t',nrows=1)
     else:
         relevant_data = pd.read_csv(args.file_path, sep = '\t')
     if args.filter_on_default_data:
@@ -228,22 +228,21 @@ def main():
     msa_res_path = os.path.join(curr_run_dir, 'MSA_MDS')
     MSA_res_dict = generate_calculations_per_MSA(curr_run_dir,  results, msa_res_path)
     #results["feature_mds_pars_vs_final"] = np.log(results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw'])/results["feature_mds_rf_dist_final_trees_raw"])
-    results = results.loc[results.msa_path.isin(MSA_res_dict.keys())]
     logging.info(f"Number of rows in results is {len(results.index)}")
-    results["feature_mds_pars_10"] = (results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw_10']) )
-    results["feature_mds_pars_30"] = (results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw_30']))
-    results["feature_mds_pars_50"] = (results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw_50']))
-    results["feature_mds_pars_100"] = (results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw_100']))
-    results["feature_pars_dist"] = results["msa_path"].apply(lambda x: MSA_res_dict[x]['mean_dist_raw'])
+    MSA_res_df = pd.DataFrame.from_dict(MSA_res_dict, orient='index').reset_index().drop(columns=['pars_trees']).rename(
+        columns={'index': 'msa_path'})
+    results = results.merge(MSA_res_df, on = "msa_path")
     results["feature_pars_dist_vs_final_dist"] = results["msa_path"].apply(lambda x: MSA_res_dict[x]['mean_dist_raw'])/results["feature_mean_rf_dist_final_trees_raw"]
     results["feature_mean_ll_pars_vs_rand"] = results["feature_mean_pars_ll_diff"] / results[
         "feature_mean_rand_ll_diff"]
     #results["feature_var_ll_pars_vs_rand"] = results["feature_var_pars_ll_diff"] / results[
     #    "feature_var_rand_ll_diff"]
 
-    for sample_frac in args.sample_fracs:
+    sample_fracs = args.sample_fracs if not LOCAL_RUN else [1]
+    for sample_frac in  sample_fracs:
         ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False)
-    ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=True, large_grid = True)
+    if not LOCAL_RUN:
+        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True)
 
 
 
