@@ -190,7 +190,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
         curr_iter_general_metrics = curr_iter_general_metrics.merge(rand_run_metrics, on = 'msa_path',how = 'left')
         curr_iter_general_metrics = curr_iter_general_metrics.merge(pars_run_metrics, on = 'msa_path',how = 'left')
         curr_iter_general_metrics = curr_iter_general_metrics.merge(mean_rf_per_final_tree, on = 'msa_path',how = 'left')
-        if n_pars>0:
+        if n_pars_sample>0:
             curr_iter_general_metrics = curr_iter_general_metrics.merge(mean_rf_per_pars_starting_tree, on = 'msa_path',how = 'left')
         curr_iter_general_metrics = curr_iter_general_metrics.merge(distance_matrix_summary_statistics, on = 'msa_path',how = 'left')
 
