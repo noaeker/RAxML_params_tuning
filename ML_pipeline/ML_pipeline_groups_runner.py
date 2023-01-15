@@ -169,10 +169,10 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
                            metrics_path=metrics_path,
                            group_metrics_path=group_metrics_path, name=name, sampling_frac=sample_frac, test_MSAs=test["msa_path"],
                            feature_importance=True)
-    if large_grid and RFE:
+    if sample_frac==1 or sample_frac==-1:
         test["uncalibrated_prob"] = model['best_model'].predict_proba((model['selector']).transform(X_test))[:, 1]
         test["calibrated_prob"] = model['calibrated_model'].predict_proba((model['selector']).transform(X_test))[:, 1]
-        final_csv_path = os.path.join(curr_run_dir, f"final_performance_on_test{name}.tsv")
+        final_csv_path = os.path.join(curr_run_dir, f"final_performance_on_test_{name}.tsv")
         test.to_csv(final_csv_path, sep='\t')
 
 
