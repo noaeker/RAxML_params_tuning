@@ -171,7 +171,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
 
         mean_rf_per_final_tree = sampled_data.groupby('msa_path').apply(lambda df: get_mean_rf_distance(curr_run_dir,df,col='final_tree_topology')).reset_index()
         mean_rf_per_final_tree.columns = ['msa_path','feature_mean_rf_final_trees','feature_var_rf_final_trees','feature_min_rf_final_trees','feature_max_rf_final_trees','feature_25_rf_final_trees','feature_75_rf_final_trees']
-        if n_pars>0:
+        if n_pars >0:
             mean_rf_per_pars_starting_tree = sampled_data.loc[sampled_data.starting_tree_type=='pars'].groupby('msa_path').apply(lambda df: get_mean_rf_distance(curr_run_dir,df,col='starting_tree_object')).reset_index()
             mean_rf_per_pars_starting_tree.columns = ['msa_path','feature_mean_rf_pars_trees','feature_var_rf_pars_trees','feature_min_rf_pars_trees','feature_max_rf_pars_trees','feature_25_rf_pars_trees','feature_75_rf_pars_trees']
 
