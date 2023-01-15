@@ -130,14 +130,17 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
     default_results = pd.DataFrame()
     for i in range(n_sample_points):
         if n_pars==-1 and n_rand==-1:
-            n_pars = random.randint(0,n_sum)
-            n_rand = n_sum-n_pars
+            n_pars_sample = random.randint(0,n_sum)
+            n_rand_sample = n_sum-n_pars
+        else:
+            n_pars_sample = n_pars
+            n_rand_sample = n_rand
         logging.info(f"i = {i}/{n_sample_points}")
         seed = seed + 1
         sampled_data_parsimony = default_data[default_data["starting_tree_type"] == "pars"].groupby(
-            by=msa_level_cols).sample(n=n_pars) #random_state=seed
+            by=msa_level_cols).sample(n=n_pars_sample) #random_state=seed
         sampled_data_random = default_data[default_data["starting_tree_type"] == "rand"].groupby(
-            by=msa_level_cols).sample(n=n_rand) #random_state=seed
+            by=msa_level_cols).sample(n=n_rand_sample) #random_state=seed
         sampled_data = pd.concat([sampled_data_random, sampled_data_parsimony])
 
         sampled_data['best_sample_ll'] = sampled_data.groupby('msa_path')['final_ll'].transform(max)
@@ -168,7 +171,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
 
         mean_rf_per_final_tree = sampled_data.groupby('msa_path').apply(lambda df: get_mean_rf_distance(curr_run_dir,df,col='final_tree_topology')).reset_index()
         mean_rf_per_final_tree.columns = ['msa_path','feature_mean_rf_final_trees','feature_var_rf_final_trees','feature_min_rf_final_trees','feature_max_rf_final_trees','feature_25_rf_final_trees','feature_75_rf_final_trees']
-        if n_pars>0:
+        if n_pars_sample>0:
             mean_rf_per_pars_starting_tree = sampled_data.loc[sampled_data.starting_tree_type=='pars'].groupby('msa_path').apply(lambda df: get_mean_rf_distance(curr_run_dir,df,col='starting_tree_object')).reset_index()
             mean_rf_per_pars_starting_tree.columns = ['msa_path','feature_mean_rf_pars_trees','feature_var_rf_pars_trees','feature_min_rf_pars_trees','feature_max_rf_pars_trees','feature_25_rf_pars_trees','feature_75_rf_pars_trees']
 
@@ -191,9 +194,9 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
             curr_iter_general_metrics = curr_iter_general_metrics.merge(mean_rf_per_pars_starting_tree, on = 'msa_path',how = 'left')
         curr_iter_general_metrics = curr_iter_general_metrics.merge(distance_matrix_summary_statistics, on = 'msa_path',how = 'left')
 
-        curr_iter_general_metrics["n_pars_trees"] = n_pars
-        curr_iter_general_metrics["n_rand_trees"] = n_rand
-        curr_iter_general_metrics["frac_pars_trees"] = curr_iter_general_metrics["n_pars_trees"] / n_sum
+        curr_iter_general_metrics["n_pars_trees_sampled"] = n_pars_sample
+        curr_iter_general_metrics["n_rand_trees_sampled"] = n_rand_sample
+        curr_iter_general_metrics["frac_pars_trees_sampled"] = curr_iter_general_metrics["n_pars_trees_sampled"] / n_sum
 
         default_results = pd.concat([default_results,curr_iter_general_metrics])#default_results.append(general_run_metrics)
     return default_results
