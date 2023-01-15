@@ -98,6 +98,7 @@ def generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path):
     create_dir_if_not_exists(raxml_trash_dir)
     for msa_path in relevant_data["msa_path"].unique():
         print(msa_path)
+        logging.info()
         msa_n_seq = max(relevant_data.loc[relevant_data.msa_path == msa_path]["feature_msa_n_seq"])
         pars_path = generate_n_tree_topologies(300, get_local_path(msa_path), raxml_trash_dir,
                                                seed=1, tree_type='pars', msa_type='AA')
@@ -240,18 +241,13 @@ def main():
 
 
     logging.info(f"Using sample fracs = {args.sample_fracs}")
-    logging.info(f"Working on entire set of features")
+    logging.info(f"include_output_tree_features = {args.include_output_tree_features}")
     sample_fracs = args.sample_fracs if not LOCAL_RUN else [1]
     for sample_frac in  sample_fracs:
-        ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False,include_output_tree_features = True)
+        ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False,include_output_tree_features = args.include_output_tree_features)
     if not LOCAL_RUN:
-        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= True)
+        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= args.include_output_tree_features)
     logging.info(f"Working on MSA level features")
-    for sample_frac in  sample_fracs:
-        ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False,include_output_tree_features = False)
-    if not LOCAL_RUN:
-        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= False)
-
 
 
 if __name__ == "__main__":
