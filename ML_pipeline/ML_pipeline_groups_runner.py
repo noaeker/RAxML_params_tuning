@@ -125,6 +125,7 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid):
     train, test, val = train_test_validation_splits(results, test_pct=0.3, val_pct=0, msa_col_name='msa_path',subsample_train=True, subsample_train_frac= sample_frac)
 
     known_output_features = ["feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty",
+                             "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean",
                              "feature_pars_dist"]
 
     MDS_features=  [col for col in results.columns if "feature_mds_pars" in col]
@@ -142,9 +143,9 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid):
 
     if args.include_output_tree_features:
         logging.info("Including output features in model")
-        X_train = train[full_features]
-        X_test = test[full_features]  # +['mean_predicted_failure']
-        X_val = val[full_features]
+        X_train = train[[col for col in train.columns if col in full_features]]
+        X_test = test[[col for col in train.columns if col in full_features]]  # +['mean_predicted_failure']
+        X_val = val[[col for col in train.columns if col in full_features]]
     else:
         X_train = train[known_output_features+MDS_features]
         X_test = test[known_output_features+MDS_features]
