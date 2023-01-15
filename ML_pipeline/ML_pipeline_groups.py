@@ -131,7 +131,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
     for i in range(n_sample_points):
         if n_pars==-1 and n_rand==-1:
             n_pars_sample = random.randint(0,n_sum)
-            n_rand_sample = n_sum-n_pars
+            n_rand_sample = n_sum-n_pars_sample
         else:
             n_pars_sample = n_pars
             n_rand_sample = n_rand
