@@ -34,6 +34,7 @@ from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 import os
 import pickle
 import numpy as np
+import random
 import argparse
 from ML_pipeline.ML_algorithms_and_hueristics import train_test_validation_splits,variable_importance, model_metrics
 from sklearn.metrics import matthews_corrcoef, roc_auc_score, average_precision_score, accuracy_score, precision_score, \
@@ -72,11 +73,11 @@ def generate_distance_matrix(curr_run_directory, overall_trees):
     X[triu] = X.T[triu]
     return X
 
-def perform_MDS(curr_run_directory,overall_trees, n_seq):
+def perform_MDS(curr_run_directory,overall_trees, n_seq, n_components = 10):
     #distance_mat_norm = generate_distance_matrix(curr_run_directory,overall_trees)/(2*n_seq-6)
     distance_mat_raw = generate_distance_matrix(curr_run_directory, overall_trees)
     #mds_norm = MDS(random_state=0, n_components=3, metric=True, dissimilarity='precomputed').fit(distance_mat_norm)
-    mds_raw = MDS(random_state=0, n_components=10, metric=True, dissimilarity='precomputed').fit(distance_mat_raw)
+    mds_raw = MDS(random_state=0, n_components=n_components, metric=True, dissimilarity='precomputed').fit(distance_mat_raw)
     return pd.Series([mds_raw.stress_,np.mean(distance_mat_raw)])
 
 
@@ -119,14 +120,18 @@ def get_summary_statistics_dict(feature_name, values, funcs={'mean': np.mean,'me
 
 
 
-def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_data, n_sample_points, seed, n_pars, n_rand
+def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_data, n_sample_points, seed, n_pars, n_rand, n_sum = -1
                                                           ):
-    msa_level_cols = ["msa_path", "feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty"]
+
+    msa_level_cols = ["msa_path", "feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty","feature_msa_gap_fracs_per_seq_var","feature_msa_entropy_mean"]
     tree_level_cols = ["starting_tree_type","starting_tree_object","final_tree_topology","delta_ll_from_overall_msa_best_topology","is_global_max", "feature_tree_optimized_ll","final_ll"]
     default_data = default_data[msa_level_cols+tree_level_cols]
     logging.info(f"Number of MSAs in default data is {len(default_data['msa_path'].unique())}")
     default_results = pd.DataFrame()
     for i in range(n_sample_points):
+        if n_pars==-1 and n_rand==-1:
+            n_pars = random.randint(0,n_sum)
+            n_rand = n_sum-n_pars
         logging.info(f"i = {i}/{n_sample_points}")
         seed = seed + 1
         sampled_data_parsimony = default_data[default_data["starting_tree_type"] == "pars"].groupby(
@@ -150,7 +155,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
         distance_matrix_summary_statistics = sampled_data.groupby('msa_path').apply(lambda x:generate_distance_matrix_statistics(curr_run_dir,x, col_output = 'final_tree_topology')).reset_index()
 
         distance_matrix_summary_statistics.columns = ["msa_path","feature_DBSCAN_best_tree_outlier", "feature_DBSCAN_pct_non_outliers","feature_DBSCAN_number_of_clusters","feature_DBSCAN_pct_of_best_tree_cluster"]
-        general_run_metrics = sampled_data.groupby(
+        curr_iter_general_metrics = sampled_data.groupby(
             by=msa_level_cols).agg(feature_pct_best = ('is_best_tree', np.mean) ,default_final_err = ('delta_ll_from_overall_msa_best_topology', np.min),
                                                 default_status = ('is_global_max',np.max),
                                                 feature_final_ll_var = ('final_ll', np.var),
@@ -177,15 +182,20 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
             feature_var_rand_ll_diff=('log_likelihood_diff', np.var),
             feature_mean_rand_global_max=('is_best_tree', np.mean)
             )
-        general_run_metrics = general_run_metrics.merge(pars_final_corr, on = 'msa_path', how = 'left')
-        general_run_metrics = general_run_metrics.merge(mds_per_final_tree, on = 'msa_path',how = 'left')
-        general_run_metrics = general_run_metrics.merge(rand_run_metrics, on = 'msa_path',how = 'left')
-        general_run_metrics = general_run_metrics.merge(pars_run_metrics, on = 'msa_path',how = 'left')
-        general_run_metrics = general_run_metrics.merge(mean_rf_per_final_tree, on = 'msa_path',how = 'left')
+        curr_iter_general_metrics = curr_iter_general_metrics.merge(pars_final_corr, on = 'msa_path', how = 'left')
+        curr_iter_general_metrics = curr_iter_general_metrics.merge(mds_per_final_tree, on = 'msa_path',how = 'left')
+        curr_iter_general_metrics = curr_iter_general_metrics.merge(rand_run_metrics, on = 'msa_path',how = 'left')
+        curr_iter_general_metrics = curr_iter_general_metrics.merge(pars_run_metrics, on = 'msa_path',how = 'left')
+        curr_iter_general_metrics = curr_iter_general_metrics.merge(mean_rf_per_final_tree, on = 'msa_path',how = 'left')
         if n_pars>0:
-            general_run_metrics = general_run_metrics.merge(mean_rf_per_pars_starting_tree, on = 'msa_path',how = 'left')
-        general_run_metrics = general_run_metrics.merge(distance_matrix_summary_statistics, on = 'msa_path',how = 'left')
-        default_results = default_results.append(general_run_metrics)
+            curr_iter_general_metrics = curr_iter_general_metrics.merge(mean_rf_per_pars_starting_tree, on = 'msa_path',how = 'left')
+        curr_iter_general_metrics = curr_iter_general_metrics.merge(distance_matrix_summary_statistics, on = 'msa_path',how = 'left')
+
+        curr_iter_general_metrics["n_pars_trees"] = n_pars
+        curr_iter_general_metrics["n_rand_trees"] = n_rand
+        curr_iter_general_metrics["frac_pars_trees"] = curr_iter_general_metrics["n_pars_trees"] / n_sum
+
+        default_results = pd.concat([default_results,curr_iter_general_metrics])#default_results.append(general_run_metrics)
     return default_results
 
 
@@ -205,9 +215,7 @@ def main():
     level = logging.INFO if args.level=='info' else logging.DEBUG
     logging.basicConfig(filename=log_file_path, level=level)
     logging.info("Generating results file")
-    results = get_average_results_on_default_configurations_per_msa(curr_run_dir,relevant_data, n_sample_points=args.n_iterations, seed=1, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees)
-    results["n_pars_trees"] = args.n_pars_trees
-    results["n_rand_trees"] = args.n_rand_trees
+    results = get_average_results_on_default_configurations_per_msa(curr_run_dir,relevant_data, n_sample_points=args.n_iterations, seed=1, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, n_sum = args.n_sum)
     results.to_csv(args.curr_job_group_output_path, sep= '\t')
 
 

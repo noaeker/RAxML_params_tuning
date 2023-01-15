@@ -14,8 +14,9 @@ def group_main_parser():
                         default="/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test")
     parser.add_argument('--n_pars_trees', action='store', type=int, default=0)
     parser.add_argument('--n_rand_trees', action='store', type=int, default=5)
+    parser.add_argument('--n_sum',action='store', type=int, default = 20)
     parser.add_argument('--n_iterations', action='store', type=int, default=2)
-    parser.add_argument('--n_pars_trees_sample', type=int, default=50)
+    #parser.add_argument('--n_pars_trees_sample', type=int, default=50)
     parser.add_argument('--name', type=str, default="groups_run_5_5")
     parser.add_argument('--filter_on_default_data', action='store_true', default = True)
     #parser.add_argument('--large_grid', action='store_true', default=False)
@@ -27,8 +28,8 @@ def group_main_parser():
     parser.add_argument('--queue', type=str, default='power-pupko')
     parser.add_argument('--jobs_prefix', type = str, default = 'groups_job'
                         )
-    parser.add_argument('--include_output_tree_features', action = 'store_true', default= False)
-    parser.add_argument('--sample_fracs', default = np.linspace(0.1,1,7) )#np.linspace(0.1,1,5)
+    parser.add_argument('--include_output_tree_features', action = 'store_true', default= True)
+    parser.add_argument('--sample_fracs', default = np.linspace(0.1,1,7) )#np.linspace(0.1,1,5)#np.linspace(0.1,1,7)
     return parser
 
 

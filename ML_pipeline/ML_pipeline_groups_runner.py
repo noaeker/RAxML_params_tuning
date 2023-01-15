@@ -99,15 +99,21 @@ def generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path):
     for msa_path in relevant_data["msa_path"].unique():
         print(msa_path)
         msa_n_seq = max(relevant_data.loc[relevant_data.msa_path == msa_path]["feature_msa_n_seq"])
-        pars_path = generate_n_tree_topologies(100, get_local_path(msa_path), raxml_trash_dir,
+        pars_path = generate_n_tree_topologies(300, get_local_path(msa_path), raxml_trash_dir,
                                                seed=1, tree_type='pars', msa_type='AA')
         with open(pars_path) as trees_path:
             newicks = trees_path.read().split("\n")
             pars = [t for t in newicks if len(t) > 0]
-            MDS_res = perform_MDS(curr_run_dir, pars, msa_n_seq)
-            MDS_raw = MDS_res.iloc[0]
-            mean_dist_raw = MDS_res.iloc[1]
-            msa_res[msa_path] = {'MDS_raw': MDS_raw, 'mean_dist_raw': mean_dist_raw, 'pars_trees': pars}
+            MDS_res_10 = perform_MDS(curr_run_dir, pars, msa_n_seq, n_components=10)
+            MDS_raw_10 =MDS_res_10.iloc[0]
+            mean_dist_raw = MDS_res_10.iloc[1]
+            MDS_res_30 = perform_MDS(curr_run_dir, pars, msa_n_seq, n_components=30)
+            MDS_raw_30 = MDS_res_30.iloc[0]
+            MDS_res_50 = perform_MDS(curr_run_dir, pars, msa_n_seq, n_components=50)
+            MDS_raw_50 = MDS_res_50.iloc[0]
+            MDS_res_100 = perform_MDS(curr_run_dir, pars, msa_n_seq, n_components=100)
+            MDS_raw_100 = MDS_res_100.iloc[0]
+            msa_res[msa_path] = {'MDS_raw_10': MDS_raw_10,'MDS_raw_30': MDS_raw_30,'MDS_raw_50': MDS_raw_50,'MDS_raw_100': MDS_raw_100, 'mean_dist_raw': mean_dist_raw, 'pars_trees': pars}
             create_or_clean_dir(raxml_trash_dir)
     with open(msa_res_path, 'wb') as MSA_RES:
         pickle.dump(msa_res, MSA_RES)
@@ -119,8 +125,9 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid):
     train, test, val = train_test_validation_splits(results, test_pct=0.3, val_pct=0, msa_col_name='msa_path',subsample_train=True, subsample_train_frac= sample_frac)
 
     known_output_features = ["feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty",
-                             "feature_mds_pars","feature_pars_dist"]
+                             "feature_pars_dist"]
 
+    MDS_features=  [col for col in results.columns if "feature_mds_pars" in col]
 
     final_trees_features = ["feature_mds_rf_dist_final_trees_raw","feature_pct_best","feature_max_rf_final_trees",
                        "feature_min_rf_final_trees","feature_25_rf_final_trees","feature_75_rf_final_trees", "feature_mean_rf_final_trees",
@@ -131,7 +138,7 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid):
 
     combining_features = ["feature_pars_dist_vs_final_dist","feature_mean_ll_pars_vs_rand"]
 
-    full_features = known_output_features+final_trees_features+ll_features_to_starting_trees+rf_features_to_starting_trees+combining_features
+    full_features = known_output_features+MDS_features+final_trees_features+ll_features_to_starting_trees+rf_features_to_starting_trees+combining_features
 
     if args.include_output_tree_features:
         logging.info("Including output features in model")
@@ -139,9 +146,9 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid):
         X_test = test[full_features]  # +['mean_predicted_failure']
         X_val = val[full_features]
     else:
-        X_train = train[known_output_features]
-        X_test = test[known_output_features]
-        X_val = val[known_output_features]
+        X_train = train[known_output_features+MDS_features]
+        X_test = test[known_output_features+MDS_features]
+        X_val = val[known_output_features+MDS_features]
 
     y_train = train["default_status"]
     y_test = test["default_status"]
@@ -181,7 +188,7 @@ def main():
     existing_msas_data_path = os.path.join(curr_run_dir,'MSAs')
     create_dir_if_not_exists(existing_msas_data_path)
     logging.info(f"Reading all data from {args.file_path}")
-    if LOCAL_RUN:
+    if False:
         relevant_data = pd.read_csv(args.file_path, sep='\t',nrows=9999)
     else:
         relevant_data = pd.read_csv(args.file_path, sep = '\t')
@@ -191,7 +198,7 @@ def main():
     relevant_data["is_global_max"] = (relevant_data["delta_ll_from_overall_msa_best_topology"] <= 0.1).astype('int')
     relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
     if LOCAL_RUN:
-        msas = relevant_data["msa_path"].unique()[:3]
+        msas = relevant_data["msa_path"].unique()[:20]
         relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
     if not os.path.exists(results_path):
@@ -222,7 +229,10 @@ def main():
     #results["feature_mds_pars_vs_final"] = np.log(results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw'])/results["feature_mds_rf_dist_final_trees_raw"])
     results = results.loc[results.msa_path.isin(MSA_res_dict.keys())]
     logging.info(f"Number of rows in results is {len(results.index)}")
-    results["feature_mds_pars"] = (results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw']) )
+    results["feature_mds_pars_10"] = (results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw_10']) )
+    results["feature_mds_pars_30"] = (results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw_30']))
+    results["feature_mds_pars_50"] = (results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw_50']))
+    results["feature_mds_pars_100"] = (results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw_100']))
     results["feature_pars_dist"] = results["msa_path"].apply(lambda x: MSA_res_dict[x]['mean_dist_raw'])
     results["feature_pars_dist_vs_final_dist"] = results["msa_path"].apply(lambda x: MSA_res_dict[x]['mean_dist_raw'])/results["feature_mean_rf_dist_final_trees_raw"]
     results["feature_mean_ll_pars_vs_rand"] = results["feature_mean_pars_ll_diff"] / results[

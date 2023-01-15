@@ -14,6 +14,7 @@ from matplotlib import pyplot
 from sklearn.model_selection import GridSearchCV, GroupKFold
 from sklearn.feature_selection import RFECV
 from sklearn.calibration import CalibratedClassifierCV, calibration_curve
+from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import LogisticRegressionCV
 
 
@@ -122,7 +123,28 @@ def print_model_statistics(model, train_X, test_X,val_X, y_train, y_test,y_val, 
     if feature_importance:
         var_impt = variable_importance(train_X.columns[model['selector'].get_support(indices=True)], model['best_model'])
         if vi_path and (sampling_frac==1 or sampling_frac==-1):
+            auc_scores = []
+            auprc_scores = []
+            for feature in var_impt.index:
+                try:
+                    train_X[feature] = np.log(train_X[feature])
+                    test_X[feature] = np.log(test_X[feature])
+                    lg = LogisticRegression(random_state=0).fit(train_X[[feature]], y_train)
+                    proba = lg.predict_proba(test_X[[feature]])[:, 1]
+                    auc = roc_auc_score(y_test,proba)
+                    auprc = average_precision_score(y_test,proba)
+                    #mcc = matthews_corrcoef(y_test)
+
+                except:
+                    auc = -1
+                    auprc = -1
+                auc_scores.append(auc)
+                auprc_scores.append(auprc)
+            var_impt["AUC"] = auc_scores
+            var_impt["AUPRC"] = auprc_scores
+            var_impt["mcc"] = auprc_scores
             var_impt.to_csv(vi_path, sep=CSV_SEP)
+                #logging.info(f"AUC for feature {feature} is {auc}" )
         logging.info(f"{name} variable importance: \n {var_impt}")
     predicted_train = model['best_model'].predict((model['selector']).transform(train_X))
     predicted_test = model['best_model'].predict((model['selector']).transform(test_X))
