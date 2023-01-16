@@ -30,7 +30,7 @@ def group_main_parser():
                         )
     parser.add_argument('--include_output_tree_features', action = 'store_true', default= False)
     parser.add_argument('--sample_fracs', default =np.linspace(0.1,1,7) )#np.linspace(0.1,1,5)#np.linspace(0.1,1,7)
-    parser.add_argument('--prev_results_path', default = None)
+    #parser.add_argument('--prev_results_path', default = None)
     return parser
 
 

@@ -203,10 +203,11 @@ def main():
         msas = relevant_data["msa_path"].unique()[:20]
         relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
+    previous_results_path= os.path.join(curr_run_dir,'group_results_prev.tsv')
     if not os.path.exists(results_path):
-        if os.path.exists(args.prev_results_path):
+        if os.path.exists(previous_results_path):
             logging.info("Using previous results path")
-            prev_results = pd.read_csv(args.prev_results_path, sep='\t')
+            prev_results = pd.read_csv(previous_results_path, sep='\t')
             existing_MSAs = prev_results["msa_path"].unique()
             logging.info(f"Number of existing MSAs is {len(existing_MSAs)}")
             relevant_data = relevant_data.loc[~relevant_data.msa_path.isin(existing_MSAs)]
