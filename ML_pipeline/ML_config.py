@@ -12,7 +12,7 @@ GENERAL_PARAM_GRID = {
 }
 
 
-CLASSIFICATION_PARAM_GRID = {
+LIGHTGBM_CLASSIFICATION_PARAM_GRID = {
     'metric': ['auc'],
     'objective': ['binary']
 }

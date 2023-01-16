@@ -43,6 +43,7 @@ from ML_pipeline.group_side_functions import *
 from side_code.code_submission import generate_argument_str, submit_linux_job, generate_argument_list, submit_local_job, execute_command_and_write_to_log
 from ML_pipeline.features_job_functions import features_main_parser
 from side_code.MSA_manipulation import get_msa_name
+from sklearn.impute import SimpleImputer
 import pandas as pd
 import os
 import numpy as np
@@ -122,7 +123,14 @@ def generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path):
 
 
 def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_output_tree_features):
-    name = f'M_frac_{sample_frac}_RFE_{RFE}_large_grid_{large_grid}_out_features_{include_output_tree_features}'
+    name = f'M_{args.model}_frac_{sample_frac}_RFE_{RFE}_large_grid_{large_grid}_out_features_{include_output_tree_features}'
+
+
+    if args.model=='rf' or args.model=='sgd': #Removing NA values
+        results = results.fillna(-1)
+        results.replace([np.inf, -np.inf], -1, inplace=True)
+
+
     train, test, val = train_test_validation_splits(results, test_pct=0.3, val_pct=0, msa_col_name='msa_path',subsample_train=True, subsample_train_frac= sample_frac)
 
     known_output_features = ["frac_pars_trees_sampled","feature_msa_n_seq", "feature_msa_n_loci", "feature_msa_pypythia_msa_difficulty",
@@ -161,7 +169,10 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
     metrics_path = os.path.join(curr_run_dir, f'group_classification_metrics.tsv')
     group_metrics_path = os.path.join(curr_run_dir, f'group_classification_group_metrics_{name}.tsv')
 
-    model = ML_model(X_train, groups, y_train, n_jobs=args.cpus_per_main_job, path=model_path, classifier=True, model='lightgbm',
+    logging.info(f"Using model {args.model}")
+
+
+    model = ML_model(X_train, groups, y_train, n_jobs=args.cpus_per_main_job, path=model_path, classifier=True, model=args.model,
                      calibrate=True, name=name, large_grid=large_grid, do_RFE=RFE, n_cv_folds=args.n_cv_folds)
 
     print_model_statistics(model, X_train, X_test, X_val, y_train, y_test, y_val, is_classification=True,

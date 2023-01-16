@@ -15,6 +15,10 @@ from sklearn.model_selection import GridSearchCV, GroupKFold
 from sklearn.feature_selection import RFECV
 from sklearn.calibration import CalibratedClassifierCV, calibration_curve
 from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import SGDClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegressionCV
 
 
@@ -64,6 +68,8 @@ def RFE(model, X, y, group_splitter, n_jobs, scoring, do_RFE):
     return selector, X_new, model
 
 
+
+
 def ML_model(X_train, groups, y_train, n_jobs, path, classifier=False, model='lightgbm', calibrate=True, name="", large_grid = False, do_RFE = False, n_cv_folds = 3):
     path = path + name
     logging.info(f"Building a {name} model and saving to {path}")
@@ -74,10 +80,17 @@ def ML_model(X_train, groups, y_train, n_jobs, path, classifier=False, model='li
     else:
         group_splitter = list(GroupKFold(n_splits=n_cv_folds).split(X_train, y_train.ravel(), groups=groups))
         if classifier:
-            model =lightgbm.LGBMClassifier(importance_type='gain')
-            param_grid = CLASSIFICATION_PARAM_GRID
-            if large_grid:
-                CLASSIFICATION_PARAM_GRID.update(GENERAL_PARAM_GRID)
+            if model=='lightgbm':
+                model =lightgbm.LGBMClassifier(importance_type='gain')
+                param_grid = LIGHTGBM_CLASSIFICATION_PARAM_GRID
+                if large_grid:
+                    param_grid.update(GENERAL_PARAM_GRID)
+            elif model=='sgd':
+                model = make_pipeline(StandardScaler(),SGDClassifier(loss='modified_huber'))
+                param_grid = {}
+            elif model == 'rf':
+                model = RandomForestClassifier()
+                param_grid = {}
         else:
             model = lightgbm.LGBMRegressor()
             param_grid = REGRESSION_PARAM_GRID
@@ -147,12 +160,15 @@ def enrich_with_single_feature_metrics(var_impt, train_X, y_train, test_X, y_tes
 def print_model_statistics(model, train_X, test_X,val_X, y_train, y_test,y_val, is_classification, vi_path, metrics_path,
                            group_metrics_path, name, sampling_frac, test_MSAs, feature_importance=True):
     if feature_importance:
-        var_impt = variable_importance(train_X.columns[model['selector'].get_support(indices=True)], model['best_model'])
-        if vi_path and (sampling_frac==1 or sampling_frac==-1):
-            enrich_with_single_feature_metrics(var_impt, train_X, y_train, test_X, y_test)
-            var_impt.to_csv(vi_path, sep=CSV_SEP)
-                #logging.info(f"AUC for feature {feature} is {auc}" )
-        logging.info(f"{name} variable importance: \n {var_impt}")
+        try:
+            var_impt = variable_importance(train_X.columns[model['selector'].get_support(indices=True)], model['best_model'])
+            if vi_path and (sampling_frac==1 or sampling_frac==-1):
+                enrich_with_single_feature_metrics(var_impt, train_X, y_train, test_X, y_test)
+                var_impt.to_csv(vi_path, sep=CSV_SEP)
+                    #logging.info(f"AUC for feature {feature} is {auc}" )
+            logging.info(f"{name} variable importance: \n {var_impt}")
+        except:
+            logging.info("No existing feature importance procedure for this  model")
     predicted_train = model['best_model'].predict((model['selector']).transform(train_X))
     predicted_test = model['best_model'].predict((model['selector']).transform(test_X))
     predicted_val = model['best_model'].predict((model['selector']).transform(val_X))
