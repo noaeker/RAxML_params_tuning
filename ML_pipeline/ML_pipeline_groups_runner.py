@@ -156,9 +156,9 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
     y_test = test["default_status"]
     y_val = val["default_status"]
     groups = train["msa_path"]
-    model_path = os.path.join(curr_run_dir, f'group_classification_model_{name}')
-    vi_path = os.path.join(curr_run_dir, f'group_classification_vi_{name}.tsv')
-    metrics_path = os.path.join(curr_run_dir, f'group_classification_metrics_{name}.tsv')
+    model_path = os.path.join(curr_run_dir, f'group_classification_model')
+    vi_path = os.path.join(curr_run_dir, f'group_classification_vi_large_grid_{large_grid}.tsv')
+    metrics_path = os.path.join(curr_run_dir, f'group_classification_metrics.tsv')
     group_metrics_path = os.path.join(curr_run_dir, f'group_classification_group_metrics_{name}.tsv')
 
     model = ML_model(X_train, groups, y_train, n_jobs=args.cpus_per_main_job, path=model_path, classifier=True, model='lightgbm',
@@ -204,6 +204,13 @@ def main():
         relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
     if not os.path.exists(results_path):
+        if os.path.exists(args.prev_results_path):
+            logging.info("Using previous results path")
+            prev_results = pd.read_csv(args.prev_results_path, sep='\t')
+            existing_MSAs = prev_results["msa_path"].unique()
+            logging.info(f"Number of existing MSAs is {len(existing_MSAs)}")
+            relevant_data = relevant_data.loc[~relevant_data.msa_path.isin(existing_MSAs)]
+            logging.info(f"Number of Remaining MSAs is {len(relevant_data['msa_path'].unique())}")
         logging.info("Generating results file")
         jobs_dict = distribute_MSAS_over_jobs(relevant_data, all_jobs_running_folder, existing_msas_data_path, args)
         prev_number_of_jobs_done = 0

@@ -1,0 +1,149 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+library(ggpubr)
+library(pROC)
+
+
+```
+
+
+```{r}
+
+prefix = "/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/only_outputs_folder"
+current_run ="groups_10_10_100"
+error_vs_size= read_tsv(rbind(paste(prefix,current_run,"group_classification_metrics_M_frac_1.0_RFE_False_large_grid_False_out_features_True.tsv", sep = "/"),paste(prefix,current_run,"group_classification_metrics_M_frac_0.85_RFE_False_large_grid_False_out_features_True.tsv", sep = "/"),paste(prefix,current_run,"group_classification_metrics_M_frac_0.7_RFE_False_large_grid_False_out_features_True.tsv", sep = "/"),paste(prefix,current_run,"group_classification_metrics_M_frac_0.5499999999999999_RFE_False_large_grid_False_out_features_True.tsv", sep = "/"),paste(prefix,current_run,"group_classification_metrics_M_frac_0.4_RFE_False_large_grid_False_out_features_True.tsv", sep = "/"),paste(prefix,current_run,"group_classification_metrics_M_frac_0.25_RFE_False_large_grid_False_out_features_True.tsv", sep = "/"),paste(prefix,current_run,"group_classification_metrics_M_frac_0.1_RFE_False_large_grid_False_out_features_True.tsv", sep = "/")))
+error_vs_group= read_tsv(paste(prefix,current_run,"group_classification_group_metrics_M_frac_1.0_RFE_False_large_grid_False_out_features_True.tsv",sep = "/"))
+test_data = read_tsv(paste(prefix,current_run,"final_performance_on_test_M_frac_1.0_RFE_True_large_grid_True_out_features_True.tsv",sep = "/"))
+
+
+```
+
+
+AUC + error vs. siz plots
+
+```{r}
+error_vs_size_plt = error_vs_size %>% mutate(n_MSAs = round(868*sample_fraction)) %>% ggplot(aes(x=n_MSAs, y = AUC))+geom_line()+ expand_limits(y = 0.5)+xlab("Number of MSAs")+ theme(text = element_text(size = 13))+ylab("AUC")+geom_point()
+
+rocobj <- roc(test_data$default_status, test_data$uncalibrated_prob)
+auc <- round(auc(test_data$default_status, test_data$uncalibrated_prob),3)
+
+global_max_auc_plt<-ggroc(rocobj,colour = 'steelblue', size = 2)+
+  ggtitle(paste0('AUC = ', auc))+theme(text = element_text(size = 13))+xlab("Specificity")
+
+ggarrange(global_max_auc_plt,error_vs_size_plt ,labels = c("A","B"),align = "h", nrow = 1, ncol = 2, legend = "bottom",vjust= 1)
+
+test_data%>% group_by (default_status) %>% count()
+
+
+
+```
+
+
+
+```{r}
+
+Pypythia_error<-error_vs_group %>% filter (grouping_col_name =='msa_difficulty_group') %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('MSA difficulty')+ xlab('AUC')+theme(text = element_text(size = 11))
+
+
+n_seq_error<-error_vs_group %>% filter (grouping_col_name =='n_seq_group') %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('Number of sequences')+xlab('AUC')+theme(text = element_text(size = 11))
+
+
+Pypythia_scatter<-test_data%>% dplyr::select  (msa_path,uncalibrated_prob,calibrated_prob,  feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_pypythia_msa_difficulty, y = mean_prob))+geom_point()+xlab("MSA difficulty")+ylab("Predicted probability")+theme(text = element_text(size = 11))
+
+seq_scatter<-test_data %>% dplyr::select  (msa_path,uncalibrated_prob,calibrated_prob, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_n_seq, y = mean_prob))+geom_point()+xlab("Number of sequences")+ylab("Predicted probability")+theme(text = element_text(size = 11))
+
+
+ggarrange(n_seq_error, seq_scatter,Pypythia_error,Pypythia_scatter,labels = c("A","B","C","D"),align = "h", nrow = 2, ncol = 2, legend = "bottom",vjust= 1)
+#error_vs_group_5_5_including_plt
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+MDS vs PARS dist
+```{r}
+
+
+test_data %>% dplyr::select  (msa_path,uncalibrated_prob,calibrated_prob, MDS_raw_50, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty,MDS_raw_50) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=log(MDS_raw_50), y = mean_prob))+geom_point()+xlab("MDS stress score 50")+ylab("Mean predicted success probability")+theme(text = element_text(size = 13))
+
+test_data %>% dplyr::select  (msa_path,uncalibrated_prob,calibrated_prob, MDS_raw_10, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty,MDS_raw_10) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=log(MDS_raw_10), y = mean_prob))+geom_point()+xlab("MDS stress score 10")+ylab("Mean predicted success probability")+theme(text = element_text(size = 13))
+
+test_data %>% dplyr::select  (msa_path,uncalibrated_prob,calibrated_prob, MDS_raw_30, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty,MDS_raw_30) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=log(MDS_raw_30), y = mean_prob))+geom_point()+xlab("MDS stress score 30")+ylab("Mean predicted success probability")+theme(text = element_text(size = 13))
+
+
+test_data %>% dplyr::select  (msa_path,uncalibrated_prob,calibrated_prob, MDS_raw_100, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty,MDS_raw_100) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=log(MDS_raw_100), y = mean_prob))+geom_point()+xlab("MDS stress score 100")+ylab("Mean predicted success probability")+theme(text = element_text(size = 13))
+
+test_data %>% dplyr::select  (msa_path,uncalibrated_prob,calibrated_prob, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty,mean_dist_raw) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty,mean_dist_raw) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=mean_dist_raw, y = mean_prob))+geom_point()+xlab("MDS stress score")+ylab("Mean predicted success probability")+theme(text = element_text(size = 13))
+
+
+```
+
+
+
+
+
+
+
+Testing the MDS score
+
+```{r}
+test_data%>% group_by(msa_path, MDS_raw_50,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_success = mean(default_status)) %>% ggplot(aes(x=(feature_msa_pypythia_msa_difficulty), y = mean_success))+geom_point()
+
+test_data %>% group_by(msa_path, MDS_raw_50,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_success = mean(default_status)) %>% ggplot(aes(x=log(MDS_raw_50), y = mean_success))+geom_point()
+
+test_data %>% group_by(msa_path, MDS_raw_50,feature_msa_pypythia_msa_difficulty,mean_dist_raw) %>% summarise(mean_success = mean(default_status)) %>% ggplot(aes(x=mean_dist_raw, y = mean_success))+geom_point()
+
+data<-test_data %>% mutate(log_mds = log(MDS_raw_30)) %>% group_by(msa_path,MDS_raw_30, mean_dist_raw,feature_msa_pypythia_msa_difficulty, log_mds) %>% summarise(mean_success = mean(default_status)) 
+
+cor(data %>% pull ((MDS_raw_30)),data %>% pull (mean_success))
+cor(data %>% pull ((MDS_raw_30)),data %>% pull (mean_success))
+cor(data %>% pull ((log_mds)),data %>% pull (mean_success))
+cor(data %>% pull (mean_dist_raw),data %>% pull (mean_success))
+
+cor(data %>% pull (mean_dist_raw),data %>% pull (log_mds))
+```
+
+
+
+
+```{r}
+library(predtools)
+library(MASS)
+library(caret)
+
+calPlotData <- calibration(as.factor(default_status) ~ calibrated_prob, data = test_data, class = "1")
+calPlotData
+
+xyplot(calPlotData, auto.key = list(columns = 2))
+```
+
+
+`
+
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
