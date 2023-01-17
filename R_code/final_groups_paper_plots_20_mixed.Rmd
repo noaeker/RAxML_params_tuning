@@ -15,16 +15,15 @@ library(pROC)
 
 ```
 
-```{r}
-test_data %>% distinct (msa_path) %>% arrange(msa_path)
-```
+
 
 ```{r}
 
 prefix = "/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/Data_for_paper/only_outputs_folder"
-current_run ="groups_10_mixed"
-error_vs_size= read_tsv(rbind(paste(prefix,current_run,"group_classification_metrics_M_frac_1.0_RFE_False_large_grid_False_out_features_True.tsv", sep = "/"),paste(prefix,current_run,"group_classification_metrics_M_frac_0.85_RFE_False_large_grid_False_out_features_True.tsv", sep = "/"),paste(prefix,current_run,"group_classification_metrics_M_frac_0.7_RFE_False_large_grid_False_out_features_True.tsv", sep = "/"),paste(prefix,current_run,"group_classification_metrics_M_frac_0.5499999999999999_RFE_False_large_grid_False_out_features_True.tsv", sep = "/"),paste(prefix,current_run,"group_classification_metrics_M_frac_0.4_RFE_False_large_grid_False_out_features_True.tsv", sep = "/"),paste(prefix,current_run,"group_classification_metrics_M_frac_0.25_RFE_False_large_grid_False_out_features_True.tsv", sep = "/"),paste(prefix,current_run,"group_classification_metrics_M_frac_0.1_RFE_False_large_grid_False_out_features_True.tsv", sep = "/")))
+current_run ="groups_20_mixed"
+
 write_tsv(error_vs_size,paste(prefix,current_run,"group_classification_metrics.tsv"))
+
 error_vs_group= read_tsv(paste(prefix,current_run,"group_classification_group_metrics_M_frac_1.0_RFE_False_large_grid_False_out_features_True.tsv",sep = "/"))
 test_data = read_tsv(paste(prefix,current_run,"final_performance_on_test_M_frac_1.0_RFE_True_large_grid_True_out_features_True.tsv",sep = "/"))
 
@@ -53,9 +52,6 @@ test_data%>% group_by (default_status) %>% count()
 ```
 
 
-```{r}
-error_vs_group %>% filter (grouping_col_name =='n_seq_group') %>% distinct (grouping_col)
-```
 
 ```{r}
 library(dplyr)
@@ -64,7 +60,7 @@ library(MASS)
 Pypythia_error<-error_vs_group %>% filter (grouping_col_name =='msa_difficulty_group') %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('MSA difficulty')+ xlab('AUC')+theme(text = element_text(size = 11))
 
 
-n_seq_error<-error_vs_group %>% filter (grouping_col_name =='n_seq_group') %>% mutate(grouping_col = factor(grouping_col, levels = c('(29.999, 46.0]','(46.0, 65.0]','(65.0, 104.0]','(104.0, 200.0]'))) %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('Number of sequences')+xlab('AUC')+theme(text = element_text(size = 11))
+n_seq_error<-error_vs_group %>% filter (grouping_col_name =='n_seq_group') %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('Number of sequences')+xlab('AUC')+theme(text = element_text(size = 11))
 
 
 Pypythia_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob,  feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_pypythia_msa_difficulty, y = mean_prob))+geom_point()+xlab("MSA difficulty")+ylab("Predicted probability")+theme(text = element_text(size = 11))
@@ -72,21 +68,10 @@ Pypythia_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibr
 seq_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_n_seq, y = mean_prob))+geom_point()+xlab("Number of sequences")+ylab("Predicted probability")+theme(text = element_text(size = 11))
 
 
-ggarrange(seq_scatter,n_seq_error,Pypythia_scatter,Pypythia_error,labels = c("A","B","C","D"),align = "h", nrow = 2, ncol = 2, legend = "bottom",vjust= 1)
+ggarrange(n_seq_error, seq_scatter,Pypythia_error,Pypythia_scatter,labels = c("A","B","C","D"),align = "h", nrow = 2, ncol = 2, legend = "bottom",vjust= 1)
 #error_vs_group_5_5_including_plt
 
 
-```
-
-```{r}
-Pypythia_scatter_data<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_prob = mean(calibrated_prob)) 
-
-cor.test(Pypythia_scatter_data %>% pull(mean_prob), Pypythia_scatter_data %>% pull (feature_msa_pypythia_msa_difficulty))
-
-
-seq_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_prob = mean(calibrated_prob))
-
-cor.test(seq_scatter %>% pull(mean_prob), seq_scatter %>% pull (feature_msa_n_seq))
 ```
 
 
@@ -106,7 +91,7 @@ test_data %>% mutate(bins_pars_samp = cut(frac_pars_trees_sampled,3),bins_n_seq 
 Important feature vs. result
 ```{r}
 
-mds_plt<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob, MDS_raw_30, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty,MDS_raw_30) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=log(MDS_raw_30), y = mean_prob))+geom_point()+xlab("MDS stress score\nwith 30 dimensions")+ylab("Mean predicted probability")+theme(text = element_text(size = 11))
+mds_plt<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob, MDS_raw_30, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty,MDS_raw_30) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=log(MDS_raw_30), y = mean_prob))+geom_point()+xlab("Log MDS stress score\nwith 30 dimensions")+ylab("Mean predicted probability")+theme(text = element_text(size = 11))
 
 mean_rf_plt<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob,feature_mean_rf_final_trees, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty)  %>% ggplot(aes(x=feature_mean_rf_final_trees, y = calibrated_prob))+geom_point(size = 0.1)+xlab("Mean RF distance\nacross final trees")+ylab("Predicted probability")+theme(text = element_text(size = 11))
 

@@ -49,6 +49,7 @@ import os
 import numpy as np
 import time
 from ML_pipeline.ML_pipeline_groups import perform_MDS
+import time
 
 def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_folder,args):
     job_dict = {}
@@ -91,15 +92,18 @@ def finish_all_running_jobs(job_names):
             execute_command_and_write_to_log(delete_current_job_cmd, print_to_log=True)
 
 
+import timeit
+
 def generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path):
     if os.path.exists(msa_res_path):
         return pickle.load(open(msa_res_path,'rb'))
     msa_res = {}
     raxml_trash_dir = os.path.join(curr_run_dir, 'raxml_trash')
     create_dir_if_not_exists(raxml_trash_dir)
+    start = timeit.default_timer()
     for msa_path in relevant_data["msa_path"].unique():
+        start = timeit.default_timer()
         print(msa_path)
-        logging.info()
         msa_n_seq = max(relevant_data.loc[relevant_data.msa_path == msa_path]["feature_msa_n_seq"])
         pars_path = generate_n_tree_topologies(300, get_local_path(msa_path), raxml_trash_dir,
                                                seed=1, tree_type='pars', msa_type='AA')
@@ -117,13 +121,15 @@ def generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path):
             MDS_raw_100 = MDS_res_100.iloc[0]
             msa_res[msa_path] = {'MDS_raw_10': MDS_raw_10,'MDS_raw_30': MDS_raw_30,'MDS_raw_50': MDS_raw_50,'MDS_raw_100': MDS_raw_100, 'mean_dist_raw': mean_dist_raw, 'pars_trees': pars}
             create_or_clean_dir(raxml_trash_dir)
+            stop = timeit.default_timer()
+            print('Time: ', stop - start)
     with open(msa_res_path, 'wb') as MSA_RES:
         pickle.dump(msa_res, MSA_RES)
     return msa_res
 
 
 def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_output_tree_features):
-    name = f'M_{args.model}_frac_{sample_frac}_RFE_{RFE}_large_grid_{large_grid}_out_features_{include_output_tree_features}'
+    name = f'M_frac_{sample_frac}_RFE_{RFE}_large_grid_{large_grid}_out_features_{include_output_tree_features}'
 
 
     if args.model=='rf' or args.model=='sgd': #Removing NA values
@@ -183,8 +189,13 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
     if sample_frac==1 or sample_frac==-1:
         test["uncalibrated_prob"] = model['best_model'].predict_proba((model['selector']).transform(X_test))[:, 1]
         test["calibrated_prob"] = model['calibrated_model'].predict_proba((model['selector']).transform(X_test))[:, 1]
-        final_csv_path = os.path.join(curr_run_dir, f"final_performance_on_test_{name}.tsv")
-        test.to_csv(final_csv_path, sep='\t')
+        final_csv_path_test = os.path.join(curr_run_dir, f"final_performance_on_test_{name}.tsv")
+        test.to_csv(final_csv_path_test, sep='\t')
+
+        val["uncalibrated_prob"] = model['best_model'].predict_proba((model['selector']).transform(X_val))[:, 1]
+        val["calibrated_prob"] = model['calibrated_model'].predict_proba((model['selector']).transform(X_val))[:, 1]
+        final_csv_path_val = os.path.join(curr_run_dir, f"final_performance_on_val_{name}.tsv")
+        val.to_csv(final_csv_path_val, sep='\t')
 
 
 def main():
@@ -202,7 +213,7 @@ def main():
     create_dir_if_not_exists(existing_msas_data_path)
     logging.info(f"Reading all data from {args.file_path}")
     if LOCAL_RUN:
-        relevant_data = pd.read_csv(args.file_path, sep='\t',nrows=1)
+        relevant_data = pd.read_csv(args.file_path, sep='\t', nrows=1)
     else:
         relevant_data = pd.read_csv(args.file_path, sep = '\t')
     if args.filter_on_default_data:
