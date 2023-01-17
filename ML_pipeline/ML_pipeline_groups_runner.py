@@ -273,10 +273,11 @@ def main():
     logging.info(f"Using sample fracs = {args.sample_fracs}")
     logging.info(f"include_output_tree_features = {args.include_output_tree_features}")
     sample_fracs = args.sample_fracs if not LOCAL_RUN else [1]
-    for sample_frac in  sample_fracs:
-        ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False,include_output_tree_features = args.include_output_tree_features)
-    if not LOCAL_RUN:
-        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= args.include_output_tree_features)
+    if args.add_sample_fracs:
+        for sample_frac in  sample_fracs:
+            ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False,include_output_tree_features = args.include_output_tree_features)
+        if not LOCAL_RUN:
+            ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= args.include_output_tree_features)
     logging.info(f"Working on MSA level features")
 
 

@@ -31,6 +31,7 @@ def group_main_parser():
     parser.add_argument('--include_output_tree_features', action = 'store_true', default= True)
     parser.add_argument('--sample_fracs', default =np.linspace(0.1,1,7) )#np.linspace(0.1,1,5)#np.linspace(0.1,1,7)
     parser.add_argument('--model', default = "lightgbm") #sgd,rf ,lightgbm
+    parser.add_argument('--add_sample_fracs',action = 'store_true')
     #parser.add_argument('--prev_results_path', default = None)
     return parser
 
