@@ -28,23 +28,41 @@ write_tsv(error_vs_size,paste(prefix,current_run,"group_classification_metrics.t
 error_vs_group= read_tsv(paste(prefix,current_run,"group_classification_group_metrics_M_frac_1.0_RFE_False_large_grid_False_out_features_True.tsv",sep = "/"))
 test_data = read_tsv(paste(prefix,current_run,"final_performance_on_test_M_frac_1.0_RFE_True_large_grid_True_out_features_True.tsv",sep = "/"))
 
+total_global_data = read_tsv(paste(prefix,current_run,"group_10_mixed_all_results.tsv",sep = "/"))
 
 
+```
+
+```{r}
+global_data<- total_global_data %>% group_by(msa_path) %>% summarise(mean_prob = mean(default_status))
+global_data
+global_data %>% filter (mean_prob>0.5) 
+global_data %>% filter (mean_prob<0.05)
+mean(total_global_data %>% pull(default_status))
 ```
 
 
 AUC + error vs. siz plots
 
 ```{r}
-error_vs_size_plt = error_vs_size %>% mutate(n_MSAs = round(868*sample_fraction)) %>% ggplot(aes(x=n_MSAs, y = AUC))+geom_line()+ expand_limits(y = 0.5)+xlab("Number of MSAs")+ theme(text = element_text(size = 13))+ylab("AUC")+geom_point()
+error_vs_size_plt = error_vs_size %>% mutate(n_MSAs = round(868*sample_fraction)) %>% ggplot(aes(x=n_MSAs, y = AUC))+geom_line()+ expand_limits(y = 0.5)+xlab("Number of MSAs")+ theme(text = element_text(size = 11))+ylab("AUC")+geom_point()
 
 rocobj <- roc(test_data$default_status, test_data$calibrated_prob)
 auc <- round(auc(test_data$default_status, test_data$calibrated_prob),3)
 
 global_max_auc_plt<-ggroc(rocobj,colour = 'steelblue', size = 2)+
-  ggtitle(paste0('AUC = ', auc))+theme(text = element_text(size = 13))+xlab("Specificity")
+  ggtitle(paste0('AUC = ', auc))+theme(text = element_text(size = 11))+xlab("Specificity")
 
-ggarrange(global_max_auc_plt,error_vs_size_plt ,labels = c("A","B"),align = "h", nrow = 1, ncol = 2, legend = "bottom",vjust= 1)
+data<-test_data %>% group_by(msa_path) %>% summarise(mean_prob = mean(default_status), mean_pred = mean(calibrated_prob))
+actual_performance<- data %>% ggplot(aes(x=mean_prob,y=mean_pred))+geom_point()+xlab("Fraction of succsssfull tree-searchs")+ theme(text = element_text(size = 11))+ylab("Mean predicted probability")+geom_point(colour = "black", fill = "white",alpha = 1/20,stroke =5 )
+
+data %>% filter (mean_prob>0.8) 
+data %>% filter (mean_prob<0.1)
+data %>% filter (mean_prob>0.1 & mean_prob<0.8)
+
+
+ggarrange(global_max_auc_plt,actual_performance,error_vs_size_plt ,labels = c("A","B","C"),align = "h", nrow = 2, ncol = 2 , legend = "bottom",vjust= 1)
+
 
 test_data%>% group_by (default_status) %>% count()
 

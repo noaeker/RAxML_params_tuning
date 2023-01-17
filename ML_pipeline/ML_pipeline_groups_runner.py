@@ -129,7 +129,7 @@ def generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path):
 
 
 def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_output_tree_features):
-    name = f'M_frac_{sample_frac}_RFE_{RFE}_large_grid_{large_grid}_out_features_{include_output_tree_features}'
+    name = f'_M_frac_{sample_frac}_RFE_{RFE}_large_grid_{large_grid}_out_features_{include_output_tree_features}'
 
 
     if args.model=='rf' or args.model=='sgd': #Removing NA values
