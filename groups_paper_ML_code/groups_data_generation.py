@@ -9,7 +9,6 @@ sys.path.append(PROJECT_ROOT_DIRECRTORY)
 from scipy.stats import skew, kurtosis
 from side_code.raxml import *
 from side_code.basic_trees_manipulation import *
-from sklearn.manifold import MDS
 from side_code.file_handling import create_dir_if_not_exists
 from groups_paper_ML_code.group_side_functions import *
 import pandas as pd
@@ -50,13 +49,6 @@ def generate_distance_matrix(curr_run_directory, overall_trees):
     X[triu] = X.T[triu]
     return X
 
-def perform_MDS(curr_run_directory,overall_trees, n_seq, n_components = 10):
-    #distance_mat_norm = generate_distance_matrix(curr_run_directory,overall_trees)/(2*n_seq-6)
-    distance_mat_raw = generate_distance_matrix(curr_run_directory, overall_trees)
-    #mds_norm = MDS(random_state=0, n_components=3, metric=True, dissimilarity='precomputed').fit(distance_mat_norm)
-    mds_raw = MDS(random_state=0, n_components=n_components, metric=True, dissimilarity='precomputed').fit(distance_mat_raw)
-    return pd.Series([mds_raw.stress_,np.mean(distance_mat_raw)])
-
 
 def estimate_entropy(vec):
     count = dict(pd.Series(vec).value_counts())
@@ -77,7 +69,7 @@ def generate_distance_matrix_statistics(curr_run_directory,df, col_output):
     return pd.Series([best_tree_outlier, pct_non_outliers,number_of_clusters,best_tree_label_frac ])
 
 
-def get_mean_rf_distance(curr_run_directory,df, col):
+def get_rf_distance_metrics(curr_run_directory, df, col):
     overall_trees = df[col]
     distance_mat = generate_distance_matrix(curr_run_directory,overall_trees)
     return pd.Series([np.mean(distance_mat), np.var(distance_mat), np.min(distance_mat), np.max(distance_mat), pct_25(distance_mat),pct_75(distance_mat)])
@@ -143,13 +135,13 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
                                                 feature_final_ll_kutosis=('final_ll', kurtosis),
                                                 feature_max_ll_std = ('normalized_final_ll', np.max)
                                                 ).reset_index()
-        mds_per_final_tree = sampled_data.groupby('msa_path').apply(lambda df: perform_MDS(curr_run_dir,df['final_tree_topology'], max(df['feature_msa_n_seq']))).reset_index()
-        mds_per_final_tree.columns = ['msa_path','feature_mds_rf_dist_final_trees_raw','feature_mean_rf_dist_final_trees_raw']
-
-        mean_rf_per_final_tree = sampled_data.groupby('msa_path').apply(lambda df: get_mean_rf_distance(curr_run_dir,df,col='final_tree_topology')).reset_index()
+        #mds_per_final_tree = sampled_data.groupby('msa_path').apply(lambda df: perform_MDS(curr_run_dir,df['final_tree_topology'], max(df['feature_msa_n_seq']))).reset_index()
+        #mds_per_final_tree.columns = ['msa_path','feature_mds_rf_dist_final_trees_raw','feature_mean_rf_dist_final_trees_raw']
+        #
+        mean_rf_per_final_tree = sampled_data.groupby('msa_path').apply(lambda df: get_rf_distance_metrics(curr_run_dir, df, col='final_tree_topology')).reset_index()
         mean_rf_per_final_tree.columns = ['msa_path','feature_mean_rf_final_trees','feature_var_rf_final_trees','feature_min_rf_final_trees','feature_max_rf_final_trees','feature_25_rf_final_trees','feature_75_rf_final_trees']
         if n_pars >0:
-            mean_rf_per_pars_starting_tree = sampled_data.loc[sampled_data.starting_tree_type=='pars'].groupby('msa_path').apply(lambda df: get_mean_rf_distance(curr_run_dir,df,col='starting_tree_object')).reset_index()
+            mean_rf_per_pars_starting_tree = sampled_data.loc[sampled_data.starting_tree_type=='pars'].groupby('msa_path').apply(lambda df: get_rf_distance_metrics(curr_run_dir, df, col='starting_tree_object')).reset_index()
             mean_rf_per_pars_starting_tree.columns = ['msa_path','feature_mean_rf_pars_trees','feature_var_rf_pars_trees','feature_min_rf_pars_trees','feature_max_rf_pars_trees','feature_25_rf_pars_trees','feature_75_rf_pars_trees']
 
         pars_run_metrics = sampled_data.loc[sampled_data.starting_tree_type=='pars'].groupby('msa_path').agg(feature_mean_pars_ll_diff = ('log_likelihood_diff', np.mean),feature_var_pars_ll_diff = ('log_likelihood_diff', np.var), feature_mean_pars_rf_diff = ('start_vs_end', np.mean), feature_var_pars_vs_final_rf_diff = ('start_vs_end', np.var),feature_min_pars_vs_final_rf_diff = ('start_vs_end', np.min),feature_max_pars_vs_final_rf_diff = ('start_vs_end', np.max),  feature_pars_ll_skew=('feature_tree_optimized_ll', skew),
@@ -163,7 +155,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
             feature_mean_rand_global_max=('is_best_tree', np.mean)
             )
         curr_iter_general_metrics = curr_iter_general_metrics.merge(pars_final_corr, on = 'msa_path', how = 'left')
-        curr_iter_general_metrics = curr_iter_general_metrics.merge(mds_per_final_tree, on = 'msa_path',how = 'left')
+        #curr_iter_general_metrics = curr_iter_general_metrics.merge(mds_per_final_tree, on = 'msa_path',how = 'left')
         curr_iter_general_metrics = curr_iter_general_metrics.merge(rand_run_metrics, on = 'msa_path',how = 'left')
         curr_iter_general_metrics = curr_iter_general_metrics.merge(pars_run_metrics, on = 'msa_path',how = 'left')
         curr_iter_general_metrics = curr_iter_general_metrics.merge(mean_rf_per_final_tree, on = 'msa_path',how = 'left')

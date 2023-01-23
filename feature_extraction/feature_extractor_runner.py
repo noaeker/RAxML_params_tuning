@@ -9,7 +9,7 @@ sys.path.append(PROJECT_ROOT_DIRECRTORY)
 from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, add_csvs_content
 from side_code.config import *
 from side_code.code_submission import generate_argument_str, submit_linux_job, generate_argument_list, submit_local_job, execute_command_and_write_to_log
-from Feature_extraction.features_job_functions import features_main_parser
+from feature_extraction.features_job_functions import features_main_parser
 import pandas as pd
 import os
 import numpy as np
@@ -82,7 +82,7 @@ def main():
     idx = counts[counts < args.min_n_observations].index
     raw_data = raw_data[~raw_data['msa_path'].isin(idx)]
 
-    if LOCAL_RUN:
+    if LOCAL_RUN: # Test run when running locally
       np.random.seed(SEED)
       msa_names = list(np.unique(raw_data["msa_path"]))
       msas_sample = np.random.choice(msa_names, size=3, replace=False)

@@ -37,10 +37,6 @@ CSV_SUFFIX = ".tsv"
 N_MSAS_PER_BUNCH = -1
 MSAs_POOL_SIZE = 1000
 
-COLUMNS_TO_INCLUDE_CSV = ["msa_folder","original_alignment_path","msa_name","elapsed_running_time", "msa_type", "n_loci", "n_seq", "run_name",
-                         "spr_cutoff","spr_radius","starting_tree_ll","final_ll","rf_from_curr_starting_tree_best_topology","curr_starting_tree_best_ll",
-                         "delta_ll_from_curr_starting_tree_best_topology","starting_tree_ind","tree_type","best_msa_ll","rf_from_overall_msa_best_topology",
-                         "delta_ll_from_overall_msa_best_topology"]
 
 
 
@@ -55,8 +51,8 @@ if not LOCAL_RUN:
     PROJECT_ROOT_DIRECRTORY = "/groups/pupko/noaeker/RAxML_params_tuning"
     MAIN_CODE_PATH = f"raw_data_generation/tune_params.py"
     SAMPLING_MAIN_CODE_PATH = f"raw_data_sampling_analysis/random_and_parsimony_sampling.py"
-    FEATURE_EXTRACTION_CODE = f"{PROJECT_ROOT_DIRECRTORY}/ML_pipeline/features_extractor_new_version.py"
-    GROUPS_FEATURE_EXTRACTION_CODE = f"{PROJECT_ROOT_DIRECRTORY}/ML_pipeline/ML_pipeline_groups.py"
+    FEATURE_EXTRACTION_CODE = f"{PROJECT_ROOT_DIRECRTORY}/feature_extraction/features_extractor_new_version.py"
+    GROUPS_FEATURE_EXTRACTION_CODE = f"{PROJECT_ROOT_DIRECRTORY}/groups_paper_ML_code/groups_data_generation.py"
     RAXML_HPC_EXE = "/groups/pupko/noaeker/standard-RAxML/raxmlHPC"
     RATE4SITE_COMMAND_PREFIX = "/groups/pupko/noaeker/programs/other_programs/rate4site/rate4site"
     TMP_RESULTS_FOLDER = f"{RESULTS_FOLDER}/single_gene_MSAs"
@@ -78,7 +74,7 @@ elif LOCAL_RUN:
     PROJECT_ROOT_DIRECRTORY = "/Users/noa/Workspace/RAxML_params_tuning"
     MAIN_CODE_PATH = f"{PROJECT_ROOT_DIRECRTORY}/raw_data_generation/tune_params.py"
     SAMPLING_MAIN_CODE_PATH = f"{PROJECT_ROOT_DIRECRTORY}/raw_data_sampling_analysis.py"
-    FEATURE_EXTRACTION_CODE = f"{PROJECT_ROOT_DIRECRTORY}/ML_pipeline/features_extractor_new_version.py"
-    GROUPS_FEATURE_EXTRACTION_CODE = f"{PROJECT_ROOT_DIRECRTORY}/ML_pipeline/ML_pipeline_groups.py"
+    FEATURE_EXTRACTION_CODE = f"{PROJECT_ROOT_DIRECRTORY}/feature_extraction/features_extractor_new_version.py"
+    GROUPS_FEATURE_EXTRACTION_CODE = f"{PROJECT_ROOT_DIRECRTORY}/groups_paper_ML_code/groups_data_generation.py"
     TMP_RESULTS_FOLDER =  f"{RESULTS_FOLDER}/single_gene_MSAs"
     CSV_MSAs_FOLDER = "/Users/noa/Workspace/data/ABC_DR"

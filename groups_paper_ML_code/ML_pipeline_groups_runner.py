@@ -17,8 +17,10 @@ from side_code.code_submission import generate_argument_str, submit_linux_job, g
 import pandas as pd
 import os
 import numpy as np
-from groups_paper_ML_code.groups_data_generation import perform_MDS
+from groups_paper_ML_code.groups_data_generation import generate_distance_matrix
 import time
+import timeit
+from sklearn.manifold import MDS
 
 def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_folder,args):
     job_dict = {}
@@ -61,7 +63,20 @@ def finish_all_running_jobs(job_names):
             execute_command_and_write_to_log(delete_current_job_cmd, print_to_log=True)
 
 
-import timeit
+
+
+
+
+def perform_MDS(distance_mat_raw, n_components = 10):
+    #distance_mat_norm = generate_distance_matrix(curr_run_directory,overall_trees)/(2*n_seq-6)
+    #distance_mat_raw = generate_distance_matrix(curr_run_directory, overall_trees)
+    #mds_norm = MDS(random_state=0, n_components=3, metric=True, dissimilarity='precomputed').fit(distance_mat_norm)
+    mds_raw = MDS(random_state=0, n_components=n_components, metric=True, dissimilarity='precomputed').fit(distance_mat_raw)
+    return mds_raw.stress_
+
+
+
+
 
 def generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path,n_pars_tree_sampled = 100):
     if os.path.exists(msa_res_path):
@@ -72,23 +87,23 @@ def generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path,n_par
     start = timeit.default_timer()
     for msa_path in relevant_data["msa_path"].unique():
         start = timeit.default_timer()
-        print(msa_path)
-        msa_n_seq = max(relevant_data.loc[relevant_data.msa_path == msa_path]["feature_msa_n_seq"])
+        #print(msa_path)
+        #msa_n_seq = max(relevant_data.loc[relevant_data.msa_path == msa_path]["feature_msa_n_seq"])
         pars_path = generate_n_tree_topologies(n_pars_tree_sampled, get_local_path(msa_path), raxml_trash_dir,
                                                seed=1, tree_type='pars', msa_type='AA')
         with open(pars_path) as trees_path:
             newicks = trees_path.read().split("\n")
             pars = [t for t in newicks if len(t) > 0]
-            MDS_res_10 = perform_MDS(curr_run_dir, pars, msa_n_seq, n_components=10)
-            MDS_raw_10 =MDS_res_10.iloc[0]
-            mean_dist_raw = MDS_res_10.iloc[1]
-            MDS_res_30 = perform_MDS(curr_run_dir, pars, msa_n_seq, n_components=30)
-            MDS_raw_30 = MDS_res_30.iloc[0]
-            MDS_res_50 = perform_MDS(curr_run_dir, pars, msa_n_seq, n_components=50)
-            MDS_raw_50 = MDS_res_50.iloc[0]
-            MDS_res_100 = perform_MDS(curr_run_dir, pars, msa_n_seq, n_components=100)
-            MDS_raw_100 = MDS_res_100.iloc[0]
-            msa_res[msa_path] = {'MDS_raw_10': MDS_raw_10,'MDS_raw_30': MDS_raw_30, 'mean_dist_raw': mean_dist_raw, 'pars_trees': pars}
+            distance_mat_raw = generate_distance_matrix(curr_run_dir, pars)
+            mean_dist_raw = np.mean(distance_mat_raw)
+            var_dist_raw = np.var(distance_mat_raw)
+
+            MDS_raw_10 = perform_MDS(distance_mat_raw, n_components = 10)
+            MDS_raw_30 = perform_MDS(distance_mat_raw, n_components=30)
+            MDS_raw_50 = perform_MDS(distance_mat_raw, n_components=50)
+            MDS_raw_100 = perform_MDS(distance_mat_raw, n_components=100)
+
+            msa_res[msa_path] = {'MDS_raw_10': MDS_raw_10,'MDS_raw_30': MDS_raw_30,'MDS_raw_50': MDS_raw_50,'MDS_raw_100': MDS_raw_100, 'mean_dist_raw': mean_dist_raw,'var_dist_raw': var_dist_raw, 'pars_trees': pars}
             create_or_clean_dir(raxml_trash_dir)
             stop = timeit.default_timer()
             print('Time: ', stop - start)
@@ -131,7 +146,7 @@ def obtain_sampling_results(results_path, previous_results_path, relevant_data, 
 
 def edit_existing_results(results, MSA_res_df):
     results = results.merge(MSA_res_df, on="msa_path")
-    results["feature_pars_dist_vs_final_dist"] = results["mean_dist_raw"]/results["feature_mean_rf_dist_final_trees_raw"]
+    results["feature_pars_dist_vs_final_dist"] = results["mean_dist_raw"]/results["feature_mean_rf_final_trees"]
     results["feature_mean_ll_pars_vs_rand"] = results["feature_mean_pars_ll_diff"] / results[
         "feature_mean_rand_ll_diff"]
 
@@ -153,7 +168,7 @@ def main():
     create_dir_if_not_exists(existing_msas_data_path)
     logging.info(f"Reading all data from {args.file_path}")
     if LOCAL_RUN:
-        relevant_data = pd.read_csv(args.file_path, sep='\t', nrows=1)
+        relevant_data = pd.read_csv(args.file_path, sep='\t', nrows=10000)
     else:
         relevant_data = pd.read_csv(args.file_path, sep = '\t')
     if args.filter_on_default_data:
@@ -174,7 +189,7 @@ def main():
     MSA_res_df = pd.DataFrame.from_dict(MSA_res_dict, orient='index').reset_index().drop(columns=['pars_trees']).rename(
         columns={'index': 'msa_path'})
     edit_existing_results(results, MSA_res_df)
-    if os.path.exists(args.additional_validation):
+    if args.additional_validation and os.path.exists(args.additional_validation):
         additional_validation_data = pd.read_csv(args.additional_validation, sep='\t')
         edit_existing_results(additional_validation_data, MSA_res_df)
     else:
