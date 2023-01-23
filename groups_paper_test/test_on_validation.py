@@ -11,7 +11,7 @@ datasets_data = pd.concat([pd.read_csv("/Users/noa/Downloads/5481529/Supplementa
 datasets_data = datasets_data.drop(columns=['Published'])
 datasets_data["Max_LL_score_data"] = datasets_data.max(axis=1)
 #datasets_data["var_LL_score_data"] = datasets_data.var(axis=1) #RAxML-10(RT)
-datasets_data["RAxML_succeeded"] = ((datasets_data["RAxML-10(RT)"]>=datasets_data["Max_LL_score_data"]-0.1))
+datasets_data["RAxML_succeeded"] = ((datasets_data["RAxML-10(MP)"]>=datasets_data["Max_LL_score_data"]-0.1))
 #features_data = pd.read_csv("/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/all_features.tsv", sep = '\t')
 #features_data_validation = features_data.loc[features_data["msa_path"].str.contains("Single_gene_PROTEIN")]
 validation_data_best_ll= pd.read_csv("/Users/noa/Downloads/val_best_msa_ll.tsv",sep='\t')
@@ -26,8 +26,9 @@ validation_data_predictions["Gene_name_tmp"] = validation_data_predictions['msa_
 validation_data_predictions["Gene_name"] = validation_data_predictions['Gene_name_tmp'].apply(lambda x: x[:x.rfind('_')])
 validation_data_predictions["Gene_name_final"] = validation_data_predictions['Gene_name'].apply(lambda x: x[:x.find('.')])
 
-mean_validation_data_predictions_per_MSA = validation_data_predictions.groupby(['Dataset_name','Gene_name_final']).agg(mean_pred = ('calibrated_prob',np.mean)).reset_index()
+mean_validation_data_predictions_per_MSA = validation_data_predictions.groupby(['msa_path','Dataset_name','Gene_name_final']).agg(mean_pred = ('calibrated_prob',np.mean)).reset_index()
 comp =mean_validation_data_predictions_per_MSA.merge(datasets_data, right_on = ['Data set','Gene name'], left_on = ['Dataset_name','Gene_name_final'])
+comp.to_csv("Validation_MSAs_in_comp.tsv",sep='\t')
 print(len(comp.index))
 print(roc_auc_score(comp["RAxML_succeeded"],comp["mean_pred"]))
 print(average_precision_score(comp["RAxML_succeeded"],comp["mean_pred"]))

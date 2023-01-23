@@ -1,5 +1,5 @@
 from side_code.raxml import *
-from ML_pipeline.features_extractor_new_version import get_msa_stats
+from Feature_extraction import get_msa_stats
 from side_code.basic_trees_manipulation import *
 from side_code.config import *
 #from side_code.MSA_manipulation import get_msa_type

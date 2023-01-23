@@ -15,9 +15,7 @@ library(pROC)
 
 ```
 
-```{r}
-test_data %>% distinct (msa_path) %>% arrange(msa_path)
-```
+
 
 ```{r}
 
@@ -28,7 +26,42 @@ write_tsv(error_vs_size,paste(prefix,current_run,"group_classification_metrics.t
 error_vs_group= read_tsv(paste(prefix,current_run,"group_classification_group_metrics_M_frac_1.0_RFE_False_large_grid_False_out_features_True.tsv",sep = "/"))
 test_data = read_tsv(paste(prefix,current_run,"final_performance_on_test_M_frac_1.0_RFE_True_large_grid_True_out_features_True.tsv",sep = "/"))
 
+total_global_data = read_tsv(paste(prefix,current_run,"group_10_mixed_all_results.tsv",sep = "/"))
 
+
+```
+
+```{r}
+global_data<- total_global_data %>% group_by(msa_path) %>% summarise(mean_prob = mean(default_status))
+global_data
+global_data %>% filter (mean_prob>0.95) 
+global_data %>% filter (mean_prob>0.5) 
+global_data %>% filter (mean_prob<0.05)
+mean(total_global_data %>% pull(default_status))
+```
+```{r}
+library(scales)
+ggplotConfusionMatrix <- function(m){
+  mytitle <- ""#paste("Accuracy", percent_format()(m$overall[1]))
+                  # "Kappa", percent_format()(m$overall[2]))
+  p <-
+    ggplot(data = as.data.frame(m$table) ,
+           aes(x = Reference, y = Prediction)) +
+    geom_tile(aes(fill = log(Freq)), colour = "white") +
+    scale_fill_gradient(low = "white", high = "steelblue") +
+    geom_text(aes(x = Reference, y = Prediction, label = Freq)) +
+    theme(legend.position = "none") +
+    ggtitle(mytitle)+theme(text = element_text(size = 13))
+  return(p)
+}
+conf_data<-test_data %>% dplyr::select (uncalibrated_prob, default_status) %>% mutate (pred_status = round(uncalibrated_prob)) 
+
+obs<- factor(conf_data %>% pull (default_status))
+pred<- factor(conf_data %>% pull (pred_status))
+
+
+confusion_plot<-ggplotConfusionMatrix(confusionMatrix(data = pred, reference= obs))+theme(legend.position = "none")
+confusion_plot
 
 ```
 
@@ -44,13 +77,25 @@ auc <- round(auc(test_data$default_status, test_data$calibrated_prob),3)
 global_max_auc_plt<-ggroc(rocobj,colour = 'steelblue', size = 2)+
   ggtitle(paste0('AUC = ', auc))+theme(text = element_text(size = 13))+xlab("Specificity")
 
-ggarrange(global_max_auc_plt,error_vs_size_plt ,labels = c("A","B"),align = "h", nrow = 1, ncol = 2, legend = "bottom",vjust= 1)
+data<-test_data %>% group_by(msa_path) %>% summarise(mean_prob = mean(default_status), mean_pred = mean(calibrated_prob))
+actual_performance<- data %>% ggplot(aes(x=mean_prob,y=mean_pred))+geom_point()+xlab("Fraction of succsssfull tree-searchs")+ theme(text = element_text(size = 13))+ylab("Mean predicted probability")+geom_point(colour = "black", fill = "white",alpha = 1/20,stroke =5 )
+
+data %>% filter (mean_prob>0.8) 
+data %>% filter (mean_prob<0.1)
+data %>% filter (mean_prob>0.1 & mean_prob<0.8)
+
+
+ggarrange(global_max_auc_plt,confusion_plot,error_vs_size_plt ,labels = c("A","B","C"),align = "h", nrow = 2, ncol = 2 ,vjust= 1)
+
 
 test_data%>% group_by (default_status) %>% count()
 
 
 
 ```
+
+
+
 
 
 ```{r}
@@ -67,9 +112,9 @@ Pypythia_error<-error_vs_group %>% filter (grouping_col_name =='msa_difficulty_g
 n_seq_error<-error_vs_group %>% filter (grouping_col_name =='n_seq_group') %>% mutate(grouping_col = factor(grouping_col, levels = c('(29.999, 46.0]','(46.0, 65.0]','(65.0, 104.0]','(104.0, 200.0]'))) %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('Number of sequences')+xlab('AUC')+theme(text = element_text(size = 11))
 
 
-Pypythia_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob,  feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_pypythia_msa_difficulty, y = mean_prob))+geom_point()+xlab("MSA difficulty")+ylab("Predicted probability")+theme(text = element_text(size = 11))
+Pypythia_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob,  feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_pypythia_msa_difficulty, y = mean_prob))+geom_point(size = 0.7)+xlab("MSA difficulty")+ylab("Predicted probability")+theme(text = element_text(size = 11))
 
-seq_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_n_seq, y = mean_prob))+geom_point()+xlab("Number of sequences")+ylab("Predicted probability")+theme(text = element_text(size = 11))
+seq_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_n_seq, y = mean_prob))+geom_point(size = 0.7)+xlab("Number of sequences")+ylab("Predicted probability")+theme(text = element_text(size = 11))
 
 
 ggarrange(seq_scatter,n_seq_error,Pypythia_scatter,Pypythia_error,labels = c("A","B","C","D"),align = "h", nrow = 2, ncol = 2, legend = "bottom",vjust= 1)
@@ -157,6 +202,9 @@ xyplot(calPlotData, auto.key = list(columns = 2))
 ```
 
 
+```{r}
+test_data
+```
 
 `
 

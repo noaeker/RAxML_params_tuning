@@ -1,12 +1,10 @@
 from side_code.config import *
-from ML_pipeline.ML_config import *
-import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier
 import pickle
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, accuracy_score, roc_auc_score
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.metrics import matthews_corrcoef, roc_auc_score, average_precision_score, accuracy_score, precision_score, \
-    recall_score, PrecisionRecallDisplay
+    recall_score
 import numpy as np
 import os
 import lightgbm
@@ -18,9 +16,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import SGDClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LogisticRegressionCV
-
 
 
 def regression_per_group(df):

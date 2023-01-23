@@ -1,14 +1,7 @@
-
-from side_code.config import *
-from side_code.raxml import RF_distances, unify_text_files
 from side_code.MSA_manipulation import remove_env_path_prefix
 import pandas as pd
 import numpy as np
-from sklearn.cluster import AgglomerativeClustering
 from pandas.api.types import is_numeric_dtype
-from ML_pipeline.ML_config import *
-
-import os
 
 
 def scale_if_needed(vec):

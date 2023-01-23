@@ -1,5 +1,4 @@
 import sys
-import math
 
 if sys.platform == "linux" or sys.platform == "linux2":
 
@@ -8,35 +7,24 @@ else:
     PROJECT_ROOT_DIRECRTORY = "/Users/noa/Workspace/RAxML_params_tuning"
 sys.path.append(PROJECT_ROOT_DIRECRTORY)
 
-from side_code.SPR_moves import *
-from scipy.stats import spearmanr
-from sklearn.decomposition import KernelPCA
 from side_code.raxml import *
 from side_code.basic_trees_manipulation import *
-from side_code.MSA_manipulation import get_alignment_data, get_msa_name
 from side_code.file_handling import create_or_clean_dir, create_dir_if_not_exists
 from side_code.MSA_manipulation import get_alignment_data, alignment_list_to_df, get_msa_name, \
     get_local_path
 from side_code.config import *
-from ML_pipeline.features_job_functions import feature_job_parser
+from Feature_extraction.features_job_functions import feature_job_parser
 from sklearn.manifold import MDS, Isomap, TSNE, LocallyLinearEmbedding
 from sklearn.decomposition import PCA
-from shutil import rmtree
-from sklearn.linear_model import LassoCV
 import pandas as pd
 import pickle
-import argparse
 from pypythia.predictor import DifficultyPredictor
 from pypythia.prediction import get_all_features
 from pypythia.raxmlng import RAxMLNG
 from pypythia.msa import MSA
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
-from sklearn.neighbors import KNeighborsRegressor
 import numpy as np
-from matplotlib import pyplot as plt
-import seaborn as sns
-from scipy.stats import spearmanr
 import time
 
 

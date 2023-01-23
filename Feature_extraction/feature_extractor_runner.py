@@ -9,14 +9,11 @@ sys.path.append(PROJECT_ROOT_DIRECRTORY)
 from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, add_csvs_content
 from side_code.config import *
 from side_code.code_submission import generate_argument_str, submit_linux_job, generate_argument_list, submit_local_job, execute_command_and_write_to_log
-from ML_pipeline.features_job_functions import features_main_parser
-from side_code.MSA_manipulation import get_msa_name
+from Feature_extraction.features_job_functions import features_main_parser
 import pandas as pd
 import os
 import numpy as np
 import time
-from shutil import rmtree
-
 
 
 def generate_results_folder(curr_run_prefix):

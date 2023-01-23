@@ -8,14 +8,13 @@ sys.path.append(PROJECT_ROOT_DIRECRTORY)
 
 from side_code.config import *
 from side_code.file_handling import create_dir_if_not_exists
-from ML_pipeline.side_functions import get_ML_parser
-from ML_pipeline.ML_pipeline_procedures import get_average_results_on_default_configurations_per_msa,edit_raw_data_for_ML
-from ML_pipeline.ML_algorithms_and_hueristics import ML_model, print_model_statistics, train_test_validation_splits
+from Feature_extraction import get_ML_parser
+from Feature_extraction import get_average_results_on_default_configurations_per_msa,edit_raw_data_for_ML
+from Feature_extraction import ML_model, print_model_statistics, train_test_validation_splits
 import pandas as pd
 import os
 import pickle
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler
 
 
 def get_ML_ready_data(full_data, data_feature_names, search_feature_names, test_pct, val_pct, subsample_train = False, subsample_train_frac = -1):

@@ -6,40 +6,17 @@ else:
     PROJECT_ROOT_DIRECRTORY = "/Users/noa/Workspace/RAxML_params_tuning"
 sys.path.append(PROJECT_ROOT_DIRECRTORY)
 
-from side_code.SPR_moves import *
 from scipy.stats import skew, kurtosis
-from sklearn.cluster import AgglomerativeClustering
-import networkx as nx
-from scipy.stats import spearmanr
-from sklearn.decomposition import KernelPCA
 from side_code.raxml import *
 from side_code.basic_trees_manipulation import *
-from side_code.MSA_manipulation import get_alignment_data, get_msa_name
-from side_code.file_handling import create_or_clean_dir, create_dir_if_not_exists
-from side_code.MSA_manipulation import get_alignment_data, alignment_list_to_df, get_msa_name, \
-    get_local_path
-from side_code.config import *
-from ML_pipeline.features_job_functions import feature_job_parser
-from sklearn.manifold import MDS, Isomap, TSNE, LocallyLinearEmbedding
-from side_code.config import *
+from sklearn.manifold import MDS
 from side_code.file_handling import create_dir_if_not_exists
-from ML_pipeline.group_side_functions import *
-from ML_pipeline.side_functions import get_ML_parser
-from ML_pipeline.ML_pipeline_procedures import get_average_results_on_default_configurations_per_msa,edit_raw_data_for_ML
-from ML_pipeline.ML_algorithms_and_hueristics import ML_model, print_model_statistics, train_test_validation_splits,variable_importance
+from groups_paper_ML_code.group_side_functions import *
 import pandas as pd
 from sklearn.cluster import DBSCAN
-import lightgbm
-from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 import os
-import pickle
 import numpy as np
 import random
-import argparse
-from ML_pipeline.ML_algorithms_and_hueristics import train_test_validation_splits,variable_importance, model_metrics
-from sklearn.metrics import matthews_corrcoef, roc_auc_score, average_precision_score, accuracy_score, precision_score, \
-    recall_score, PrecisionRecallDisplay
-
 
 
 def pct_25(values):
