@@ -1,5 +1,5 @@
 from side_code.raxml import *
-from Feature_extraction import get_msa_stats
+#from Feature_extraction import get_msa_stats
 from side_code.basic_trees_manipulation import *
 from side_code.config import *
 #from side_code.MSA_manipulation import get_msa_type
@@ -76,9 +76,11 @@ def generate_tree_type_raxml_runs(msa_path, n_tree_objects_per_msa, msa_type, tr
     for starting_tree_ind,tree_object in enumerate(tree_objects):
         runs.append(single_raxml_run(msa_path=msa_path, starting_tree_object=tree_object,
                                      starting_tree_type=tree_type, starting_tree_ind = starting_tree_ind, params_config={}, type="default", msa_type = msa_type)) #Add default_run
-        for params_config in grid_points:
-            runs.append(single_raxml_run(msa_path=msa_path, starting_tree_object=tree_object,
-                                         starting_tree_type=tree_type,starting_tree_ind = starting_tree_ind, params_config=params_config, type="non-default", msa_type= msa_type))
+
+        if grid_points!=-1:
+            for params_config in grid_points:
+                runs.append(single_raxml_run(msa_path=msa_path, starting_tree_object=tree_object,
+                                             starting_tree_type=tree_type,starting_tree_ind = starting_tree_ind, params_config=params_config, type="non-default", msa_type= msa_type))
     return runs
 
 
@@ -89,6 +91,8 @@ def generate_all_raxml_runs_per_msa(msa_paths, spr_radius_grid_str, spr_cutoff_g
     runs = {}
     param_grid_str = {"spr_radius": spr_radius_grid_str, "spr_cutoff": spr_cutoff_grid_str}
     param_grid_obj = get_param_obj(param_grid_str)
+    if param_grid_obj==-1:
+        logging.info("Using only default configurations")
     for msa_path in msa_paths:
         try:
             msa_runs = {}
@@ -123,9 +127,11 @@ def str_to_linspace(str):
 
 def get_param_obj(param_grid_dict_str):
     param_grid_obj = {}
-    for param_name in param_grid_dict_str:
-        if param_grid_dict_str[param_name] != "default":
-            linspace = [float(x) for x in str.split(param_grid_dict_str[param_name],"_")]
-            param_grid_obj[param_name] = linspace
-    param_obj = (ParameterGrid(param_grid_obj))
-    return param_obj
+    try:
+        for param_name in param_grid_dict_str:
+                linspace = [float(x) for x in str.split(param_grid_dict_str[param_name],"_")]
+                param_grid_obj[param_name] = linspace
+        param_obj = (ParameterGrid(param_grid_obj))
+        return param_obj
+    except:
+        return -1

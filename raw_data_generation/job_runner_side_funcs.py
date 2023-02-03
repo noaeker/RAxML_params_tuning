@@ -41,8 +41,9 @@ def main_parser():
     parser.add_argument('--msa_type', default = 'AA',type=str)
     parser.add_argument('--old_msas_folder', type=str)
     parser.add_argument('--test_msa_type', default = 'AA')
-    parser.add_argument('--time_between_tests',type=int, default=300)
+    parser.add_argument('--time_between_tests',type=int, default=0)
     parser.add_argument('--fake_run', type = bool, default= False)
+    parser.add_argument('--no_test', action='store_true', default= True)
     return parser
 
 

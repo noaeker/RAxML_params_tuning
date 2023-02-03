@@ -48,6 +48,8 @@ def raxml_run_on_test_msa(args, tmp_starting_tree_path):
     :param tmp_starting_tree_path:
     :return:  runs raxml 20 times on the example MSA
     '''
+    if args.no_test:
+        return -1
     test_msa_folder = os.path.join(args.curr_job_folder, "test_msa_results")
     os.mkdir(test_msa_folder)
     test_raxml_run = generate_test_msa_raxml_run(args.test_msa, test_msa_folder, seed=SEED, msa_type = args.test_msa_type)

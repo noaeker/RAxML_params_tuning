@@ -6,13 +6,13 @@ else:
     PROJECT_ROOT_DIRECRTORY = "/Users/noa/Workspace/RAxML_params_tuning"
 sys.path.append(PROJECT_ROOT_DIRECRTORY)
 
-from msa_runs import generate_all_raxml_runs_per_msa
+from raw_data_generation.msa_runs import generate_all_raxml_runs_per_msa
 from side_code.config import *
 from side_code.code_submission import submit_linux_job, submit_local_job, generate_argument_list,generate_argument_str, execute_command_and_write_to_log
 from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, extract_alignment_files_from_dirs, extract_alignment_files_from_general_csv
 from side_code.code_submission import is_job_done
 from side_code.MSA_manipulation import remove_MSAs_with_not_enough_seq_and_locis, trim_MSA, get_alignment_data
-from job_runner_side_funcs import main_parser, get_job_related_files_paths
+from raw_data_generation.job_runner_side_funcs import main_parser, get_job_related_files_paths
 from pathlib import Path
 from side_code.file_handling import unify_dicts
 import pickle
@@ -307,7 +307,7 @@ def main():
     logging.info(f"Number of target MSAs: {total_msas_overall}, at each iteration {args.n_MSAs_per_bunch} are handled")
     i = 0
     current_results = {}
-    while len(target_msas_list) > 0 or i==0: #sanity check
+    while i==0 or len(remaining_MSAs ) > 0 or i==0: #sanity check
         i += 1
         logging.info(f"iteration {i} starts, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())} ")
         random.seed(SEED)
@@ -317,7 +317,6 @@ def main():
         else:
             current_target_MSAs = target_msas_list
         logging.info(f"Current target MSAs are of length: {len(current_target_MSAs)}")
-        remaining_MSAs = target_msas_list[args.n_MSAs_per_bunch:]
         create_or_clean_dir(trees_run_directory)
 
 
@@ -339,7 +338,7 @@ def main():
         logging.info(f"Current results size is {len(current_results)} and will be saved to path: {global_csv_path} ")
         logging.info("Updating all results to csv")
         global_results_to_csv(current_results, global_csv_path)
-        target_msas_list = remaining_MSAs
+        remaining_MSAs = [path for path in target_msas_list if path not in current_results.keys()]
         pickle.dump(target_msas_list , open(file_paths_path, "wb")) # Done with current filess
         total_msas_done += args.n_MSAs_per_bunch
         #with open(all_jobs_general_log_file,'w'): #empty log file

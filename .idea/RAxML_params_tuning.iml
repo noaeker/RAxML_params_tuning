@@ -5,7 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/other_stuff" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.8 (lasso_positions_sampling)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.8 (general_env)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">

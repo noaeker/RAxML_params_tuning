@@ -14,13 +14,22 @@ from side_code.file_handling import create_dir_if_not_exists, create_or_clean_di
 from groups_paper_ML_code.group_side_functions import *
 from groups_paper_ML_code.groups_ML_pipeline import ML_pipeline
 from side_code.code_submission import generate_argument_str, submit_linux_job, generate_argument_list, submit_local_job, execute_command_and_write_to_log
+from sklearn.manifold import MDS, Isomap, TSNE, LocallyLinearEmbedding
+from sklearn.decomposition import PCA
 import pandas as pd
 import os
 import numpy as np
-from groups_paper_ML_code.groups_data_generation import generate_distance_matrix
+from groups_paper_ML_code.groups_data_generation import generate_RF_distance_matrix
 import time
 import timeit
+from side_code.basic_trees_manipulation import get_distances_between_leaves,generate_tree_object_from_newick
 from sklearn.manifold import MDS
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from scipy.spatial import distance_matrix
+from sklearn.cluster import DBSCAN
+from sklearn.cluster import SpectralClustering
 
 def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_folder,args):
     job_dict = {}
@@ -35,10 +44,11 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_fo
         create_or_clean_dir(curr_job_folder)
         current_raw_data_path = os.path.join(curr_job_folder, f"job_{job_ind}_raw_data{CSV_SUFFIX}")
         current_job_group_output_path = os.path.join(curr_job_folder, f"job_{job_ind}_raw_data_with_features{CSV_SUFFIX}")
+        curr_job_MSA_output_path = os.path.join(curr_job_folder, f"job_{job_ind}_MSA_data_with_features{CSV_SUFFIX}")
         current_raw_data = raw_data[raw_data["msa_path"].isin(job_msas)]
         current_raw_data.to_csv(current_raw_data_path, sep=CSV_SEP)
 
-        run_command = f' python {GROUPS_FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --curr_job_group_output_path {current_job_group_output_path} {generate_argument_str(args, exclude=["sample_fracs"])}'
+        run_command = f' python {GROUPS_FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --curr_job_group_output_path {current_job_group_output_path}  {generate_argument_str(args, exclude=["sample_fracs"])}'
 
         job_name = args.jobs_prefix + str(job_ind)
         if not LOCAL_RUN:
@@ -65,54 +75,7 @@ def finish_all_running_jobs(job_names):
 
 
 
-
-
-def perform_MDS(distance_mat_raw, n_components = 10):
-    #distance_mat_norm = generate_distance_matrix(curr_run_directory,overall_trees)/(2*n_seq-6)
-    #distance_mat_raw = generate_distance_matrix(curr_run_directory, overall_trees)
-    #mds_norm = MDS(random_state=0, n_components=3, metric=True, dissimilarity='precomputed').fit(distance_mat_norm)
-    mds_raw = MDS(random_state=0, n_components=n_components, metric=True, dissimilarity='precomputed').fit(distance_mat_raw)
-    return mds_raw.stress_
-
-
-
-
-
-def generate_calculations_per_MSA(curr_run_dir, relevant_data,msa_res_path,n_pars_tree_sampled = 100):
-    if os.path.exists(msa_res_path):
-        return pickle.load(open(msa_res_path,'rb'))
-    msa_res = {}
-    raxml_trash_dir = os.path.join(curr_run_dir, 'raxml_trash')
-    create_dir_if_not_exists(raxml_trash_dir)
-    start = timeit.default_timer()
-    for msa_path in relevant_data["msa_path"].unique():
-        start = timeit.default_timer()
-        #print(msa_path)
-        #msa_n_seq = max(relevant_data.loc[relevant_data.msa_path == msa_path]["feature_msa_n_seq"])
-        pars_path = generate_n_tree_topologies(n_pars_tree_sampled, get_local_path(msa_path), raxml_trash_dir,
-                                               seed=1, tree_type='pars', msa_type='AA')
-        with open(pars_path) as trees_path:
-            newicks = trees_path.read().split("\n")
-            pars = [t for t in newicks if len(t) > 0]
-            distance_mat_raw = generate_distance_matrix(curr_run_dir, pars)
-            mean_dist_raw = np.mean(distance_mat_raw)
-            var_dist_raw = np.var(distance_mat_raw)
-
-            MDS_raw_10 = perform_MDS(distance_mat_raw, n_components = 10)
-            MDS_raw_30 = perform_MDS(distance_mat_raw, n_components=30)
-            MDS_raw_50 = perform_MDS(distance_mat_raw, n_components=50)
-            MDS_raw_100 = perform_MDS(distance_mat_raw, n_components=100)
-
-            msa_res[msa_path] = {'MDS_raw_10': MDS_raw_10,'MDS_raw_30': MDS_raw_30,'MDS_raw_50': MDS_raw_50,'MDS_raw_100': MDS_raw_100, 'mean_dist_raw': mean_dist_raw,'var_dist_raw': var_dist_raw, 'pars_trees': pars}
-            create_or_clean_dir(raxml_trash_dir)
-            stop = timeit.default_timer()
-            print('Time: ', stop - start)
-    with open(msa_res_path, 'wb') as MSA_RES:
-        pickle.dump(msa_res, MSA_RES)
-    return msa_res
-
-
-def obtain_sampling_results(results_path, previous_results_path, relevant_data, all_jobs_running_folder, existing_msas_data_path, args):
+def obtain_sampling_results(results_path,previous_results_path, relevant_data, all_jobs_running_folder, existing_msas_data_path, args):
     if not os.path.exists(results_path):
         if os.path.exists(previous_results_path):
             logging.info("Using previous results path")
@@ -144,16 +107,13 @@ def obtain_sampling_results(results_path, previous_results_path, relevant_data, 
         results = pd.read_csv(results_path, sep='\t', index_col=False)
     return results
 
-def edit_existing_results(results, MSA_res_df):
-    results = results.merge(MSA_res_df, on="msa_path")
-    results["feature_pars_dist_vs_final_dist"] = results["mean_dist_raw"]/results["feature_mean_rf_final_trees"]
-    results["feature_mean_ll_pars_vs_rand"] = results["feature_mean_pars_ll_diff"] / results[
-        "feature_mean_rand_ll_diff"]
 
 
 
 
+import sklearn
 def main():
+    print('The scikit-learn version is {}.'.format(sklearn.__version__))
 
     parser = group_main_parser()
     args = parser.parse_args()
@@ -168,7 +128,7 @@ def main():
     create_dir_if_not_exists(existing_msas_data_path)
     logging.info(f"Reading all data from {args.file_path}")
     if LOCAL_RUN:
-        relevant_data = pd.read_csv(args.file_path, sep='\t', nrows=10000)
+        relevant_data = pd.read_csv(args.file_path, sep='\t', nrows=100000)
     else:
         relevant_data = pd.read_csv(args.file_path, sep = '\t')
     if args.filter_on_default_data:
@@ -177,27 +137,17 @@ def main():
     relevant_data["is_global_max"] = (relevant_data["delta_ll_from_overall_msa_best_topology"] <= 0.1).astype('int') #global max definition
     relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
     if LOCAL_RUN: #Subsampling MSAs for the local run only
-        msas = relevant_data["msa_path"].unique()[:20]
+        msas = relevant_data["msa_path"].unique()[-8:-3]
         relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
+
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
     previous_results_path= os.path.join(curr_run_dir,'group_results_prev.tsv')
     results = obtain_sampling_results(results_path, previous_results_path, relevant_data, all_jobs_running_folder, existing_msas_data_path, args)
-    msa_res_path = os.path.join(curr_run_dir, 'MSA_MDS')
-    MSA_res_dict = generate_calculations_per_MSA(curr_run_dir,  results, msa_res_path)
-    #results["feature_mds_pars_vs_final"] = np.log(results["msa_path"].apply(lambda x: MSA_res_dict[x]['MDS_raw'])/results["feature_mds_rf_dist_final_trees_raw"])
     logging.info(f"Number of rows in results is {len(results.index)}")
-    MSA_res_df = pd.DataFrame.from_dict(MSA_res_dict, orient='index').reset_index().drop(columns=['pars_trees']).rename(
-        columns={'index': 'msa_path'})
-    edit_existing_results(results, MSA_res_df)
     if args.additional_validation and os.path.exists(args.additional_validation):
         additional_validation_data = pd.read_csv(args.additional_validation, sep='\t')
-        edit_existing_results(additional_validation_data, MSA_res_df)
     else:
         additional_validation_data = None
-
-
-    #results["feature_var_ll_pars_vs_rand"] = results["feature_var_pars_ll_diff"] / results[
-    #    "feature_var_rand_ll_diff"]
 
 
     logging.info(f"Using sample fracs = {args.sample_fracs}")

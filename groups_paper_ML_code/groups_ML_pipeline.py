@@ -32,8 +32,8 @@ def get_full_and_MSA_features(results):
                              "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean",
                              ]
 
-    MDS_features = [col for col in results.columns if "MDS" in col] + ["mean_dist_raw", "feature_pars_dist"]
-
+    MSA_embedding_features = [col for col in results.columns if col.startswith('final_trees_level_embedding')]
+    final_trees_embedding_columns = [col for col in results.columns if col.startswith('MSA_level_embedding')]
     final_trees_features = ["feature_pct_best", "feature_max_rf_final_trees",
                             "feature_min_rf_final_trees", "feature_25_rf_final_trees", "feature_75_rf_final_trees",
                             "feature_mean_rf_final_trees",
@@ -46,10 +46,9 @@ def get_full_and_MSA_features(results):
     rf_features_to_starting_trees = ["feature_min_pars_vs_final_rf_diff", "feature_max_pars_vs_final_rf_diff",
                                      "feature_mean_pars_rf_diff"]
 
-    combining_features = ["feature_pars_dist_vs_final_dist", "feature_mean_ll_pars_vs_rand"]
 
-    full_features = known_output_features + MDS_features + final_trees_features + ll_features_to_starting_trees + rf_features_to_starting_trees + combining_features
-    MSA_level_features = known_output_features + MDS_features
+    full_features = known_output_features + MSA_embedding_features + final_trees_embedding_columns+ final_trees_features + ll_features_to_starting_trees + rf_features_to_starting_trees
+    MSA_level_features = known_output_features + MSA_embedding_features
     return full_features, MSA_level_features
 
 def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_output_tree_features, additional_validation_data):
