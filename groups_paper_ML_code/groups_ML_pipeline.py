@@ -32,11 +32,9 @@ def get_full_and_MSA_features(results):
                              "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean",
                              ]
 
-    MSA_embedding_features = [col for col in results.columns if col.startswith('final_trees_level_embedding')]
-    final_trees_embedding_columns = [col for col in results.columns if col.startswith('MSA_level_embedding')]
-    final_trees_features = ["feature_pct_best", "feature_max_rf_final_trees",
-                            "feature_min_rf_final_trees", "feature_25_rf_final_trees", "feature_75_rf_final_trees",
-                            "feature_mean_rf_final_trees",
+    final_trees_embedding_features = [col for col in results.columns if col.startswith('feature_final_trees_level_embedding')]
+    MSA_embedding_features = [col for col in results.columns if col.startswith('feature_MSA_level_embedding')]
+    final_trees_features = ["feature_pct_best",
                             "feature_var_rf_final_trees", "feature_max_ll_std", "feature_final_ll_var",
                             "feature_final_ll_skew", "feature_final_ll_kutosis"
                             ]  # "feature_mds_rf_dist_final_trees_raw",
@@ -47,7 +45,7 @@ def get_full_and_MSA_features(results):
                                      "feature_mean_pars_rf_diff"]
 
 
-    full_features = known_output_features + MSA_embedding_features + final_trees_embedding_columns+ final_trees_features + ll_features_to_starting_trees + rf_features_to_starting_trees
+    full_features = [col for col in results.columns if col.startwith('feature')]
     MSA_level_features = known_output_features + MSA_embedding_features
     return full_features, MSA_level_features
 
@@ -58,6 +56,11 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
     if args.model=='rf' or args.model=='sgd': #Removing NA values
         results = results.fillna(-1)
         results.replace([np.inf, -np.inf], -1, inplace=True)
+
+
+
+
+    #results = results[[col for col in results.columns if 'embedding_new' not in col]]
 
 
     train, test, val = train_test_validation_splits(results, test_pct=0.3, val_pct=0, msa_col_name='msa_path',subsample_train=True, subsample_train_frac= sample_frac)

@@ -128,7 +128,7 @@ def main():
     create_dir_if_not_exists(existing_msas_data_path)
     logging.info(f"Reading all data from {args.file_path}")
     if LOCAL_RUN:
-        relevant_data = pd.read_csv(args.file_path, sep='\t', nrows=100000)
+        relevant_data = pd.read_csv(args.file_path, sep='\t', nrows=10000)
     else:
         relevant_data = pd.read_csv(args.file_path, sep = '\t')
     if args.filter_on_default_data:
@@ -136,9 +136,9 @@ def main():
     relevant_data = relevant_data[relevant_data["type"] == "default"] #Filtering only on default data
     relevant_data["is_global_max"] = (relevant_data["delta_ll_from_overall_msa_best_topology"] <= 0.1).astype('int') #global max definition
     relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
-    if LOCAL_RUN: #Subsampling MSAs for the local run only
-        msas = relevant_data["msa_path"].unique()[-8:-3]
-        relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
+    #if LOCAL_RUN: #Subsampling MSAs for the local run only
+    #    msas = relevant_data["msa_path"].unique()[-8:-3]
+    #    relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
 
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
     previous_results_path= os.path.join(curr_run_dir,'group_results_prev.tsv')
@@ -159,7 +159,7 @@ def main():
     if not LOCAL_RUN:
         ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= args.include_output_tree_features,additional_validation_data = additional_validation_data)
     elif LOCAL_RUN:
-        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid=False,
+        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=False, large_grid=False,
                     include_output_tree_features=args.include_output_tree_features, additional_validation_data = additional_validation_data)
     logging.info(f"Working on MSA level features")
 

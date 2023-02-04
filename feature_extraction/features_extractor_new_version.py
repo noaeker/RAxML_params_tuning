@@ -230,7 +230,6 @@ def process_all_msa_RAxML_runs(curr_run_directory, processed_dataset_path, msa_d
             lambda x: rf_distance(curr_run_directory, x, best_msa_tree_topology, name="MSA_enrichment_RF_calculations"))
         msa_data = msa_data.sort_values(["starting_tree_type", "starting_tree_ind", "spr_radius", "spr_cutoff"])
         msa_data["final_trees_inds"] = list(range(len(msa_data.index)))
-        msa_data["final_trees_inds"] = list(range(len(msa_data.index)))
         unique_trees_mapping = get_unique_trees_mapping(curr_run_directory, list(msa_data["final_tree_topology"]))
         msa_data["tree_clusters_ind"] = msa_data["final_trees_inds"].apply(lambda x: unique_trees_mapping[x])
         msa_type = args.msa_type
