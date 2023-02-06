@@ -92,13 +92,19 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees, prefi
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics["feature_final_tree_bl_variation"] = branch_lenth_variation
-    models_dict = {'PCA_2':PCA(n_components=2),'PCA_4':PCA(n_components=4)}
+    models_dict = {'PCA_2':PCA(n_components=2)}
     for model_name in models_dict:
         model = models_dict[model_name]
         final_paired_distances = np.array([get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=False) for tree in final_trees])
         final_paired_distances_transformed = model.fit_transform(final_paired_distances)
         d_mat_final = distance_matrix(final_paired_distances_transformed, final_paired_distances_transformed)
-        all_distance_metrics.update({f'{prefix}_{model_name}_':model.explained_variance_ratio_})
+        all_distance_metrics.update({f'{prefix}_{model_name}_1':(model.explained_variance_ratio_[0]),'{prefix}_{model_name}_1':(model.explained_variance_ratio_[1])})
+        gmm1 = GaussianMixture(n_components=1).fit(final_paired_distances_transformed)
+        gmm2 = GaussianMixture(n_components=2).fit(final_paired_distances_transformed)
+        gmm3 = GaussianMixture(n_components=3).fit(final_paired_distances_transformed)
+        all_distance_metrics.update({f'{prefix}_{model_name}_bic1': gmm1.bic(final_paired_distances_transformed),f'{prefix}_{model_name}_bic2': gmm2.bic(final_paired_distances_transformed),f'{prefix}_{model_name}_bic3': gmm3.bic(final_paired_distances_transformed)})
+        #plt.scatter( final_paired_distances_transformed[:,0],final_paired_distances_transformed[:,1])
+        #plt.show()
         #if 'iso' in model_name:
         #    d_mat_final = model.dist_matrix_
         distances = d_mat_final[np.triu_indices(n=len(final_trees), k=1)]
@@ -172,12 +178,14 @@ def generate_calculations_per_MSA(msa_path,curr_run_dir, n_pars_tree_sampled = 1
                 #'pars_spectral_model':pars_spectral_model
                                   }  # 'MDS_raw_100': MDS_raw_100
             embedding_msa_features = {'feature_pca_20_var_explained': np.sum(pars_pca_20_model.explained_variance_ratio_),
-                                      'feature_pca_10_var_explained': np.sum(pars_pca_10_model.explained_variance_ratio_)
+                                      'feature_pca_10_var_explained': np.sum(pars_pca_20_model.explained_variance_ratio_[:10]),
+                                      'feature_pca_5_var_explained': np.sum(
+                                          pars_pca_20_model.explained_variance_ratio_[:5])
                                       }
             #embedding_msa_features.update(pars_kpca_10_metrics)
-            embedding_msa_features.update(pars_pca_10_metrics)
+            #embedding_msa_features.update(pars_pca_10_metrics)
             embedding_msa_features.update(pars_pca_20_metrics)
-            embedding_msa_features.update(pars_iso_metrics_5)
+            #embedding_msa_features.update(pars_iso_metrics_5)
             embedding_msa_features.update(pars_iso_metrics_10)
             #embedding_msa_features.update(pars_spectral_metrics)
             embedding_msa_features.update(RF_distances_metrics)
