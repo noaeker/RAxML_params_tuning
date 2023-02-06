@@ -87,15 +87,23 @@ def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final
     return rf_distance_metrics
 
 
-def generate_embedding_distance_matrix_statistics_final_trees(final_trees, models_dict,prefix):
+def generate_embedding_distance_matrix_statistics_final_trees(final_trees, prefix):
     all_distance_metrics = {}
+    branch_lenth_variation = np.var(
+        [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
+    all_distance_metrics["feature_final_tree_bl_variation"] = branch_lenth_variation
+    models_dict = {'PCA_2':PCA(n_components=2),'PCA_4':PCA(n_components=4)}
     for model_name in models_dict:
         model = models_dict[model_name]
         final_paired_distances = np.array([get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=False) for tree in final_trees])
-        final_paired_distances_transformed = model.transform(final_paired_distances)
+        final_paired_distances_transformed = model.fit_transform(final_paired_distances)
         d_mat_final = distance_matrix(final_paired_distances_transformed, final_paired_distances_transformed)
+        all_distance_metrics.update({f'{prefix}_{model_name}_':model.explained_variance_ratio_})
+        #if 'iso' in model_name:
+        #    d_mat_final = model.dist_matrix_
         distances = d_mat_final[np.triu_indices(n=len(final_trees), k=1)]
         all_distance_metrics.update(get_summary_statistics_dict(feature_name=f"{prefix}_{model_name}_",values = distances))
+
     return all_distance_metrics
 
 
@@ -134,16 +142,21 @@ def generate_calculations_per_MSA(msa_path,curr_run_dir, n_pars_tree_sampled = 1
             pars_paired_distances = np.array(
                 [get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=True) for tree in
                  pars])
-            pars_kpca_10_model = KernelPCA(n_components=10, kernel='rbf').fit(pars_paired_distances)
-            pars_kpca_10_metrics = dimensionality_reduction_metrics(f'{prefix_name}_kpca10', pars_kpca_10_model,pars_paired_distances,n_trees= len(pars))
+            #pars_kpca_10_model = KernelPCA(n_components=10, kernel='rbf').fit(pars_paired_distances)
+            #pars_kpca_10_metrics = dimensionality_reduction_metrics(f'{prefix_name}_kpca10', pars_kpca_10_model,pars_paired_distances,n_trees= len(pars))
             pars_pca_10_model = PCA(n_components=10).fit(pars_paired_distances)
             pars_pca_10_metrics = dimensionality_reduction_metrics(f'{prefix_name}_pca10', pars_pca_10_model,
                                                                     pars_paired_distances, n_trees=len(pars))
+            pars_pca_20_model = PCA(n_components=20).fit(pars_paired_distances)
+            pars_pca_20_metrics = dimensionality_reduction_metrics(f'{prefix_name}_pca20', pars_pca_20_model,
+                                                                    pars_paired_distances, n_trees=len(pars))
+
+
             pars_iso_model_5 = Isomap(n_components=5).fit(pars_paired_distances)
-            pars_iso_metrics_5 = dimensionality_reduction_metrics(f'{prefix_name}_iso', pars_iso_model_5,
+            pars_iso_metrics_5 = dimensionality_reduction_metrics(f'{prefix_name}_iso_5', pars_iso_model_5,
                                                                    pars_paired_distances, n_trees=len(pars), dist_mat= pars_iso_model_5.dist_matrix_ )
             pars_iso_model_10 = Isomap(n_components=10).fit(pars_paired_distances)
-            pars_iso_metrics_10 = dimensionality_reduction_metrics(f'{prefix_name}_iso', pars_iso_model_10,
+            pars_iso_metrics_10 = dimensionality_reduction_metrics(f'{prefix_name}_iso_10', pars_iso_model_10,
                                                                    pars_paired_distances, n_trees=len(pars), dist_mat= pars_iso_model_10.dist_matrix_ )
             #pars_spectral_model = SpectralEmbedding(n_components=5).fit(pars_paired_distances)
             #pars_spectral_metrics = dimensionality_reduction_metrics(f'{prefix_name}_spectral', pars_spectral_model,
@@ -151,15 +164,19 @@ def generate_calculations_per_MSA(msa_path,curr_run_dir, n_pars_tree_sampled = 1
 
 
             embedding_msa_models  = {
-                                 f'pars_kpca_10_model': pars_kpca_10_model,
-                                       f'pars_pca_10_model': pars_pca_10_model,
+                                 #f'pars_kpca_10_model': pars_kpca_10_model,
+                f'pars_pca_10_model': pars_pca_10_model,
+                f'pars_pca_20_model': pars_pca_20_model,
                 'pars_iso_model_5': pars_iso_model_5,
                                         'pars_iso_model_10':  pars_iso_model_10,
                 #'pars_spectral_model':pars_spectral_model
                                   }  # 'MDS_raw_100': MDS_raw_100
-            embedding_msa_features = {'feature_pca_10_var_explained': np.sum(pars_pca_10_model.explained_variance_)}
-            embedding_msa_features.update(pars_kpca_10_metrics)
+            embedding_msa_features = {'feature_pca_20_var_explained': np.sum(pars_pca_20_model.explained_variance_ratio_),
+                                      'feature_pca_10_var_explained': np.sum(pars_pca_10_model.explained_variance_ratio_)
+                                      }
+            #embedding_msa_features.update(pars_kpca_10_metrics)
             embedding_msa_features.update(pars_pca_10_metrics)
+            embedding_msa_features.update(pars_pca_20_metrics)
             embedding_msa_features.update(pars_iso_metrics_5)
             embedding_msa_features.update(pars_iso_metrics_10)
             #embedding_msa_features.update(pars_spectral_metrics)

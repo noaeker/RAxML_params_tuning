@@ -45,7 +45,7 @@ def get_full_and_MSA_features(results):
                                      "feature_mean_pars_rf_diff"]
 
 
-    full_features = [col for col in results.columns if col.startwith('feature')]
+    full_features = [col for col in results.columns if (col.startswith('feature') or col.startswith('best_final_trees_trees_RF'))  and 'kpca' not in col]
     MSA_level_features = known_output_features + MSA_embedding_features
     return full_features, MSA_level_features
 

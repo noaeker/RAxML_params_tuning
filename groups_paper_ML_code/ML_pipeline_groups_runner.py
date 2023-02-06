@@ -136,9 +136,9 @@ def main():
     relevant_data = relevant_data[relevant_data["type"] == "default"] #Filtering only on default data
     relevant_data["is_global_max"] = (relevant_data["delta_ll_from_overall_msa_best_topology"] <= 0.1).astype('int') #global max definition
     relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
-    #if LOCAL_RUN: #Subsampling MSAs for the local run only
-    #    msas = relevant_data["msa_path"].unique()[-8:-3]
-    #    relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
+    if LOCAL_RUN: #Subsampling MSAs for the local run only
+        msas = relevant_data["msa_path"].unique()[-8:-5]
+        relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
 
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
     previous_results_path= os.path.join(curr_run_dir,'group_results_prev.tsv')

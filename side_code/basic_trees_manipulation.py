@@ -100,10 +100,9 @@ def compute_largest_branch_length(tree):
 def get_distances_between_leaves(tree, topology_only = False):
     distances = []
     sorted_leaves = sorted([leaf.name for leaf in tree.iter_leaves()])
-    for leaf_a in sorted_leaves:
-        for leaf_b in sorted_leaves:
-            if leaf_a>leaf_b:
-                dist = tree.get_distance(leaf_a, leaf_b,topology_only= topology_only)
+    for leaf_a_ind in range(len(sorted_leaves)):
+        for leaf_b_ind in range(leaf_a_ind+1,len(sorted_leaves)):
+                dist = tree.get_distance( sorted_leaves[leaf_a_ind], sorted_leaves[leaf_b_ind],topology_only= topology_only)
                 distances.append(dist)
     return distances
 
