@@ -146,7 +146,7 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
         final_paired_distances = np.array([get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=False) for tree in final_trees])
         final_paired_distances_transformed = model.fit_transform(final_paired_distances)
         d_mat_final = distance_matrix(final_paired_distances_transformed, final_paired_distances_transformed)
-        all_distance_metrics.update({f'{prefix}_{model_name}_1':(model.explained_variance_ratio_[0]),'{prefix}_{model_name}_1':(model.explained_variance_ratio_[1])})
+        all_distance_metrics.update({f'{prefix}_{model_name}_1':(model.explained_variance_ratio_[0]),f'{prefix}_{model_name}_1':(model.explained_variance_ratio_[1])})
         best_tree_statistics = extract_2d_shape_and_plot(final_paired_distances_transformed, best_tree, name = model_name)
         distances = d_mat_final[np.triu_indices(n=len(final_trees), k=1)]
         all_distance_metrics.update(get_summary_statistics_dict(feature_name=f"{prefix}_{model_name}_",values = distances))
