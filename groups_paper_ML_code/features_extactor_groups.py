@@ -16,6 +16,8 @@ import timeit
 from side_code.basic_trees_manipulation import get_distances_between_leaves,generate_tree_object_from_newick
 from sklearn.manifold import MDS
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import RobustScaler
+import seaborn as sns
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from scipy.spatial import distance_matrix
@@ -78,38 +80,76 @@ def estimate_entropy(vec):
     entropy = sum(list(map(lambda x: -x * np.log(x), probs)))
     return entropy
 
-def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final_trees, prefix):
+
+def extract_2d_shape_and_plot(X_transformed, best_tree, name):
+    data = pd.DataFrame({'score1': list(X_transformed[:, 0]), 'score2': list(X_transformed[:, 1]),
+                         'best_tree': best_tree})
+
+
+
+    data['score1_normalized'] = abs((RobustScaler().fit_transform(data[['score1']])))
+
+
+    data['score2_normalized'] = abs((RobustScaler().fit_transform(data[['score2']])))
+
+    data['dist_from_center_score1'] = abs(data['score1'] - data['score1'].mean())
+    data['dist_from_center_score2'] = abs(data['score2'] - data['score2'].mean())
+    data['combined_dist'] = (data['dist_from_center_score1']**2+data['dist_from_center_score1']**2)**0.5
+    data['combined_score_normalized'] = abs((RobustScaler().fit_transform(data[['combined_dist']])))
+
+    best_tree_statistics = data.loc[data.best_tree == 1]
+    all_results = {}
+    dist_from_center1_dict = get_summary_statistics_dict(f'feature_{name}_final_trees_center_1',best_tree_statistics['score1_normalized'], funcs={'mean':np.mean,'max':np.max})
+    dist_from_center2_dict = get_summary_statistics_dict(f'feature_{name}_final_trees_center_2',
+                                                         best_tree_statistics['score2_normalized'],
+                                                         funcs={'mean': np.mean, 'max': np.max})
+    combined_dist_dict = get_summary_statistics_dict(f'feature_{name}_final_trees_center_combined',
+                                                         best_tree_statistics['combined_score_normalized'],
+                                                         funcs={'mean': np.mean, 'max': np.max})
+    all_results.update(dist_from_center1_dict)
+    all_results.update(dist_from_center2_dict)
+    all_results.update(combined_dist_dict)
+    print(all_results)
+    #sns.scatterplot(data=data, x='score1', y='score2', hue=best_tree)
+    #plt.show()
+    return all_results
+
+
+def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final_trees, best_tree, prefix):
     if len(final_trees)==1:
         return get_summary_statistics_dict(feature_name=f"{prefix}",values = None)
     RF_distance_mat = generate_RF_distance_matrix(curr_run_directory, final_trees)
+
+    all_results = {}
+    if best_tree:
+        print("MDS score")
+        mds_embeddings = MDS(n_components=2, dissimilarity='precomputed')
+        X_transformed = mds_embeddings.fit_transform(RF_distance_mat)
+        best_tree_statistics = extract_2d_shape_and_plot(X_transformed, best_tree, name = 'MDS_2')
+        all_results.update(best_tree_statistics)
     RF_distances = RF_distance_mat[np.triu_indices(n=len(final_trees), k=1)]
     rf_distance_metrics = get_summary_statistics_dict(feature_name=f"{prefix}",values = RF_distances)
-    return rf_distance_metrics
+    all_results.update(rf_distance_metrics)
+    return all_results
 
 
-def generate_embedding_distance_matrix_statistics_final_trees(final_trees, prefix):
+def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_tree, prefix):
     all_distance_metrics = {}
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics["feature_final_tree_bl_variation"] = branch_lenth_variation
     models_dict = {'PCA_2':PCA(n_components=2)}
     for model_name in models_dict:
+        print(model_name)
         model = models_dict[model_name]
         final_paired_distances = np.array([get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=False) for tree in final_trees])
         final_paired_distances_transformed = model.fit_transform(final_paired_distances)
         d_mat_final = distance_matrix(final_paired_distances_transformed, final_paired_distances_transformed)
         all_distance_metrics.update({f'{prefix}_{model_name}_1':(model.explained_variance_ratio_[0]),'{prefix}_{model_name}_1':(model.explained_variance_ratio_[1])})
-        gmm1 = GaussianMixture(n_components=1).fit(final_paired_distances_transformed)
-        gmm2 = GaussianMixture(n_components=2).fit(final_paired_distances_transformed)
-        gmm3 = GaussianMixture(n_components=3).fit(final_paired_distances_transformed)
-        all_distance_metrics.update({f'{prefix}_{model_name}_bic1': gmm1.bic(final_paired_distances_transformed),f'{prefix}_{model_name}_bic2': gmm2.bic(final_paired_distances_transformed),f'{prefix}_{model_name}_bic3': gmm3.bic(final_paired_distances_transformed)})
-        #plt.scatter( final_paired_distances_transformed[:,0],final_paired_distances_transformed[:,1])
-        #plt.show()
-        #if 'iso' in model_name:
-        #    d_mat_final = model.dist_matrix_
+        best_tree_statistics = extract_2d_shape_and_plot(final_paired_distances_transformed, best_tree, name = model_name)
         distances = d_mat_final[np.triu_indices(n=len(final_trees), k=1)]
         all_distance_metrics.update(get_summary_statistics_dict(feature_name=f"{prefix}_{model_name}_",values = distances))
-
+        all_distance_metrics.update(best_tree_statistics)
     return all_distance_metrics
 
 
@@ -161,33 +201,24 @@ def generate_calculations_per_MSA(msa_path,curr_run_dir, n_pars_tree_sampled = 1
             pars_iso_model_5 = Isomap(n_components=5).fit(pars_paired_distances)
             pars_iso_metrics_5 = dimensionality_reduction_metrics(f'{prefix_name}_iso_5', pars_iso_model_5,
                                                                    pars_paired_distances, n_trees=len(pars), dist_mat= pars_iso_model_5.dist_matrix_ )
-            pars_iso_model_10 = Isomap(n_components=10).fit(pars_paired_distances)
-            pars_iso_metrics_10 = dimensionality_reduction_metrics(f'{prefix_name}_iso_10', pars_iso_model_10,
-                                                                   pars_paired_distances, n_trees=len(pars), dist_mat= pars_iso_model_10.dist_matrix_ )
+            #pars_iso_model_10 = Isomap(n_components=10).fit(pars_paired_distances)
+            #pars_iso_metrics_10 = dimensionality_reduction_metrics(f'{prefix_name}_iso_10', pars_iso_model_10,
+            #                                                       pars_paired_distances, n_trees=len(pars), dist_mat= pars_iso_model_10.dist_matrix_ )
             #pars_spectral_model = SpectralEmbedding(n_components=5).fit(pars_paired_distances)
             #pars_spectral_metrics = dimensionality_reduction_metrics(f'{prefix_name}_spectral', pars_spectral_model,
             #                                                       pars_paired_distances, n_trees=len(pars))
 
 
             embedding_msa_models  = {
-                                 #f'pars_kpca_10_model': pars_kpca_10_model,
-                f'pars_pca_10_model': pars_pca_10_model,
                 f'pars_pca_20_model': pars_pca_20_model,
                 'pars_iso_model_5': pars_iso_model_5,
-                                        'pars_iso_model_10':  pars_iso_model_10,
-                #'pars_spectral_model':pars_spectral_model
                                   }  # 'MDS_raw_100': MDS_raw_100
             embedding_msa_features = {'feature_pca_20_var_explained': np.sum(pars_pca_20_model.explained_variance_ratio_),
                                       'feature_pca_10_var_explained': np.sum(pars_pca_20_model.explained_variance_ratio_[:10]),
                                       'feature_pca_5_var_explained': np.sum(
                                           pars_pca_20_model.explained_variance_ratio_[:5])
                                       }
-            #embedding_msa_features.update(pars_kpca_10_metrics)
-            #embedding_msa_features.update(pars_pca_10_metrics)
             embedding_msa_features.update(pars_pca_20_metrics)
-            #embedding_msa_features.update(pars_iso_metrics_5)
-            embedding_msa_features.update(pars_iso_metrics_10)
-            #embedding_msa_features.update(pars_spectral_metrics)
             embedding_msa_features.update(RF_distances_metrics)
             return embedding_msa_features,embedding_msa_models
 

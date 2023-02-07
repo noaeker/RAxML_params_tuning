@@ -55,13 +55,13 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
             sampled_data["is_best_tree"] = sampled_data["final_ll"]>=sampled_data['best_sample_ll']-0.1
 
             sampled_data_good_trees = sampled_data[sampled_data["is_best_tree"]==True]
-            best_trees_RF_distance_metrics = pd.DataFrame([generate_RF_distance_matrix_statistics_final_trees(curr_run_dir,list(sampled_data_good_trees["final_tree_topology"]), prefix = "feature_best_final_trees_trees_RF")])
+            best_trees_RF_distance_metrics = pd.DataFrame([generate_RF_distance_matrix_statistics_final_trees(curr_run_dir,list(sampled_data_good_trees["final_tree_topology"]), None, prefix = "feature_best_final_trees_trees_RF")])
             best_trees_RF_distance_metrics["feature_n_topologies_best_final_trees"] = pd.Series.nunique(sampled_data_good_trees["tree_clusters_ind"])
 
             sampled_data["log_likelihood_diff"] = sampled_data["final_ll"] - sampled_data[
                 "feature_tree_optimized_ll"]
             sampled_data["start_vs_end"] = get_rf_dist_between_cols(sampled_data["starting_tree_object"],sampled_data["final_tree_topology"], curr_run_dir)
-            sampled_data["normalized_final_ll"] = sampled_data.groupby('msa_path')["final_ll"].transform(lambda x: (x-x.mean()/x.std()))
+            sampled_data["normalized_final_ll"] = sampled_data.groupby('msa_path')["final_ll"].transform(lambda x: ((x-x.mean())/x.std()))
             #sampled_data["final_o"] = sampled_data["final_tree_topology"].apply(lambda x:Tree(x, format=1))
 
             curr_iter_general_metrics = sampled_data.groupby(
@@ -74,14 +74,15 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir,default_d
                                                     feature_max_ll_std = ('normalized_final_ll', np.max),
                                                     feature_min_ll_std=('normalized_final_ll', np.min)
                                                     ).reset_index()
+            print(f'default_status={curr_iter_general_metrics["default_status"]}')
             curr_iter_general_metrics["n_pars_trees_sampled"] = n_pars_sample
             curr_iter_general_metrics["n_rand_trees_sampled"] = n_rand_sample
             curr_iter_general_metrics["frac_pars_trees_sampled"] = curr_iter_general_metrics["n_pars_trees_sampled"] / n_sum
 
 
 
-            final_trees_RF_distance_metrics = pd.DataFrame([generate_RF_distance_matrix_statistics_final_trees(curr_run_dir,list(sampled_data["final_tree_topology"]), prefix = "feature_final_trees_level_RF")])
-            final_tree_embedding_metrics = pd.DataFrame([generate_embedding_distance_matrix_statistics_final_trees(list(sampled_data["final_tree_topology"]), prefix = "feature_final_trees_level_new_")])
+            final_trees_RF_distance_metrics = pd.DataFrame([generate_RF_distance_matrix_statistics_final_trees(curr_run_dir,list(sampled_data["final_tree_topology"]),best_tree= list(sampled_data["is_best_tree"]), prefix = "feature_final_trees_level_RF")])
+            final_tree_embedding_metrics = pd.DataFrame([generate_embedding_distance_matrix_statistics_final_trees(list(sampled_data["final_tree_topology"]),best_tree= list(sampled_data["is_best_tree"]), prefix = "feature_final_trees_level_new_")])
 
 
 
