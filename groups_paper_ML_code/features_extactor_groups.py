@@ -119,13 +119,15 @@ def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final
     if len(final_trees)==1:
         return get_summary_statistics_dict(feature_name=f"{prefix}",values = None)
     RF_distance_mat = generate_RF_distance_matrix(curr_run_directory, final_trees)
-
     all_results = {}
     if best_tree:
-        print("MDS score")
+        distances_to_other_trees = RF_distance_mat[np.array(best_tree) == True, :][:, np.array(best_tree) == False]
+        distances_to_other_trees_features = get_summary_statistics_dict(feature_name=f"feature_best_trees_rf_to_final_trees_", values=distances_to_other_trees)
+        all_results.update(distances_to_other_trees_features)
         mds_embeddings = MDS(n_components=2, dissimilarity='precomputed')
         X_transformed = mds_embeddings.fit_transform(RF_distance_mat)
         best_tree_statistics = extract_2d_shape_and_plot(X_transformed, best_tree, name = 'MDS_2')
+        best_tree_statistics.update({'feature_MDS_stress_2_on_final_trees': mds_embeddings.stress_})
         all_results.update(best_tree_statistics)
     RF_distances = RF_distance_mat[np.triu_indices(n=len(final_trees), k=1)]
     rf_distance_metrics = get_summary_statistics_dict(feature_name=f"{prefix}",values = RF_distances)
@@ -140,7 +142,6 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
     all_distance_metrics["feature_final_tree_bl_variation"] = branch_lenth_variation
     models_dict = {'PCA_2':PCA(n_components=2)}
     for model_name in models_dict:
-        print(model_name)
         model = models_dict[model_name]
         final_paired_distances = np.array([get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=False) for tree in final_trees])
         final_paired_distances_transformed = model.fit_transform(final_paired_distances)
