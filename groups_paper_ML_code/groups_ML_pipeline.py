@@ -3,6 +3,7 @@ from ML_utils.ML_algorithms_and_hueristics import ML_model, print_model_statisti
 from groups_paper_ML_code.group_side_functions import *
 import os
 import numpy as np
+from pandas.api.types import is_numeric_dtype
 
 
 
@@ -27,27 +28,22 @@ def apply_on_external_validation_data(additional_validation_data, model, train, 
 
 
 def get_full_and_MSA_features(results):
-    known_output_features = ["frac_pars_trees_sampled","spr_radius","spr_cutoff","n_total_trees_sampled","feature_msa_n_seq", "feature_msa_n_loci",
+    tree_search_columns = ["frac_pars_trees_sampled","spr_radius","spr_cutoff","n_total_trees_sampled"
+                             ]
+
+    general_MSA_columns = ["feature_msa_n_seq", "feature_msa_n_loci",
                              "feature_msa_pypythia_msa_difficulty",
                              "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean",
                              ]
 
-    final_trees_embedding_features = [col for col in results.columns if col.startswith('feature_final_trees_level_embedding') ] #and 'pca' not in col and 'iso' not in col and 'PCA' not in col
-    MSA_embedding_features = [col for col in results.columns if col.startswith('feature_MSA_level_embedding')]
-    final_trees_features = ["feature_pct_best",
-                            "feature_var_rf_final_trees", "feature_max_ll_std", "feature_final_ll_var",
-                            "feature_final_ll_skew", "feature_final_ll_kutosis"
-                            ]  # "feature_mds_rf_dist_final_trees_raw",
-    ll_features_to_starting_trees = ["feature_mean_rand_global_max", "feature_mean_pars_global_max",
-                                     "feature_mean_rand_ll_diff", "feature_mean_pars_ll_diff",
-                                     "feature_var_pars_ll_diff", "feature_var_rand_ll_diff"]
-    rf_features_to_starting_trees = ["feature_min_pars_vs_final_rf_diff", "feature_max_pars_vs_final_rf_diff",
-                                     "feature_mean_pars_rf_diff"]
+    general_final_tree_metrics = [col for col in results if col.startswith('feature_general')]
+    final_trees_distances_metrics = [col for col in results if col.startswith('feature_final_trees_level_distances')]
+    MSA_level_distancs_metrics = [col for col in results if col.startswith('feature_MSA_level')]
+    best_trees_distances_metrics = [col for col in results if col.startswith('feature_best_final_trees_RF')]
 
-
-    full_features = [col for col in results.columns if (col.startswith('feature') or col.startswith('best_final_trees_trees_RF')) and 'MDS' not in col  ] #and 'pca' not in col and 'iso' not in col and 'PCA' not in col
-    MSA_level_features = known_output_features + MSA_embedding_features
-    return full_features, MSA_level_features
+    full_features = general_MSA_columns +general_final_tree_metrics+final_trees_distances_metrics+MSA_level_distancs_metrics+best_trees_distances_metrics
+    MSA_level_features = tree_search_columns+general_MSA_columns+MSA_level_distancs_metrics
+    return full_features,MSA_level_features
 
 def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_output_tree_features, additional_validation_data):
     name = f'M_frac_{sample_frac}_RFE_{RFE}_large_grid_{large_grid}_out_features_{include_output_tree_features}'
