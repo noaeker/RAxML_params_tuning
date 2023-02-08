@@ -23,7 +23,7 @@ def get_sampled_data(n_pars, n_rand, n_sum, i, n_sample_points, msa_data, seed,p
         logging.info(f"Chosen SPR radius {spr_radius}, Chosen SPR cutoff {spr_cutoff}")
     random.seed(seed)
     if n_pars == -1 and n_rand == -1:
-        n_pars_sample = random.randint(0, n_sum)
+        n_pars_sample = random.randint(0, min(n_sum,20)) # Taking a max of 20 parsimony trees
         n_rand_sample = n_sum - n_pars_sample
     else:
         n_pars_sample = n_pars
@@ -106,8 +106,8 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_
             curr_iter_general_metrics["n_total_trees_sampled"] = n_sum
             curr_iter_general_metrics["frac_pars_trees_sampled"] = curr_iter_general_metrics["n_pars_trees_sampled"] / n_sum
 
-            final_trees_RF_distance_metrics = pd.DataFrame([generate_RF_distance_matrix_statistics_final_trees(curr_run_dir,list(sampled_data["final_tree_topology"]),best_tree= list(sampled_data["is_best_tree"]), prefix = "feature_final_trees_level_distances_RF")])
-            final_tree_embedding_metrics = pd.DataFrame([generate_embedding_distance_matrix_statistics_final_trees(list(sampled_data["final_tree_topology"]),best_tree= list(sampled_data["is_best_tree"]), prefix = "feature_final_trees_level_distances_embedd")])
+            final_trees_RF_distance_metrics = pd.DataFrame([generate_RF_distance_matrix_statistics_final_trees(curr_run_dir,list(sampled_data["final_tree_topology"]),best_tree= list(sampled_data["is_best_tree"]), prefix = "feature_final_trees_level_distances_RF",ll=list(sampled_data["final_ll"]))])
+            final_tree_embedding_metrics = pd.DataFrame([generate_embedding_distance_matrix_statistics_final_trees(list(sampled_data["final_tree_topology"]),best_tree= list(sampled_data["is_best_tree"]), prefix = "feature_final_trees_level_distances_embedd",ll=list(sampled_data["final_ll"]))])
 
 
 

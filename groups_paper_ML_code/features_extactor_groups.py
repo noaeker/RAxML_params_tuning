@@ -22,6 +22,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from scipy.spatial import distance_matrix
 from sklearn.mixture import GaussianMixture
+from sklearn.cross_decomposition import CCA
+from scipy import stats
+
+
 from sklearn.decomposition import KernelPCA
 from sklearn.manifold import SpectralEmbedding
 
@@ -82,6 +86,7 @@ def estimate_entropy(vec):
 
 
 def extract_2d_shape_and_plot(X_transformed, best_tree, name):
+
     data = pd.DataFrame({'score1': list(X_transformed[:, 0]), 'score2': list(X_transformed[:, 1]),
                          'best_tree': best_tree})
 
@@ -94,8 +99,6 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name):
 
     data['dist_from_center_score1'] = abs(data['score1'] - data['score1'].mean())
     data['dist_from_center_score2'] = abs(data['score2'] - data['score2'].mean())
-    data['combined_dist'] = (data['dist_from_center_score1']**2+data['dist_from_center_score1']**2)**0.5
-    data['combined_score_normalized'] = abs((RobustScaler().fit_transform(data[['combined_dist']])))
 
     best_tree_statistics = data.loc[data.best_tree == 1]
     all_results = {}
@@ -105,19 +108,29 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name):
                                                          funcs={'mean': np.mean, 'max': np.max})
     all_results.update(dist_from_center1_dict)
     all_results.update(dist_from_center2_dict)
+    if np.sum(best_tree)>1 and np.sum(np.array(best_tree)==False)>2:
+        gmm_not_best = GaussianMixture(n_components=1, random_state=0).fit(X_transformed[np.array(best_tree)==False,:])
+        mean_overall_ll_best_trees = np.mean(gmm_not_best.score_samples(X_transformed[np.array(best_tree)==False,:]))
+        all_results.update({f'{name}_mean_not_best_trees_gmm_1_ll_score': mean_overall_ll_best_trees})
+        mean_overall_ll_best_trees =np.mean(gmm_not_best.score_samples(X_transformed[np.array(best_tree)==True,:]))
+        all_results.update({f'{name}_mean_best_trees_gmm_1_ll_score': mean_overall_ll_best_trees})
     #sns.scatterplot(data=data, x='score1', y='score2', hue=best_tree)
     #plt.show()
     return all_results
 
 
-def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final_trees, best_tree, prefix):
+def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final_trees, best_tree, prefix,ll):
     if len(final_trees)==1:
         return get_summary_statistics_dict(feature_name=f"{prefix}",values = None)
     RF_distance_mat = generate_RF_distance_matrix(curr_run_directory, final_trees)
     all_results = {}
     if best_tree:
         n_best_trees = np.sum(best_tree)
-        distances_to_other_trees = list(np.ravel(RF_distance_mat[np.array(best_tree) == True, :][:, np.array(best_tree) == False]))
+        distances_to_others_mat =  RF_distance_mat[np.array(best_tree) == True, :][:, np.array(best_tree) == False]
+        mean_distance_to_others = np.mean(distances_to_others_mat, axis = 0)
+        rf_corr = abs(stats.spearmanr(mean_distance_to_others,np.array(ll)[np.array(best_tree)==False]).correlation)
+        all_results.update({f'{prefix}_corr_rf_from_best_trees_to_final_trees': rf_corr})
+        distances_to_other_trees = list(np.ravel(distances_to_others_mat))
         distances_to_best_trees_mat = RF_distance_mat[np.array(best_tree) == True, :][:, np.array(best_tree) == True]
         distances_to_best_trees = distances_to_best_trees_mat[np.triu_indices(n = n_best_trees,k = 1)]
         distances_to_other_trees_features = get_summary_statistics_dict(feature_name=f"{prefix}_best_trees_rf_to_final_trees_", values=distances_to_other_trees)
@@ -135,7 +148,7 @@ def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final
     return all_results
 
 
-def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_tree, prefix):
+def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_tree, prefix,ll):
     all_distance_metrics = {}
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
@@ -146,8 +159,16 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
         final_paired_distances = np.array([get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=False) for tree in final_trees])
         final_paired_distances_transformed = model.fit_transform(final_paired_distances)
         d_mat_final = distance_matrix(final_paired_distances_transformed, final_paired_distances_transformed)
+        d_mat_final_best_trees = d_mat_final[np.array(best_tree) == True, :][:, np.array(best_tree) == False]
+        d_mat_final_best_trees_mean = np.mean(d_mat_final_best_trees, axis =0)
+        embedding_corr = abs(stats.spearmanr(d_mat_final_best_trees_mean, np.array(ll)[np.array(best_tree) == False]).correlation)
+
+        all_distance_metrics.update({f'{prefix}_{model_name}_pc_distance_ll_corr': embedding_corr})
         all_distance_metrics.update({f'{prefix}_{model_name}_1_var_explained':(model.explained_variance_ratio_[0]),f'{prefix}_{model_name}_1_var_explained':(model.explained_variance_ratio_[1])})
-        best_tree_statistics = extract_2d_shape_and_plot(final_paired_distances_transformed, best_tree, name = model_name)
+        all_distance_metrics.update({f'{prefix}_{model_name}_pc1_ll_corr' : abs(stats.spearmanr(final_paired_distances_transformed[:,0], ll).correlation)})
+        all_distance_metrics.update({f'{prefix}_{model_name}_pc2_ll_corr': abs(
+            stats.spearmanr(final_paired_distances_transformed[:, 1], ll).correlation)})
+        best_tree_statistics = extract_2d_shape_and_plot(final_paired_distances_transformed, best_tree, name =f'{prefix}_{model_name}')
         distances = d_mat_final[np.triu_indices(n=len(final_trees), k=1)]
         all_distance_metrics.update(get_summary_statistics_dict(feature_name=f"{prefix}_{model_name}_",values = distances))
         all_distance_metrics.update(best_tree_statistics)
@@ -200,8 +221,8 @@ def generate_calculations_per_MSA(msa_path,curr_run_dir, n_pars_tree_sampled = 1
                                   }  # 'MDS_raw_100': MDS_raw_100
             embedding_msa_features = {f'{prefix_name}_pca_30_var_explained': np.sum(pars_pca_30_model.explained_variance_ratio_),
                                       f'{prefix_name}_pca_20_var_explained': np.sum(pars_pca_30_model.explained_variance_ratio_[:20]),
-                                      f'{prefix_name}_feature_pca_10_var_explained': np.sum(pars_pca_30_model.explained_variance_ratio_[:10]),
-                                      f'{prefix_name}_feature_pca_5_var_explained': np.sum(
+                                      f'{prefix_name}_pca_10_var_explained': np.sum(pars_pca_30_model.explained_variance_ratio_[:10]),
+                                      f'{prefix_name}_pca_5_var_explained': np.sum(
                                           pars_pca_30_model.explained_variance_ratio_[:5])
                                       }
             embedding_msa_features.update(pars_pca_30_metrics)
