@@ -39,9 +39,8 @@ def get_full_and_MSA_features(results):
     general_final_tree_metrics = [col for col in results if col.startswith('feature_general')]
     final_trees_distances_metrics = [col for col in results if col.startswith('feature_final_trees_level_distances')]
     MSA_level_distancs_metrics = [col for col in results if col.startswith('feature_MSA_level')]
-    best_trees_distances_metrics = [col for col in results if col.startswith('feature_best_final_trees_RF')]
 
-    full_features = general_MSA_columns +general_final_tree_metrics+final_trees_distances_metrics+MSA_level_distancs_metrics+best_trees_distances_metrics
+    full_features = ["n_total_trees_sampled"]+general_MSA_columns +general_final_tree_metrics+final_trees_distances_metrics+MSA_level_distancs_metrics
     MSA_level_features = tree_search_columns+general_MSA_columns+MSA_level_distancs_metrics
     return full_features,MSA_level_features
 
