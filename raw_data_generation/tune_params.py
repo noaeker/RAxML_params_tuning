@@ -97,10 +97,6 @@ def main():
         logging.info(f"Working on MSA: {MSA}")
         MSA_tasks = job_tasks_dict_per_MSA[MSA]
         msa_job_done_dict = {}
-        first_total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
-        logging.info(f"Total test time1 is: {first_total_test_time}")
-        total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
-        logging.info(f"Total test time2 is: {total_test_time}")
         start_time = time.time()
         for i, task_key in (enumerate(MSA_tasks)):
             if os.path.exists(job_local_stop_running_path):  # break out of the loop if all tasks are done
