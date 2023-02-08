@@ -10,7 +10,7 @@ MODULE_LOAD_STR = "source /groups/itay_mayrose/lab_python/anaconda3/etc/profile.
 PBS_FILE_GENERATOR_CODE = "/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py"
 POSSIBLE_PROTEIN_LETTERS = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T',
                             'W', 'Y', 'V']
-SEED = 1
+SEED = 3
 BASELINE = "X"
 CURR_RUN_PREFIX = "pandit_tuning"
 CURR_JOBS_PREFIX = "pandit_tuning"

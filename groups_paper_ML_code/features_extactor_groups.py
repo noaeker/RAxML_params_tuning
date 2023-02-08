@@ -40,7 +40,7 @@ def get_summary_statistics_dict(feature_name, values, funcs={'mean': np.mean,'va
                                                              'min': np.min, 'max': np.max,
                                                              }):
     res = {}
-    if values is None:
+    if values is None or len(values)==0:
         for func in funcs:
             res.update({f'{feature_name}_{func}': None})
     else:
@@ -109,7 +109,6 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name):
     all_results.update(dist_from_center1_dict)
     all_results.update(dist_from_center2_dict)
     all_results.update(combined_dist_dict)
-    print(all_results)
     #sns.scatterplot(data=data, x='score1', y='score2', hue=best_tree)
     #plt.show()
     return all_results
@@ -121,7 +120,7 @@ def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final
     RF_distance_mat = generate_RF_distance_matrix(curr_run_directory, final_trees)
     all_results = {}
     if best_tree:
-        distances_to_other_trees = RF_distance_mat[np.array(best_tree) == True, :][:, np.array(best_tree) == False]
+        distances_to_other_trees = list(np.ravel(RF_distance_mat[np.array(best_tree) == True, :][:, np.array(best_tree) == False]))
         distances_to_other_trees_features = get_summary_statistics_dict(feature_name=f"feature_best_trees_rf_to_final_trees_", values=distances_to_other_trees)
         all_results.update(distances_to_other_trees_features)
         mds_embeddings = MDS(n_components=2, dissimilarity='precomputed')
@@ -191,28 +190,12 @@ def generate_calculations_per_MSA(msa_path,curr_run_dir, n_pars_tree_sampled = 1
                  pars])
             #pars_kpca_10_model = KernelPCA(n_components=10, kernel='rbf').fit(pars_paired_distances)
             #pars_kpca_10_metrics = dimensionality_reduction_metrics(f'{prefix_name}_kpca10', pars_kpca_10_model,pars_paired_distances,n_trees= len(pars))
-            pars_pca_10_model = PCA(n_components=10).fit(pars_paired_distances)
-            pars_pca_10_metrics = dimensionality_reduction_metrics(f'{prefix_name}_pca10', pars_pca_10_model,
-                                                                    pars_paired_distances, n_trees=len(pars))
             pars_pca_20_model = PCA(n_components=20).fit(pars_paired_distances)
             pars_pca_20_metrics = dimensionality_reduction_metrics(f'{prefix_name}_pca20', pars_pca_20_model,
                                                                     pars_paired_distances, n_trees=len(pars))
 
-
-            pars_iso_model_5 = Isomap(n_components=5).fit(pars_paired_distances)
-            pars_iso_metrics_5 = dimensionality_reduction_metrics(f'{prefix_name}_iso_5', pars_iso_model_5,
-                                                                   pars_paired_distances, n_trees=len(pars), dist_mat= pars_iso_model_5.dist_matrix_ )
-            #pars_iso_model_10 = Isomap(n_components=10).fit(pars_paired_distances)
-            #pars_iso_metrics_10 = dimensionality_reduction_metrics(f'{prefix_name}_iso_10', pars_iso_model_10,
-            #                                                       pars_paired_distances, n_trees=len(pars), dist_mat= pars_iso_model_10.dist_matrix_ )
-            #pars_spectral_model = SpectralEmbedding(n_components=5).fit(pars_paired_distances)
-            #pars_spectral_metrics = dimensionality_reduction_metrics(f'{prefix_name}_spectral', pars_spectral_model,
-            #                                                       pars_paired_distances, n_trees=len(pars))
-
-
             embedding_msa_models  = {
                 f'pars_pca_20_model': pars_pca_20_model,
-                'pars_iso_model_5': pars_iso_model_5,
                                   }  # 'MDS_raw_100': MDS_raw_100
             embedding_msa_features = {'feature_pca_20_var_explained': np.sum(pars_pca_20_model.explained_variance_ratio_),
                                       'feature_pca_10_var_explained': np.sum(pars_pca_20_model.explained_variance_ratio_[:10]),

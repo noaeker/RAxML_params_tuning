@@ -256,7 +256,7 @@ def train_test_validation_splits(full_data, test_pct, val_pct, msa_col_name="msa
     msas = full_data[msa_col_name]
     full_sampling_data = pd.DataFrame({'msa_n_seq': msa_n_seq_group, 'msa': msas}).drop_duplicates().sample(frac=1,random_state = SEED)
     full_sampling_data  = full_sampling_data.sort_values('msa') # Sort according to MSAs
-    test_msas = full_sampling_data.groupby('msa_n_seq').sample(frac=test_pct, random_state= SEED+3)
+    test_msas = full_sampling_data.groupby('msa_n_seq').sample(frac=test_pct, random_state= SEED)
     train_msas = full_sampling_data.loc[~full_sampling_data['msa'].isin(test_msas['msa'])]
 
     if subsample_train:

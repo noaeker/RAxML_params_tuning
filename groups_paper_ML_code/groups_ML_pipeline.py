@@ -27,7 +27,7 @@ def apply_on_external_validation_data(additional_validation_data, model, train, 
 
 
 def get_full_and_MSA_features(results):
-    known_output_features = ["frac_pars_trees_sampled", "feature_msa_n_seq", "feature_msa_n_loci",
+    known_output_features = ["frac_pars_trees_sampled","spr_radius","spr_cutoff","n_total_trees_sampled","feature_msa_n_seq", "feature_msa_n_loci",
                              "feature_msa_pypythia_msa_difficulty",
                              "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean",
                              ]
@@ -45,7 +45,7 @@ def get_full_and_MSA_features(results):
                                      "feature_mean_pars_rf_diff"]
 
 
-    full_features = [col for col in results.columns if (col.startswith('feature') or col.startswith('best_final_trees_trees_RF')) and 'pca' not in col and 'PCA' not in col and 'iso' not in col] #and 'pca' not in col and 'iso' not in col and 'PCA' not in col
+    full_features = [col for col in results.columns if (col.startswith('feature') or col.startswith('best_final_trees_trees_RF')) and 'MDS' not in col  ] #and 'pca' not in col and 'iso' not in col and 'PCA' not in col
     MSA_level_features = known_output_features + MSA_embedding_features
     return full_features, MSA_level_features
 
@@ -63,7 +63,6 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
     #results = results[[col for col in results.columns if 'embedding_new' not in col]]
 
     #results["feature_3_vs_5"] = results["feature_final_trees_level_new__PCA_2_bic3"]/results["feature_final_trees_level_new__PCA_2_bic2"]
-    results["feature_mds_1_2_sum"] = results["feature_MDS_2_final_trees_center_1_max"]+results["feature_MDS_2_final_trees_center_2_max"]
     train, test, val = train_test_validation_splits(results, test_pct=0.3, val_pct=0, msa_col_name='msa_path',subsample_train=True, subsample_train_frac= sample_frac)
 
     full_features, MSA_level_features = get_full_and_MSA_features(results)

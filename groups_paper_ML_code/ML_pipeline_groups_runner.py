@@ -133,11 +133,14 @@ def main():
         relevant_data = pd.read_csv(args.file_path, sep = '\t')
     if args.filter_on_default_data:
         logging.info("Filtering on default data")
-    relevant_data = relevant_data[relevant_data["type"] == "default"] #Filtering only on default data
+    if args.filter_on_default_data:
+        relevant_data = relevant_data[relevant_data["type"] == "default"] #Filtering only on default data
+    else:
+        relevant_data = relevant_data[relevant_data["type"] != "default"] # Filtering on non default data
     relevant_data["is_global_max"] = (relevant_data["delta_ll_from_overall_msa_best_topology"] <= 0.1).astype('int') #global max definition
-    relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
+    #relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
     if LOCAL_RUN: #Subsampling MSAs for the local run only
-        msas = ['/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF03484.fasta','/groups/pupko/noaeker/data/New_MSAs/Selectome_msas/msas/ENSGT00550000074783.Euteleostomi.002.aa_masked.fas','/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF01740.fasta','/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00989.fasta','/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00443.fasta','/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00620.fasta','/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF01026.fasta']#relevant_data["msa_path"].unique()[-8:-5]
+        msas = relevant_data["msa_path"].unique()[-8:-5]
         relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
 
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
@@ -159,7 +162,7 @@ def main():
     if not LOCAL_RUN:
         ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= args.include_output_tree_features,additional_validation_data = additional_validation_data)
     elif LOCAL_RUN:
-        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=False, large_grid=False,
+        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid=False,
                     include_output_tree_features=args.include_output_tree_features, additional_validation_data = additional_validation_data)
     logging.info(f"Working on MSA level features")
 
