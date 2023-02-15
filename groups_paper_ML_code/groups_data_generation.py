@@ -68,7 +68,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_
     logging.info(f'Total MSA to run on: {len(data["msa_path"].unique())}')
     for i,msa_path in enumerate(data["msa_path"].unique()):
         logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
-        msa_features,embedding_msa_models = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
+        msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
         msa_data = data.loc[data.msa_path == msa_path] # Filter on MSA data
         for i in range(n_sample_points):
             print(i)

@@ -41,6 +41,7 @@ def get_full_and_MSA_features(results):
     MSA_level_distancs_metrics = [col for col in results if col.startswith('feature_MSA_level')]
 
     full_features = ["n_total_trees_sampled"]+general_MSA_columns +general_final_tree_metrics+final_trees_distances_metrics+MSA_level_distancs_metrics
+    #full_features =[col for col in full_features if 'gmm' not in col and 'center' not in col and not ('pca' in col and 'corr' in col)]
     MSA_level_features = tree_search_columns+general_MSA_columns+MSA_level_distancs_metrics
     return full_features,MSA_level_features
 
