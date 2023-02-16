@@ -26,6 +26,10 @@ from sklearn.mixture import GaussianMixture
 from sklearn.cross_decomposition import CCA
 from scipy import stats
 from sklearn import metrics
+from sklearn.svm import OneClassSVM,LinearSVC
+from sklearn.cluster import DBSCAN
+from sklearn.ensemble import IsolationForest
+from sklearn.neighbors import LocalOutlierFactor
 
 
 
@@ -84,46 +88,22 @@ def estimate_entropy(vec):
     return entropy
 
 
-def extract_2d_shape_and_plot(X_transformed, best_tree, name):
+def extract_2d_shape_and_plot(X_transformed,d_mat_final, best_tree, name):
 
     data = pd.DataFrame({'score1': list(X_transformed[:, 0]), 'score2': list(X_transformed[:, 1]),
                          'best_tree': best_tree})
     all_results = {}
 
-    # data['score1_normalized'] = abs((RobustScaler().fit_transform(data[['score1']])))
-    #
-    #
-    # data['score2_normalized'] = abs((RobustScaler().fit_transform(data[['score2']])))
-    #
-    # data['dist_from_center_score1'] = abs(data['score1'] - data['score1'].mean())
-    # data['dist_from_center_score2'] = abs(data['score2'] - data['score2'].mean())
-    #
-    # best_tree_statistics = data.loc[data.best_tree == 1]
-    # all_results = {}
-    # dist_from_center1_dict = get_summary_statistics_dict(f'{name}_final_trees_center_1',best_tree_statistics['score1_normalized'], funcs={'mean':np.mean,'max':np.max})
-    # dist_from_center2_dict = get_summary_statistics_dict(f'{name}_final_trees_center_2',
-    #                                                      best_tree_statistics['score2_normalized'],
-    #                                                      funcs={'mean': np.mean, 'max': np.max})
-    #all_results.update(dist_from_center1_dict)
-    #all_results.update(dist_from_center2_dict)
     if np.sum(best_tree)>=1 and np.sum(np.array(best_tree)==False)>=3:
-        siluhette = silhouette_score(X_transformed, best_tree)
-        siluhette_scores = silhouette_samples(X_transformed, best_tree)[np.array(best_tree) == True]
-        ch_score = calinski_harabasz_score(X_transformed, best_tree)
-        db_score = davies_bouldin_score(X_transformed, best_tree)
-        print(f"Silhouette score {siluhette}")
-        print(f"CH score {ch_score}")
-        print(f"DB score {db_score}")
-        print(f"Silhouette score best: {np.mean(siluhette_scores)}")
 
-        all_results.update({f'{name}_best_Silhouette_score':np.mean(siluhette_scores),f'{name}_overall_Silhouette_score':np.mean(siluhette_scores),f'{name}_overall_ch_score':ch_score,f'{name}_overall_db_score':db_score  })
-        #gmm_not_best = GaussianMixture(n_components=1, random_state=0).fit(X_transformed[np.array(best_tree)==False,:])
-        #mean_overall_ll_best_trees = np.mean(gmm_not_best.score_samples(X_transformed[np.array(best_tree)==False,:]))
-        #all_results.update({f'{name}_mean_not_best_trees_gmm_1_ll_score': mean_overall_ll_best_trees})
-        #mean_overall_ll_best_trees =np.mean(gmm_not_best.score_samples(X_transformed[np.array(best_tree)==True,:]))
-        #all_results.update({f'{name}_mean_best_trees_gmm_1_ll_score': mean_overall_ll_best_trees})
+        svm = LinearSVC().fit(X=X_transformed, y = best_tree)
+        best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree)==True]
+        not_best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == False]
+        print(f"best svm scores: {np.mean(best_svm_scores)}")
+        print(f"not best svm scores: {np.mean(not_best_svm_scores)}")
+        all_results.update({f'{name}_mean_best_svm_score':np.mean(best_svm_scores),f'{name}_mean_non_best_svm_score':np.mean(not_best_svm_scores)  })
         if LOCAL_RUN:
-            sns.scatterplot(data=data, x='score1', y='score2', hue=best_tree)
+            sns.scatterplot(data=data, x='score1', y='score2', hue=best_tree,s=30, alpha=0.6)
             plt.show()
     return all_results
 
@@ -162,26 +142,23 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
-    models_dict = {'LLE': LocallyLinearEmbedding(n_components=2)}#{'pca_2':PCA(n_components=2)}
+    models_dict = {'PCA': PCA(n_components=3)}#{'pca_2':PCA(n_components=2)}
     for model_name in models_dict:
         model = models_dict[model_name]
         final_paired_distances = np.array([get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=False) for tree in final_trees])
         final_paired_distances_transformed = model.fit_transform(final_paired_distances)
+        print(f"Variance explained: {np.sum(model.explained_variance_ratio_)}")
+
 
         d_mat_final = distance_matrix(final_paired_distances_transformed, final_paired_distances_transformed)
-        d_mat_final_best_trees = d_mat_final[np.array(best_tree) == True, :][:, np.array(best_tree) == False]
-        d_mat_final_best_trees_mean = np.mean(d_mat_final_best_trees, axis =0)
-        #embedding_corr = abs(stats.spearmanr(d_mat_final_best_trees_mean, np.array(ll)[np.array(best_tree) == False]).correlation)
 
-        #all_distance_metrics.update({f'{prefix}_{model_name}_pc_distance_ll_corr': embedding_corr})
-        #all_distance_metrics.update({f'{prefix}_{model_name}_1_var_explained':(model.explained_variance_ratio_[0]),f'{prefix}_{model_name}_2_var_explained':(model.explained_variance_ratio_[1])})
-        #all_distance_metrics.update({f'{prefix}_{model_name}_pc1_ll_corr' : abs(stats.spearmanr(final_paired_distances_transformed[:,0], ll).correlation)})
-        #all_distance_metrics.update({f'{prefix}_{model_name}_pc2_ll_corr': abs(
-        #    stats.spearmanr(final_paired_distances_transformed[:, 1], ll).correlation)})
-        best_tree_statistics = extract_2d_shape_and_plot(final_paired_distances_transformed, best_tree, name =f'{prefix}_{model_name}')
+        best_tree_statistics = extract_2d_shape_and_plot(final_paired_distances_transformed,d_mat_final, best_tree, name =f'{prefix}_{model_name}')
         distances = d_mat_final[np.triu_indices(n=len(final_trees), k=1)]
         all_distance_metrics.update(get_summary_statistics_dict(feature_name=f"{prefix}_{model_name}_",values = distances))
         all_distance_metrics.update(best_tree_statistics)
+        #print("model reconstruction error", model.reconstruction_error_ )
+        all_distance_metrics.update({f'{prefix}_{model_name}_var_explained':np.sum(model.explained_variance_ratio_) })
+        #all_distance_metrics.update({f'{prefix}_{model_name}_LLE_error': model.reconstruction_error_ })
     return all_distance_metrics
 
 
@@ -222,11 +199,11 @@ def generate_calculations_per_MSA(msa_path,curr_run_dir, n_pars_tree_sampled = 1
                  pars])
             #pars_kpca_10_model = KernelPCA(n_components=10, kernel='rbf').fit(pars_paired_distances)
             #pars_kpca_10_metrics = dimensionality_reduction_metrics(f'{prefix_name}_kpca10', pars_kpca_10_model,pars_paired_distances,n_trees= len(pars))
-            parsimony_model = LocallyLinearEmbedding(n_components=5).fit(pars_paired_distances)
-            parsimony_model_metrics = dimensionality_reduction_metrics(f'{prefix_name}_LLE', parsimony_model,
+            parsimony_model = PCA(n_components=5).fit(pars_paired_distances)
+            parsimony_model_metrics = dimensionality_reduction_metrics(f'{prefix_name}_PCA', parsimony_model,
                                                                     pars_paired_distances, n_trees=len(pars))
 
-            embedding_msa_features = {f'{prefix_name}_lle_error': parsimony_model.reconstruction_error_,
+            embedding_msa_features = {f'{prefix_name}_var_explained': np.sum(parsimony_model.explained_variance_ratio_),
                                       }
             embedding_msa_features.update(parsimony_model_metrics)
             embedding_msa_features.update(RF_distances_metrics)

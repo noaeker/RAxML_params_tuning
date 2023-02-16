@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 import pickle
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
-from sklearn.metrics import matthews_corrcoef, roc_auc_score, average_precision_score, accuracy_score, precision_score, \
+from sklearn.metrics import matthews_corrcoef, log_loss, roc_auc_score, average_precision_score, accuracy_score, precision_score, \
     recall_score
 import numpy as np
 import os
@@ -77,7 +77,7 @@ def ML_model(X_train, groups, y_train, n_jobs, path, classifier=False, model='li
         group_splitter = list(GroupKFold(n_splits=n_cv_folds).split(X_train, y_train.ravel(), groups=groups))
         if classifier:
             if model=='lightgbm':
-                model =lightgbm.LGBMClassifier()#importance_type='gain'
+                model =lightgbm.LGBMClassifier(importance_type='gain')#importance_type='gain'
                 param_grid = LIGHTGBM_CLASSIFICATION_PARAM_GRID
                 if large_grid:
                     param_grid.update(GENERAL_PARAM_GRID)
@@ -93,7 +93,7 @@ def ML_model(X_train, groups, y_train, n_jobs, path, classifier=False, model='li
             if large_grid:
                 REGRESSION_PARAM_GRID.update(GENERAL_PARAM_GRID)
         if classifier:
-            scoring = 'roc_auc'
+            scoring = 'neg_log_loss'
         else:
             scoring = 'r2'
         selector, X_train, model = RFE(model, X_train, y_train, group_splitter, n_jobs, scoring, do_RFE)
@@ -224,6 +224,7 @@ def model_metrics(y_test, predictions, prob_predictions, metrics_path, sampling_
         # PrecisionRecallDisplay.from_predictions(y_test, prob_predictions)
         # plt.show()
         return {'AUC': roc_auc_score(y_test, prob_predictions),
+                'logloss': log_loss(y_test, prob_predictions),
                 'average_precision': average_precision_score(y_test, prob_predictions),
                 'accuracy_score': accuracy_score(y_test, predictions),
                 'precision': precision_score(y_test, predictions), 'recall': recall_score(y_test, predictions),

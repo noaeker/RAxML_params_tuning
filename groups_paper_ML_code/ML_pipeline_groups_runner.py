@@ -128,7 +128,7 @@ def main():
     create_dir_if_not_exists(existing_msas_data_path)
     logging.info(f"Reading all data from {args.file_path}")
     if LOCAL_RUN:
-        relevant_data = pd.read_csv(args.file_path, sep='\t', nrows=24800)
+        relevant_data = pd.read_csv(args.file_path, sep='\t', nrows= 40000)
     else:
         relevant_data = pd.read_csv(args.file_path, sep = '\t')
     if args.filter_on_default_data:
@@ -138,14 +138,16 @@ def main():
     else:
         relevant_data = relevant_data[relevant_data["type"] != "default"] # Filtering on non default data
     relevant_data["is_global_max"] = (relevant_data["delta_ll_from_overall_msa_best_topology"] <= 0.1).astype('int') #global max definition
-    #relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
+
     #if LOCAL_RUN: #Subsampling MSAs for the local run only
-    #    msas = relevant_data["msa_path"].unique()[-8:-5]
+    #    msas = ['/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00072.fasta','/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00071.fasta','/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00075.fasta']
     #    relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
 
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
     previous_results_path= os.path.join(curr_run_dir,'group_results_prev.tsv')
     results = obtain_sampling_results(results_path, previous_results_path, relevant_data, all_jobs_running_folder, existing_msas_data_path, args)
+    results["feature_final_trees_level_distances_embedd_LLE_best_Silhouette_score"] = results["feature_final_trees_level_distances_embedd_LLE_best_Silhouette_score"].fillna(0)
+    #results = results.loc[results.feature_msa_pypythia_msa_difficulty > 0.2]
     logging.info(f"Number of rows in results is {len(results.index)}")
     if args.additional_validation and os.path.exists(args.additional_validation):
         additional_validation_data = pd.read_csv(args.additional_validation, sep='\t')

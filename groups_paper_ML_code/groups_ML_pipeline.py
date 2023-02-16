@@ -41,7 +41,8 @@ def get_full_and_MSA_features(results):
     MSA_level_distancs_metrics = [col for col in results if col.startswith('feature_MSA_level')]
 
     full_features = ["n_total_trees_sampled"]+general_MSA_columns +general_final_tree_metrics+final_trees_distances_metrics+MSA_level_distancs_metrics
-    #full_features =[col for col in full_features if 'gmm' not in col and 'center' not in col and not ('pca' in col and 'corr' in col)]
+    #full_features = general_MSA_columns+["n_total_trees_sampled"]+["feature_final_trees_level_distances_RF_rf_distances_mean","feature_final_trees_level_distances_embedd_LLE_best_Silhouette_score"]
+    full_features =[col for col in full_features if 'siluhette' not in col and 'final_trees_level_distances_embedd_LLE' not in col and 'lle' not in col and 'LLE' not in col ]
     MSA_level_features = tree_search_columns+general_MSA_columns+MSA_level_distancs_metrics
     return full_features,MSA_level_features
 
@@ -72,7 +73,7 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
         X_test = test[[col for col in train.columns if col in MSA_level_features]]
         X_val = val[[col for col in train.columns if col in MSA_level_features]]
 
-    y_train = train["default_status"]
+    y_train = train["default_status"] #default_status
     y_test = test["default_status"]
     y_val = val["default_status"]
     groups = train["msa_path"]
