@@ -199,7 +199,7 @@ def generate_calculations_per_MSA(msa_path,curr_run_dir, n_pars_tree_sampled = 1
                  pars])
             #pars_kpca_10_model = KernelPCA(n_components=10, kernel='rbf').fit(pars_paired_distances)
             #pars_kpca_10_metrics = dimensionality_reduction_metrics(f'{prefix_name}_kpca10', pars_kpca_10_model,pars_paired_distances,n_trees= len(pars))
-            parsimony_model = PCA(n_components=5).fit(pars_paired_distances)
+            parsimony_model = PCA(n_components=10).fit(pars_paired_distances)
             parsimony_model_metrics = dimensionality_reduction_metrics(f'{prefix_name}_PCA', parsimony_model,
                                                                     pars_paired_distances, n_trees=len(pars))
 
