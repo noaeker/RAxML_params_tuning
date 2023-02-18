@@ -21,7 +21,7 @@ def group_main_parser():
     parser.add_argument('--filter_on_default_data', action='store_true', default = False)
     #parser.add_argument('--large_grid', action='store_true', default=False)
     parser.add_argument('--n_jobs', type=int, default=2)
-    parser.add_argument('--n_cv_folds', type=int, default=4)
+    parser.add_argument('--n_cv_folds', type=int, default=2)
     parser.add_argument('--cpus_per_job', type = int, default=1)
     parser.add_argument('--cpus_per_main_job', type=int, default=4)
     parser.add_argument('--level', type=str, default='info')

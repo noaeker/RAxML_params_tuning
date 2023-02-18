@@ -201,8 +201,8 @@ def print_model_statistics(model, train_X, test_X,val_X, y_train, y_test,y_val, 
     train_metrics["sample_fraction"] = sampling_frac
     add_to_csv(csv_path=metrics_path, new_data=train_metrics)
 
-    #if is_classification:
-    #    calibration_plot(model, test_X, y_test)
+    if is_classification:
+        calibration_plot(model, test_X, y_test)
 
 
 def add_to_csv(csv_path, new_data):
