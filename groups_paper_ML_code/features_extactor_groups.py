@@ -17,6 +17,7 @@ import timeit
 from side_code.basic_trees_manipulation import get_distances_between_leaves,generate_tree_object_from_newick
 from sklearn.manifold import MDS
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import RobustScaler
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler
@@ -167,7 +168,11 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
         all_distance_metrics.update(get_summary_statistics_dict(feature_name=f"{prefix}_{model_name}_distances",values = distances))
         all_distance_metrics.update(best_tree_statistics)
         #print("model reconstruction error", model.reconstruction_error_ )
-        all_distance_metrics.update({f'{prefix}_{model_name}_var_explained':np.sum(model['pca'].explained_variance_ratio_),f'{prefix}_{model_name}_var_explained1':np.sum(model['pca'].explained_variance_ratio_[:1]) })
+        scaler = MinMaxScaler()
+        pc1_min_max = MinMaxScaler().fit_transform(final_paired_distances_transformed[:, 0])
+        pc2_min_max = MinMaxScaler().fit_transform(final_paired_distances_transformed[:, 1])
+        pc3_min_max = MinMaxScaler().fit_transform(final_paired_distances_transformed[:, 2])
+        all_distance_metrics.update({f'{prefix}_{model_name}_pc1':pc1_min_max,f'{prefix}_{model_name}_pc2':pc2_min_max,f'{prefix}_{model_name}_pc3':pc3_min_max,f'{prefix}_{model_name}_var_explained':np.sum(model['pca'].explained_variance_ratio_),f'{prefix}_{model_name}_var_explained1':np.sum(model['pca'].explained_variance_ratio_[:1]) })
         distances_to_other_trees_mat = d_mat_final[np.array(best_tree) == True, :][:, np.array(best_tree) == False]
         distances_to_other_trees = list(np.ravel(distances_to_other_trees_mat))
         distances_to_other_trees_features = get_summary_statistics_dict(
@@ -222,6 +227,7 @@ def generate_calculations_per_MSA(msa_path,curr_run_dir, n_pars_tree_sampled = 1
                  pars])
             #pars_kpca_10_model = KernelPCA(n_components=10, kernel='rbf').fit(pars_paired_distances)
             #pars_kpca_10_metrics = dimensionality_reduction_metrics(f'{prefix_name}_kpca10', pars_kpca_10_model,pars_paired_distances,n_trees= len(pars))
+
 
             pipe = Pipeline(steps=[("pca", PCA(n_components=20))]) #("scaler", StandardScaler()),
             pars_paired_distances_transformed = pipe.fit_transform(pars_paired_distances)
