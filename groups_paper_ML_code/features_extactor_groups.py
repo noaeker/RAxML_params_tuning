@@ -115,6 +115,15 @@ def extract_2d_shape_and_plot(X_transformed,d_mat_final, best_tree, name):
         all_results.update(get_summary_statistics_dict(feature_name=f'{name}_kde_best', values=log_density_best))
 
         all_results.update({f'{name}_mean_best_kde_score':np.mean(log_density_best),f'{name}_mean_x_kde_score':np.mean(log_density_x)})
+
+        svm = LinearSVC().fit(X=X_transformed, y=best_tree)
+        best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == True]
+        not_best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == False]
+        print(f"best svm scores: {np.mean(best_svm_scores)}")
+        print(f"not best svm scores: {np.mean(not_best_svm_scores)}")
+        all_results.update({f'{name}_mean_best_svm_score': np.mean(best_svm_scores),
+                            f'{name}_mean_non_best_svm_score': np.mean(not_best_svm_scores)})
+
         if LOCAL_RUN:
             sns.scatterplot(data=data, x='score1', y='score2', hue=best_tree,s=30, alpha=0.6)
             plt.show()
@@ -152,7 +161,7 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
-    models_dict = {'PCA': Pipeline(steps=[("pca", PCA(n_components=3))]),'PCA_whitened': Pipeline(steps=[("pca", PCA(n_components=3, whiten= True))])}
+    models_dict = {'PCA': Pipeline(steps=[("pca", PCA(n_components=3))]),'PCA_sclaed': Pipeline(steps=[("scaler", StandardScaler()),("pca", PCA(n_components=3))]),'PCA_whitened': Pipeline(steps=[("pca", PCA(n_components=3, whiten= True))])}
     for model_name in models_dict:
         print(model_name)
         model = models_dict[model_name]
