@@ -152,7 +152,7 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
-    models_dict = {'PCA': Pipeline(steps=[("pca", PCA(n_components=3, whiten= True))]),'PCA_whitened': Pipeline(steps=[("pca", PCA(n_components=3, whiten= True))])}
+    models_dict = {'PCA': Pipeline(steps=[("pca", PCA(n_components=3))]),'PCA_whitened': Pipeline(steps=[("pca", PCA(n_components=3, whiten= True))])}
     for model_name in models_dict:
         print(model_name)
         model = models_dict[model_name]
