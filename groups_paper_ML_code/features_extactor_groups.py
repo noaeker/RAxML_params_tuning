@@ -169,9 +169,9 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
         all_distance_metrics.update(best_tree_statistics)
         #print("model reconstruction error", model.reconstruction_error_ )
         scaler = MinMaxScaler()
-        pc1_min_max = MinMaxScaler().fit_transform(final_paired_distances_transformed[:, 0])
-        pc2_min_max = MinMaxScaler().fit_transform(final_paired_distances_transformed[:, 1])
-        pc3_min_max = MinMaxScaler().fit_transform(final_paired_distances_transformed[:, 2])
+        pc1_min_max = MinMaxScaler().fit_transform(final_paired_distances_transformed[:, 0].reshape(-1, 1))
+        pc2_min_max = MinMaxScaler().fit_transform(final_paired_distances_transformed[:, 1].reshape(-1, 1))
+        pc3_min_max = MinMaxScaler().fit_transform(final_paired_distances_transformed[:, 2].reshape(-1, 1))
         all_distance_metrics.update({f'{prefix}_{model_name}_pc1':pc1_min_max,f'{prefix}_{model_name}_pc2':pc2_min_max,f'{prefix}_{model_name}_pc3':pc3_min_max,f'{prefix}_{model_name}_var_explained':np.sum(model['pca'].explained_variance_ratio_),f'{prefix}_{model_name}_var_explained1':np.sum(model['pca'].explained_variance_ratio_[:1]) })
         distances_to_other_trees_mat = d_mat_final[np.array(best_tree) == True, :][:, np.array(best_tree) == False]
         distances_to_other_trees = list(np.ravel(distances_to_other_trees_mat))
