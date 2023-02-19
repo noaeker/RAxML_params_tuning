@@ -101,7 +101,11 @@ def extract_2d_shape_and_plot(X_transformed,d_mat_final, best_tree, name):
 
         kde_x = X_transformed[np.array(best_tree) == False, :]
         kde_best = X_transformed[np.array(best_tree) == True, :]
-        kde = KernelDensity(kernel='gaussian', bandwidth=kde_x.shape[0] ** (-1 / (kde_x.shape[1] + 4))).fit(kde_x)
+        bandwidth = kde_x.shape[0] ** (-1 / (kde_x.shape[1] + 4))
+        bandwith2 = (kde_x.shape[0] * (kde_x.shape[1] + 2) / 4) ** (-1 / (kde_x.shape[1] + 4))
+        print(f"b={bandwidth}")
+        print(f"b={bandwith2}")
+        kde = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(kde_x)
         log_density_x = kde.score_samples(kde_x)
         log_density_best = kde.score_samples(kde_best)
         print(log_density_x)
@@ -109,10 +113,10 @@ def extract_2d_shape_and_plot(X_transformed,d_mat_final, best_tree, name):
         all_results.update(get_summary_statistics_dict(feature_name = f'{name}_kde_x', values = log_density_x))
         all_results.update(get_summary_statistics_dict(feature_name=f'{name}_kde_best', values=log_density_best))
 
-        #all_results.update({f'{name}_mean_best_kde_score':np.mean(log_density_best),f'{name}_mean_x_kde_score':np.mean(log_density_x)})
-        #if LOCAL_RUN:
-        #    sns.scatterplot(data=data, x='score1', y='score2', hue=best_tree,s=30, alpha=0.6)
-        #    plt.show()
+        all_results.update({f'{name}_mean_best_kde_score':np.mean(log_density_best),f'{name}_mean_x_kde_score':np.mean(log_density_x)})
+        if LOCAL_RUN:
+            sns.scatterplot(data=data, x='score1', y='score2', hue=best_tree,s=30, alpha=0.6)
+            plt.show()
     print(all_results)
     return all_results
 
@@ -147,7 +151,7 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
-    models_dict = {'PCA_scaled': Pipeline(steps=[("scaler", StandardScaler()), ("pca", PCA(n_components=3))]),'PCA_not_scaled': Pipeline(steps=[("pca", PCA(n_components=3))])}#{'pca_2':PCA(n_components=2)}
+    models_dict = {'PCA': Pipeline(steps=[("pca", PCA(n_components=3, whiten= True))]),'PCA_whitened': Pipeline(steps=[("pca", PCA(n_components=3, whiten= True))])}
     for model_name in models_dict:
         print(model_name)
         model = models_dict[model_name]
@@ -169,8 +173,14 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
         distances_to_other_trees_features = get_summary_statistics_dict(
             feature_name=f"{prefix}_{model_name}_best_trees_distance_to_final_trees_", values=distances_to_other_trees)
 
+        distances_to_best_trees_mat = d_mat_final[np.array(best_tree) == True, :][:, np.array(best_tree) == True]
+        distances_to_best_trees = list(np.ravel(distances_to_best_trees_mat))
+        distances_to_best_trees_features = get_summary_statistics_dict(
+            feature_name=f"{prefix}_{model_name}_best_trees_distance_to_best_trees_", values=distances_to_best_trees)
+
         all_distance_metrics.update(distances_to_other_trees_features)
         all_distance_metrics.update(best_tree_statistics)
+        all_distance_metrics.update(distances_to_best_trees_features)
         #all_distance_metrics.update({f'{prefix}_{model_name}_LLE_error': model.reconstruction_error_ })
     return all_distance_metrics
 

@@ -42,7 +42,8 @@ def get_full_and_MSA_features(results):
 
     full_features = ["n_total_trees_sampled"]+general_MSA_columns +general_final_tree_metrics+final_trees_distances_metrics+MSA_level_distancs_metrics
 
-    full_features = general_MSA_columns+["n_total_trees_sampled"]+[col for col in full_features if 'feature_final_trees_level_distances_RF_rf_distances_mean' not in col]
+    full_features = general_MSA_columns+["n_total_trees_sampled"]+[col for col in full_features if
+                                                                   'PCA_scaled' not in col and 'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'feature_MSA_level__RF' not in col]
     MSA_level_features = tree_search_columns+general_MSA_columns+MSA_level_distancs_metrics
     return full_features,MSA_level_features
 
