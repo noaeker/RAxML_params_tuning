@@ -28,7 +28,8 @@ from sklearn.mixture import GaussianMixture
 from sklearn.cross_decomposition import CCA
 from scipy import stats
 from sklearn import metrics
-from sklearn.svm import OneClassSVM,LinearSVC
+from sklearn.svm import OneClassSVM,LinearSVC, SVC
+from sklearn.linear_model import SGDClassifier
 from sklearn.neighbors import KernelDensity
 from sklearn.cluster import DBSCAN
 from sklearn.ensemble import IsolationForest
@@ -91,43 +92,54 @@ def estimate_entropy(vec):
     return entropy
 
 
-def extract_2d_shape_and_plot(X_transformed,d_mat_final, best_tree, name):
+def extract_2d_shape_and_plot(X_transformed, best_tree, name):
 
-    data = pd.DataFrame({'score1': list(X_transformed[:, 0]), 'score2': list(X_transformed[:, 1]),
-                         'best_tree': best_tree})
     all_results = {}
 
 
     if np.sum(best_tree)>=1 and np.sum(np.array(best_tree)==False)>=2:
 
-        kde_x = X_transformed[np.array(best_tree) == False, :]
-        kde_best = X_transformed[np.array(best_tree) == True, :]
-        bandwidth = kde_x.shape[0] ** (-1 / (kde_x.shape[1] + 4))
-        bandwith2 = (kde_x.shape[0] * (kde_x.shape[1] + 2) / 4) ** (-1 / (kde_x.shape[1] + 4))
-        print(f"b={bandwidth}")
-        print(f"b={bandwith2}")
-        kde = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(kde_x)
-        log_density_x = kde.score_samples(kde_x)
-        log_density_best = kde.score_samples(kde_best)
-        print(log_density_x)
-        print(log_density_best)
-        all_results.update(get_summary_statistics_dict(feature_name = f'{name}_kde_x', values = log_density_x))
-        all_results.update(get_summary_statistics_dict(feature_name=f'{name}_kde_best', values=log_density_best))
+        # kde_x = X_transformed[np.array(best_tree) == False, :]
+        # kde_best = X_transformed[np.array(best_tree) == True, :]
+        # bandwidth = kde_x.shape[0] ** (-1 / (kde_x.shape[1] + 4))
+        # bandwith2 = (kde_x.shape[0] * (kde_x.shape[1] + 2) / 4) ** (-1 / (kde_x.shape[1] + 4))
+        # print(f"b={bandwidth}")
+        # print(f"b={bandwith2}")
+        # kde = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(kde_x)
+        # log_density_x = kde.score_samples(kde_x)
+        # log_density_best = kde.score_samples(kde_best)
+        # print(log_density_x)
+        # print(log_density_best)
+        # all_results.update(get_summary_statistics_dict(feature_name = f'{name}_kde_x', values = log_density_x))
+        # all_results.update(get_summary_statistics_dict(feature_name=f'{name}_kde_best', values=log_density_best))
 
-        all_results.update({f'{name}_mean_best_kde_score':np.mean(log_density_best),f'{name}_mean_x_kde_score':np.mean(log_density_x)})
+        #all_results.update({f'{name}_mean_best_kde_score':np.mean(log_density_best),f'{name}_mean_x_kde_score':np.mean(log_density_x)})
 
-        svm = LinearSVC().fit(X=X_transformed, y=best_tree)
+        svm = SVC(probability= True).fit(X=X_transformed, y=best_tree)
         best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == True]
         not_best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == False]
-        print(f"best svm scores: {np.mean(best_svm_scores)}")
-        print(f"not best svm scores: {np.mean(not_best_svm_scores)}")
-        all_results.update({f'{name}_mean_best_svm_score': np.mean(best_svm_scores),
-                            f'{name}_mean_non_best_svm_score': np.mean(not_best_svm_scores)})
 
-        if LOCAL_RUN:
-            sns.scatterplot(data=data, x='score1', y='score2', hue=best_tree,s=30, alpha=0.6)
-            plt.show()
-    print(all_results)
+        #best_svm_proba = svm.predict_proba(X_transformed)[np.array(best_tree) == True]
+        #not_best_svm_proba = svm.predict_proba(X_transformed)[np.array(best_tree) == False]
+
+        svm_results = {f'{name}_mean_best_svm_score': np.mean(best_svm_scores),
+                       #f'{name}_mean_best_svm_proba': np.mean(best_svm_proba ),
+                       f'{name}_mean_non_best_svm_score': np.mean(not_best_svm_scores),
+                       #f'{name}_mean_non_best_svm_proba': np.mean(not_best_svm_proba),
+}
+        print(svm_results)
+
+        all_results.update(svm_results)
+
+
+        if LOCAL_RUN :
+            try:
+                data = pd.DataFrame({'score1': list(X_transformed[:, 0]), 'score2': list(X_transformed[:, 1]),
+                                     'best_tree': best_tree})
+                sns.scatterplot(data=data, x='score1', y='score2', hue=best_tree,s=30, alpha=0.6)
+                plt.show()
+            except:
+                print("Cannot plot 2d")
     return all_results
 
 
@@ -161,7 +173,7 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
-    models_dict = {'PCA': Pipeline(steps=[("pca", PCA(n_components=3))]),'PCA_sclaed': Pipeline(steps=[("scaler", StandardScaler()),("pca", PCA(n_components=3))]),'PCA_whitened': Pipeline(steps=[("pca", PCA(n_components=3, whiten= True))])}
+    models_dict = {'PCA3': Pipeline(steps=[("pca", PCA(n_components=3))]),'PCA0.9': Pipeline(steps=[("pca", PCA(n_components=0.9))])} #'PCA3_whitened': Pipeline(steps=[("pca", PCA(n_components=3, whiten= True))]),'PCA0.9_whitened': Pipeline(steps=[("pca", PCA(n_components=0.9, whiten= True))])
     for model_name in models_dict:
         print(model_name)
         model = models_dict[model_name]
@@ -170,32 +182,29 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
         print(f"Variance explained: {np.sum(model['pca'].explained_variance_ratio_)}")
         print(f"Number of best trees{np.sum(best_tree)}")
 
-        d_mat_final = distance_matrix(final_paired_distances_transformed, final_paired_distances_transformed)
-
-        best_tree_statistics = extract_2d_shape_and_plot(final_paired_distances_transformed,d_mat_final, best_tree, name =f'{prefix}_{model_name}')
-        distances = d_mat_final[np.triu_indices(n=len(final_trees), k=1)]
-        all_distance_metrics.update(get_summary_statistics_dict(feature_name=f"{prefix}_{model_name}_distances",values = distances))
+        if 'whitened' not in model_name:
+            final_paired_distances_transformed/= (model["pca"].singular_values_[0]**0.5)
+        best_tree_statistics = extract_2d_shape_and_plot(final_paired_distances_transformed,best_tree, name =f'{prefix}_{model_name}')
         all_distance_metrics.update(best_tree_statistics)
-        #print("model reconstruction error", model.reconstruction_error_ )
-        scaler = MinMaxScaler()
-        pc1_min_max = MinMaxScaler().fit_transform(final_paired_distances_transformed[:, 0].reshape(-1, 1))
-        pc2_min_max = MinMaxScaler().fit_transform(final_paired_distances_transformed[:, 1].reshape(-1, 1))
-        pc3_min_max = MinMaxScaler().fit_transform(final_paired_distances_transformed[:, 2].reshape(-1, 1))
-        all_distance_metrics.update({f'{prefix}_{model_name}_pc1':pc1_min_max,f'{prefix}_{model_name}_pc2':pc2_min_max,f'{prefix}_{model_name}_pc3':pc3_min_max,f'{prefix}_{model_name}_var_explained':np.sum(model['pca'].explained_variance_ratio_),f'{prefix}_{model_name}_var_explained1':np.sum(model['pca'].explained_variance_ratio_[:1]) })
-        distances_to_other_trees_mat = d_mat_final[np.array(best_tree) == True, :][:, np.array(best_tree) == False]
-        distances_to_other_trees = list(np.ravel(distances_to_other_trees_mat))
-        distances_to_other_trees_features = get_summary_statistics_dict(
-            feature_name=f"{prefix}_{model_name}_best_trees_distance_to_final_trees_", values=distances_to_other_trees)
+        if 'whitened' not in model_name:
+            d_mat_final = distance_matrix(final_paired_distances_transformed, final_paired_distances_transformed)
+            distances = d_mat_final[np.triu_indices(n=len(final_trees), k=1)]
+            all_distance_metrics.update(get_summary_statistics_dict(feature_name=f"{prefix}_{model_name}_distances",values = distances))
+            all_distance_metrics.update(best_tree_statistics)
+            all_distance_metrics.update({f'{prefix}_{model_name}_n_components':model["pca"].n_components_,f'{prefix}_{model_name}_var_explained':np.sum(model['pca'].explained_variance_ratio_) })
+            print(all_distance_metrics)
+            distances_to_other_trees_mat = d_mat_final[np.array(best_tree) == True, :][:, np.array(best_tree) == False]
+            distances_to_other_trees = list(np.ravel(distances_to_other_trees_mat))
+            distances_to_other_trees_features = get_summary_statistics_dict(
+                feature_name=f"{prefix}_{model_name}_best_trees_distance_to_final_trees_", values=distances_to_other_trees)
 
-        distances_to_best_trees_mat = d_mat_final[np.array(best_tree) == True, :][:, np.array(best_tree) == True]
-        distances_to_best_trees = list(np.ravel(distances_to_best_trees_mat))
-        distances_to_best_trees_features = get_summary_statistics_dict(
-            feature_name=f"{prefix}_{model_name}_best_trees_distance_to_best_trees_", values=distances_to_best_trees)
+            distances_to_best_trees_mat = d_mat_final[np.array(best_tree) == True, :][:, np.array(best_tree) == True]
+            distances_to_best_trees = list(np.ravel(distances_to_best_trees_mat))
+            distances_to_best_trees_features = get_summary_statistics_dict(
+                feature_name=f"{prefix}_{model_name}_best_trees_distance_to_best_trees_", values=distances_to_best_trees)
 
-        all_distance_metrics.update(distances_to_other_trees_features)
-        all_distance_metrics.update(best_tree_statistics)
-        all_distance_metrics.update(distances_to_best_trees_features)
-        #all_distance_metrics.update({f'{prefix}_{model_name}_LLE_error': model.reconstruction_error_ })
+            all_distance_metrics.update(distances_to_other_trees_features)
+            all_distance_metrics.update(distances_to_best_trees_features)
     return all_distance_metrics
 
 

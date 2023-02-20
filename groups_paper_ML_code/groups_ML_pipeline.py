@@ -43,7 +43,7 @@ def get_full_and_MSA_features(results):
     full_features = ["n_total_trees_sampled"]+general_MSA_columns +general_final_tree_metrics+final_trees_distances_metrics+MSA_level_distancs_metrics
 
     full_features = general_MSA_columns+["n_total_trees_sampled"]+[col for col in full_features if
-                                                                   'PCA_scaled' not in col and 'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'feature_MSA_level__RF' not in col]
+                                                                   'PCA_sclaed' not in col and 'MSA_level__var' not in col and 'MSA_level__PCA' not in col]
     MSA_level_features = tree_search_columns+general_MSA_columns+MSA_level_distancs_metrics
     return full_features,MSA_level_features
 
@@ -57,9 +57,11 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
 
 
 
-
+    for col in results.columns:
+        if "pc1" in col or "pc2" in col or "pc3" in col:
+            results = results.drop(columns = [col])
     #results = results[[col for col in results.columns if 'embedding_new' not in col]]
-
+    #results["feature_final_trees_level_distances_embedd_PCA_not_scaled_distances_min_log_transformed"] = np.log(results["feature_final_trees_level_distances_embedd_PCA_not_scaled_distances_min"])
     #results["feature_3_vs_5"] = results["feature_final_trees_level_new__PCA_2_bic3"]/results["feature_final_trees_level_new__PCA_2_bic2"]
     train, test, val = train_test_validation_splits(results, test_pct=0.3, val_pct=0, msa_col_name='msa_path',subsample_train=True, subsample_train_frac= sample_frac)
 
