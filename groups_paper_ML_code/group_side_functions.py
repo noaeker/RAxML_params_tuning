@@ -15,7 +15,7 @@ def group_main_parser():
     parser.add_argument('--n_pars_trees', action='store', type=int, default=-1)
     parser.add_argument('--n_rand_trees', action='store', type=int, default=-1)
     parser.add_argument('--n_sum_range',action='store', type=str, default = '10_20')
-    parser.add_argument('--n_iterations', action='store', type=int, default=3)
+    parser.add_argument('--n_iterations', action='store', type=int, default=1)
     #parser.add_argument('--n_pars_trees_sample', type=int, default=50)
     parser.add_argument('--name', type=str, default="groups_run_local_test")
     parser.add_argument('--filter_on_default_data', action='store_true', default = False)

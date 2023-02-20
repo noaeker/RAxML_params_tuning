@@ -99,28 +99,9 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name):
 
     if np.sum(best_tree)>=1 and np.sum(np.array(best_tree)==False)>=2:
 
-        # kde_x = X_transformed[np.array(best_tree) == False, :]
-        # kde_best = X_transformed[np.array(best_tree) == True, :]
-        # bandwidth = kde_x.shape[0] ** (-1 / (kde_x.shape[1] + 4))
-        # bandwith2 = (kde_x.shape[0] * (kde_x.shape[1] + 2) / 4) ** (-1 / (kde_x.shape[1] + 4))
-        # print(f"b={bandwidth}")
-        # print(f"b={bandwith2}")
-        # kde = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(kde_x)
-        # log_density_x = kde.score_samples(kde_x)
-        # log_density_best = kde.score_samples(kde_best)
-        # print(log_density_x)
-        # print(log_density_best)
-        # all_results.update(get_summary_statistics_dict(feature_name = f'{name}_kde_x', values = log_density_x))
-        # all_results.update(get_summary_statistics_dict(feature_name=f'{name}_kde_best', values=log_density_best))
-
-        #all_results.update({f'{name}_mean_best_kde_score':np.mean(log_density_best),f'{name}_mean_x_kde_score':np.mean(log_density_x)})
-
-        svm = SVC(probability= True).fit(X=X_transformed, y=best_tree)
+        svm = SVC().fit(X=X_transformed, y=best_tree)
         best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == True]
         not_best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == False]
-
-        #best_svm_proba = svm.predict_proba(X_transformed)[np.array(best_tree) == True]
-        #not_best_svm_proba = svm.predict_proba(X_transformed)[np.array(best_tree) == False]
 
         svm_results = {f'{name}_mean_best_svm_score': np.mean(best_svm_scores),
                        #f'{name}_mean_best_svm_proba': np.mean(best_svm_proba ),
@@ -128,9 +109,24 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name):
                        #f'{name}_mean_non_best_svm_proba': np.mean(not_best_svm_proba),
 }
         print(svm_results)
-
         all_results.update(svm_results)
 
+        svm_lin = LinearSVC().fit(X=X_transformed, y=best_tree)
+        best_svm_lin_scores =  svm_lin.decision_function(X_transformed)[np.array(best_tree) == True]
+        not_best_svm_lin_scores =  svm_lin.decision_function(X_transformed)[np.array(best_tree) == False]
+        svm_lin_results = {f'{name}_mean_best_svm_lin_score': np.mean(best_svm_lin_scores),
+                       f'{name}_mean_non_best_svm_lin_score': np.mean(not_best_svm_lin_scores)}
+        all_results.update( svm_lin_results)
+        print(svm_lin_results)
+
+        svm_poly = SVC(kernel='poly').fit(X=X_transformed, y=best_tree)
+        best_svm_poly_scores = svm_poly.decision_function(X_transformed)[np.array(best_tree) == True]
+        not_best_svm_poly_scores = svm_poly.decision_function(X_transformed)[np.array(best_tree) == False]
+        svm_poly_results = {f'{name}_mean_best_svm_poly_score': np.mean(best_svm_poly_scores),
+                           f'{name}_mean_non_best_svm_poly_score': np.mean(not_best_svm_poly_scores)}
+
+        all_results.update(svm_poly_results)
+        print(svm_poly_results)
 
         if LOCAL_RUN :
             try:

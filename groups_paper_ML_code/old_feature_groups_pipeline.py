@@ -55,3 +55,20 @@ from sklearn.preprocessing import MinMaxScaler
 # cca_y_transgormed = (cca_y-cca_y.min())/ (cca_y.max()-cca_y.min())
 # cca_y_best = np.mean(cca_y_transgormed[np.array(best_tree)==True])
 # print(f"CCA {cca_y_best}")
+
+
+# kde_x = X_transformed[np.array(best_tree) == False, :]
+# kde_best = X_transformed[np.array(best_tree) == True, :]
+# bandwidth = kde_x.shape[0] ** (-1 / (kde_x.shape[1] + 4))
+# bandwith2 = (kde_x.shape[0] * (kde_x.shape[1] + 2) / 4) ** (-1 / (kde_x.shape[1] + 4))
+# print(f"b={bandwidth}")
+# print(f"b={bandwith2}")
+# kde = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(kde_x)
+# log_density_x = kde.score_samples(kde_x)
+# log_density_best = kde.score_samples(kde_best)
+# print(log_density_x)
+# print(log_density_best)
+# all_results.update(get_summary_statistics_dict(feature_name = f'{name}_kde_x', values = log_density_x))
+# all_results.update(get_summary_statistics_dict(feature_name=f'{name}_kde_best', values=log_density_best))
+
+# all_results.update({f'{name}_mean_best_kde_score':np.mean(log_density_best),f'{name}_mean_x_kde_score':np.mean(log_density_x)})
