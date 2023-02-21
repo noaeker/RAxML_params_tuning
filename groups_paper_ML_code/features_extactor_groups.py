@@ -120,9 +120,11 @@ def fit_SVC(svc_model,X_transformed,best_tree,name, all_results):
     best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == True]
     not_best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == False]
 
-    svm_results = {f'{name}_mean_best_{name}_score': np.mean(best_svm_scores),
+    svm_results = {f'{name}_mean_best_score': np.mean(best_svm_scores),
+                   f'{name}_min_best_score': np.mean(best_svm_scores),
                    # f'{name}_mean_best_svm_proba': np.mean(best_svm_proba ),
-                   f'{name}_max_non_best_{name}_score': np.max(not_best_svm_scores),
+                   f'{name}_max_non_best_score': np.max(not_best_svm_scores),
+                   f'{name}_mean_non_best_score': np.mean(not_best_svm_scores),
                    # f'{name}_mean_non_best_svm_proba': np.mean(not_best_svm_proba),
                    }
     print(svm_results)
