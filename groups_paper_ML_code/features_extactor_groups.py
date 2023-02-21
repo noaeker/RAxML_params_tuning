@@ -37,6 +37,28 @@ from sklearn.neighbors import LocalOutlierFactor
 
 
 
+def plot_svm(clf,X,Y):
+    # plot the decision function for each datapoint on the grid
+    xx, yy = np.meshgrid(np.linspace(-5, 5, 500), np.linspace(-5, 5, 500))
+    np.random.seed(0)
+    Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+
+    plt.imshow(
+        Z,
+        interpolation="nearest",
+        extent=(xx.min(), xx.max(), yy.min(), yy.max()),
+        aspect="auto",
+        origin="lower",
+        cmap=plt.cm.PuOr_r,
+    )
+    contours = plt.contour(xx, yy, Z, levels=[0], linewidths=2, linestyles="dashed")
+    #plt.colorbar()
+    plt.scatter(X[:, 0], X[:, 1], s=30, c=Y, cmap=plt.cm.Paired, edgecolors="k")
+    plt.xticks(())
+    plt.yticks(())
+    plt.axis([-3, 3, -3, 3])
+    plt.show()
 
 
 def pct_25(values):
@@ -110,6 +132,7 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name):
 }
         print(svm_results)
         all_results.update(svm_results)
+        plot_svm(svm, X_transformed, best_tree)
 
         svm_lin = LinearSVC().fit(X=X_transformed, y=best_tree)
         best_svm_lin_scores =  svm_lin.decision_function(X_transformed)[np.array(best_tree) == True]
@@ -127,6 +150,8 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name):
 
         all_results.update(svm_poly_results)
         print(svm_poly_results)
+
+
 
         if LOCAL_RUN :
             try:
@@ -169,7 +194,7 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
-    models_dict = {'PCA3': Pipeline(steps=[("pca", PCA(n_components=3))]),'PCA0.9': Pipeline(steps=[("pca", PCA(n_components=0.9))])} #'PCA3_whitened': Pipeline(steps=[("pca", PCA(n_components=3, whiten= True))]),'PCA0.9_whitened': Pipeline(steps=[("pca", PCA(n_components=0.9, whiten= True))])
+    models_dict = {'PCA3': Pipeline(steps=[("pca", PCA(n_components=2))])} #'PCA0.9': Pipeline(steps=[("pca", PCA(n_components=0.9))])
     for model_name in models_dict:
         print(model_name)
         model = models_dict[model_name]
