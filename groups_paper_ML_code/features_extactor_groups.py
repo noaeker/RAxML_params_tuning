@@ -114,6 +114,22 @@ def estimate_entropy(vec):
     return entropy
 
 
+
+def fit_SVC(svc_model,X_transformed,best_tree,name, all_results):
+    svm = svc_model.fit(X=X_transformed, y=best_tree)
+    best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == True]
+    not_best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == False]
+
+    svm_results = {f'{name}_mean_best_{name}_score': np.mean(best_svm_scores),
+                   # f'{name}_mean_best_svm_proba': np.mean(best_svm_proba ),
+                   f'{name}_max_non_best_{name}_score': np.max(not_best_svm_scores),
+                   # f'{name}_mean_non_best_svm_proba': np.mean(not_best_svm_proba),
+                   }
+    print(svm_results)
+    all_results.update(svm_results)
+    plot_svm(svm, X_transformed, best_tree)
+
+
 def extract_2d_shape_and_plot(X_transformed, best_tree, name):
 
     all_results = {}
@@ -121,36 +137,10 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name):
 
     if np.sum(best_tree)>=1 and np.sum(np.array(best_tree)==False)>=2:
 
-        svm = SVC().fit(X=X_transformed, y=best_tree)
-        best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == True]
-        not_best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == False]
-
-        svm_results = {f'{name}_mean_best_svm_score': np.mean(best_svm_scores),
-                       #f'{name}_mean_best_svm_proba': np.mean(best_svm_proba ),
-                       f'{name}_mean_non_best_svm_score': np.mean(not_best_svm_scores),
-                       #f'{name}_mean_non_best_svm_proba': np.mean(not_best_svm_proba),
-}
-        print(svm_results)
-        all_results.update(svm_results)
-        plot_svm(svm, X_transformed, best_tree)
-
-        svm_lin = LinearSVC().fit(X=X_transformed, y=best_tree)
-        best_svm_lin_scores =  svm_lin.decision_function(X_transformed)[np.array(best_tree) == True]
-        not_best_svm_lin_scores =  svm_lin.decision_function(X_transformed)[np.array(best_tree) == False]
-        svm_lin_results = {f'{name}_mean_best_svm_lin_score': np.mean(best_svm_lin_scores),
-                       f'{name}_mean_non_best_svm_lin_score': np.mean(not_best_svm_lin_scores)}
-        all_results.update( svm_lin_results)
-        print(svm_lin_results)
-
-        svm_poly = SVC(kernel='poly').fit(X=X_transformed, y=best_tree)
-        best_svm_poly_scores = svm_poly.decision_function(X_transformed)[np.array(best_tree) == True]
-        not_best_svm_poly_scores = svm_poly.decision_function(X_transformed)[np.array(best_tree) == False]
-        svm_poly_results = {f'{name}_mean_best_svm_poly_score': np.mean(best_svm_poly_scores),
-                           f'{name}_mean_non_best_svm_poly_score': np.mean(not_best_svm_poly_scores)}
-
-        all_results.update(svm_poly_results)
-        print(svm_poly_results)
-
+        fit_SVC(SVC(), X_transformed, best_tree, f"{name}_rbf_svc", all_results)
+        fit_SVC(LinearSVC(), X_transformed, best_tree, f"{name}_lin_svc", all_results)
+        fit_SVC(SVC(kernel='poly'), X_transformed, best_tree, f"{name}_poly_svc", all_results)
+        fit_SVC(SVC(kernel='sigmoid'), X_transformed, best_tree, f"{name}_sig_svc", all_results)
 
 
         if LOCAL_RUN :
