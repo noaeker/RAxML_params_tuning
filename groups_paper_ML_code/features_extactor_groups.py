@@ -127,7 +127,8 @@ def fit_SVC(svc_model,X_transformed,best_tree,name, all_results):
                    }
     print(svm_results)
     all_results.update(svm_results)
-    plot_svm(svm, X_transformed, best_tree)
+    if LOCAL_RUN:
+        plot_svm(svm, X_transformed, best_tree)
 
 
 def extract_2d_shape_and_plot(X_transformed, best_tree, name):
