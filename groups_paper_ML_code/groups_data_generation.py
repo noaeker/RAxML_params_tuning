@@ -102,6 +102,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_
             print(f'default_status={curr_iter_general_metrics["default_status"]}')
             curr_iter_general_metrics["feature_general_n_topologies_best_final_trees"] = pd.Series.nunique(sampled_data_good_trees["tree_clusters_ind"])
             print(f"Best different trees: {pd.Series.nunique(sampled_data_good_trees['tree_clusters_ind'])}")
+            print(f"Best different trees: {pd.Series.nunique(sampled_data['tree_clusters_ind'])}")
             curr_iter_general_metrics["n_pars_trees_sampled"] = n_pars_sample
             curr_iter_general_metrics["n_rand_trees_sampled"] = n_rand_sample
             curr_iter_general_metrics["n_total_trees_sampled"] = n_sum

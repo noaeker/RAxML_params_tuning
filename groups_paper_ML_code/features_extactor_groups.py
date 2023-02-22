@@ -141,8 +141,8 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name):
 
         fit_SVC(SVC(), X_transformed, best_tree, f"{name}_rbf_svc", all_results)
 
-        fit_SVC(LinearSVC(), X_transformed, best_tree, f"{name}_lin_svc", all_results)
-        fit_SVC(SVC(kernel='poly'), X_transformed, best_tree, f"{name}_poly_svc", all_results)
+        #fit_SVC(LinearSVC(), X_transformed, best_tree, f"{name}_lin_svc", all_results)
+        #fit_SVC(SVC(kernel='poly'), X_transformed, best_tree, f"{name}_poly_svc", all_results)
         #fit_SVC(SVC(kernel='sigmoid'), X_transformed, best_tree, f"{name}_sig_svc", all_results)
 
 
@@ -186,8 +186,10 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
     all_distance_metrics = {}
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
+    if branch_lenth_variation>9:
+        print("go here")
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
-    models_dict = {'PCA3': Pipeline(steps=[("pca", PCA(n_components=3))]),'PCA2': Pipeline(steps=[("pca", PCA(n_components=2))])} #'PCA0.9': Pipeline(steps=[("pca", PCA(n_components=0.9))])
+    models_dict = {'PCA3': Pipeline(steps=[("pca", PCA(n_components=3))]),'PCA5': Pipeline(steps=[("pca", PCA(n_components=5))]),'PCA7': Pipeline(steps=[("pca", PCA(n_components=7))])} #'PCA0.9': Pipeline(steps=[("pca", PCA(n_components=0.9))]),'PCA2': Pipeline(steps=[("pca", PCA(n_components=2))
     for model_name in models_dict:
         print(model_name)
         model = models_dict[model_name]

@@ -122,8 +122,8 @@ def calibration_plot(model, test_data, y_test):
     # plot perfectly calibrated
     pyplot.plot([0, 1], [0, 1], linestyle='--', color='black')
     # plot model reliabilities
-    pyplot.plot(mpv_uncalibrated, fop_uncalibrated, marker='.')
-    pyplot.plot(mpv_calibrated, fop_calibrated, marker='.')
+    pyplot.plot(mpv_uncalibrated, fop_uncalibrated, marker='.', color = 'blue')
+    pyplot.plot(mpv_calibrated, fop_calibrated, marker='.', color = 'green')
     pyplot.show()
 
 def enrich_with_single_feature_metrics(var_impt, train_X, y_train, test_X, y_test):

@@ -7,7 +7,10 @@ from pandas.api.types import is_numeric_dtype
 
 
 
-def write_validation_and_test_to_csv(curr_run_dir,test,X_test,val,X_val,model,name,):
+def write_data_to_csv(curr_run_dir, train, test, X_test, val, X_val, model, name, ):
+    final_csv_path_train = os.path.join(curr_run_dir, f"train_data_{name}.tsv")
+    train.to_csv(final_csv_path_train, sep='\t')
+
     test["uncalibrated_prob"] = model['best_model'].predict_proba((model['selector']).transform(X_test))[:, 1]
     test["calibrated_prob"] = model['calibrated_model'].predict_proba((model['selector']).transform(X_test))[:, 1]
     final_csv_path_test = os.path.join(curr_run_dir, f"final_performance_on_test_{name}.tsv")
@@ -43,7 +46,7 @@ def get_full_and_MSA_features(results):
     full_features = ["n_total_trees_sampled"]+general_MSA_columns +general_final_tree_metrics+final_trees_distances_metrics+MSA_level_distancs_metrics
 
     full_features = general_MSA_columns+["n_total_trees_sampled"]+[col for col in full_features if
-                                                                   'PCA0.9' not in col and 'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'svm_poly' not in col and 'svm_lin' not in col and 'median' not in col and 'pct_25' not in col and 'pct_75' not in col and 'non_best_svm_score' not in col and 'PCA3_n_components' not in col and 'PCA3_best_trees_distance_to_best_trees' not in col and 'PCA3_best_trees_distance_to_final_trees' not in col ]
+                                                                    'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'non_best_score' not in col and 'svc_min_best_score' not in col and  'poly' not in col and 'lin' not in col and 'median' not in col and 'pct_25' not in col and 'pct_75' not in col and 'PCA3_n_components' not in col and 'PCA3_best_trees_distance_to_best_trees' not in col and 'PCA3_best_trees_distance_to_final_trees' not in col and 'PCA2' not in col ]
     MSA_level_features = tree_search_columns+general_MSA_columns+[col for col in MSA_level_distancs_metrics if 'MSA_level__var' not in col and 'MSA_level__PCA' not in col]
     return full_features,MSA_level_features
 
@@ -57,9 +60,6 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
 
 
 
-    for col in results.columns:
-        if "pc1" in col or "pc2" in col or "pc3" in col:
-            results = results.drop(columns = [col])
     #results = results[[col for col in results.columns if 'embedding_new' not in col]]
     #results["feature_final_trees_level_distances_embedd_PCA_not_scaled_distances_min_log_transformed"] = np.log(results["feature_final_trees_level_distances_embedd_PCA_not_scaled_distances_min"])
     #results["feature_3_vs_5"] = results["feature_final_trees_level_new__PCA_2_bic3"]/results["feature_final_trees_level_new__PCA_2_bic2"]
@@ -101,4 +101,4 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
 
 
     if sample_frac==1 or sample_frac==-1:
-        write_validation_and_test_to_csv(curr_run_dir,test,X_test,val,X_val,model,name,)
+        write_data_to_csv(curr_run_dir, train, test, X_test, val, X_val, model, name, )
