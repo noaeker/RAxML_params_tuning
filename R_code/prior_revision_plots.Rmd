@@ -8,8 +8,76 @@ This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute
 Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
 
 ```{r}
-plot(cars)
+library(scales)
+library(tidyverse)
+library(caret)
+library(ggpubr)
+library(pROC)
 ```
+
+
+```{r}
+prefix = "/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/groups_new_mixed_download/"
+full_data = read_tsv(paste(prefix,"group_results.tsv", sep = ""))
+
+test_data = read_tsv(paste(prefix,"final_performance_on_test_M_frac_1.0_RFE_True_large_grid_True_out_features_True.tsv",sep = ""))
+val_data = read_tsv(paste(prefix,"final_performance_on_val_M_frac_1.0_RFE_True_large_grid_True_out_features_True.tsv",sep = ""))
+
+error_vs_size = read_tsv(paste(prefix,"group_classification_metrics.tsv",sep = ""))
+error_vs_group = read_tsv(paste(prefix,"group_classification_group_metrics_M_frac_1.0_RFE_True_large_grid_True_out_features_True.tsv",sep = ""))
+```
+
+
+Confusion matrix
+```{r}
+
+ggplotConfusionMatrix <- function(m){
+  mytitle <- ""#paste("Accuracy", percent_format()(m$overall[1]))
+                  # "Kappa", percent_format()(m$overall[2]))
+  p <-
+    ggplot(data = as.data.frame(m$table) ,
+           aes(x = Reference, y = Prediction)) +
+    geom_tile(aes(fill = log(Freq)), colour = "white") +
+    scale_fill_gradient(low = "white", high = "steelblue") +
+    geom_text(aes(x = Reference, y = Prediction, label = Freq)) +
+    theme(legend.position = "none") +
+    ggtitle(mytitle)+theme(text = element_text(size = 13))
+  return(p)
+}
+conf_data<-test_data %>% dplyr::select (uncalibrated_prob, default_status) %>% mutate (pred_status = round(uncalibrated_prob)) 
+
+obs<- factor(conf_data %>% pull (default_status))
+pred<- factor(conf_data %>% pull (pred_status))
+
+
+confusion_plot<-ggplotConfusionMatrix(confusionMatrix(data = pred, reference= obs))+theme(legend.position = "none")
+confusion_plot
+```
+Error vs size
+```{r}
+error_vs_size_plt = error_vs_size %>% mutate(n_MSAs = round(868*sample_fraction)) %>% ggplot(aes(x=n_MSAs, y = AUC))+geom_line()+ expand_limits(y = 0.5)+xlab("Number of MSAs")+ theme(text = element_text(size = 13))+ylab("AUC")+geom_point()
+
+rocobj <- roc(test_data$default_status, test_data$calibrated_prob)
+auc <- round(auc(test_data$default_status, test_data$calibrated_prob),3)
+
+global_max_auc_plt<-ggroc(rocobj,colour = 'steelblue', size = 2)+
+  ggtitle(paste0('AUC = ', auc))+theme(text = element_text(size = 13))+xlab("Specificity")
+
+data<-test_data %>% group_by(msa_path) %>% summarise(mean_prob = mean(default_status), mean_pred = mean(calibrated_prob))
+actual_performance<- data %>% ggplot(aes(x=mean_prob,y=mean_pred))+geom_point()+xlab("Fraction of succsssfull tree-searchs")+ theme(text = element_text(size = 13))+ylab("Mean predicted probability")+geom_point(colour = "black", fill = "white",alpha = 1/20,stroke =5 )
+
+data %>% filter (mean_prob>0.8) 
+data %>% filter (mean_prob<0.1)
+data %>% filter (mean_prob>0.1 & mean_prob<0.8)
+
+
+ggarrange(global_max_auc_plt,confusion_plot,error_vs_size_plt ,labels = c("A","B","C"),align = "h", nrow = 2, ncol = 2 ,vjust= 1)
+
+
+test_data%>% group_by (default_status) %>% count()
+
+```
+
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
 

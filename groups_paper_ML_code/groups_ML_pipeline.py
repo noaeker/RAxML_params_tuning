@@ -47,7 +47,7 @@ def get_full_and_MSA_features(results):
 
     full_features = general_MSA_columns+["n_total_trees_sampled"]+[col for col in full_features if
                                                                     'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'non_best_score' not in col and 'svc_min_best_score' not in col and  'poly' not in col and 'lin' not in col and 'median' not in col and 'pct_25' not in col and 'pct_75' not in col and 'PCA3_n_components' not in col and 'PCA3_best_trees_distance_to_best_trees' not in col and 'PCA3_best_trees_distance_to_final_trees' not in col and 'PCA2' not in col ]
-    MSA_level_features = tree_search_columns+general_MSA_columns+[col for col in MSA_level_distancs_metrics if 'MSA_level__var' not in col and 'MSA_level__PCA' not in col]
+    MSA_level_features = tree_search_columns+general_MSA_columns+[col for col in MSA_level_distancs_metrics if 'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'median' not in col and 'pct_25' not in col and 'pct_75' not in col]
     return full_features,MSA_level_features
 
 def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_output_tree_features, additional_validation_data):
