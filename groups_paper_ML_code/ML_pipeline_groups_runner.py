@@ -128,7 +128,7 @@ def main():
     create_dir_if_not_exists(existing_msas_data_path)
     logging.info(f"Reading all data from {args.file_path}")
     if LOCAL_RUN:
-        relevant_data = pd.read_csv(args.file_path, sep='\t', nrows= 40000)
+        relevant_data = pd.read_csv(args.file_path, sep='\t',nrows= 40000) #,
     else:
         relevant_data = pd.read_csv(args.file_path, sep = '\t')
     if args.filter_on_default_data:
@@ -140,7 +140,7 @@ def main():
     relevant_data["is_global_max"] = (relevant_data["delta_ll_from_overall_msa_best_topology"] <= 0.1).astype('int') #global max definition
 
     #if LOCAL_RUN: #Subsampling MSAs for the local run only
-    #    msas = ['/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00072.fasta','/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00071.fasta','/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00075.fasta']
+    #    msas = ['/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00071.fasta','/groups/pupko/noaeker/data/New_MSAs/Selectome_msas/msas/ENSGT00940000159159.Euteleostomi.001.aa_masked.fas','/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF07654.fasta','/groups/pupko/noaeker/data/New_MSAs/Selectome_msas/msas/ENSGT00950000183160.Euteleostomi.006.aa_masked.fas','/groups/pupko/noaeker/data/New_MSAs/Selectome_msas/msas/ENSGT00390000010116.Euteleostomi.001.aa_masked.fas','groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF02403.fasta','/groups/pupko/noaeker/data/New_MSAs/Selectome_msas/msas/ENSGT00390000013340.Euteleostomi.001.aa_masked.fas']
     #    relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
 
     results_path = os.path.join(curr_run_dir,'group_results.tsv')

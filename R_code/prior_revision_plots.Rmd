@@ -78,6 +78,50 @@ test_data%>% group_by (default_status) %>% count()
 
 ```
 
+```{r}
+error_vs_group %>% filter (grouping_col_name =='n_seq_group')  %>% distinct (grouping_col)
+```
+
+
+
+```{r}
+library(dplyr)
+library(MASS)
+
+Pypythia_error<-error_vs_group %>% filter (grouping_col_name =='msa_difficulty_group') %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('MSA difficulty')+ xlab('AUC')+theme(text = element_text(size = 11))
+
+
+n_seq_error<-error_vs_group %>% filter (grouping_col_name =='n_seq_group') %>% mutate(grouping_col = factor(grouping_col, levels = c('(29.999, 45.0]','(45.0, 67.0]','(67.0, 109.0]','(109.0, 200.0]'))) %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('Number of sequences')+xlab('AUC')+theme(text = element_text(size = 11))
+
+
+Pypythia_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob,  feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_pypythia_msa_difficulty, y = mean_prob))+geom_point(size = 0.7)+xlab("MSA difficulty")+ylab("Predicted probability")+theme(text = element_text(size = 11))
+
+seq_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_n_seq, y = mean_prob))+geom_point(size = 0.7)+xlab("Number of sequences")+ylab("Predicted probability")+theme(text = element_text(size = 11))
+
+
+ggarrange(seq_scatter,n_seq_error,Pypythia_scatter,Pypythia_error,labels = c("A","B","C","D"),align = "h", nrow = 2, ncol = 2, legend = "bottom",vjust= 1)
+#error_vs_group_5_5_including_plt
+```
+
+Investigate three most important features
+
+```{r}
+test_data$default_status_name<- if_else(test_data$default_status==0,'Local maximum','Global maximum')
+
+svm_plt<-test_data %>% ggplot(aes(x=feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score, y = as.factor(default_status)))+geom_boxplot() +xlab("Mean SVC score")+ylab("Best tree")
+
+min_pca_plt<-test_data %>% ggplot(aes(x=log(feature_final_trees_level_distances_embedd_PCA3_distances_min), y = as.factor(default_status)))+geom_boxplot()+xlab("Min Log PCA distance")+ylab("Best tree")
+
+
+mean_rf_plt<-test_data %>% ggplot(aes(x=feature_final_trees_level_distances_RF_rf_distances_mean, y = as.factor(default_status)))+geom_boxplot()+xlab("Mean RF distance")+ylab("Best tree")
+
+
+ggarrange(svm_plt,min_pca_plt,mean_rf_plt,labels = c("A","B","C"),align = "h", nrow = 1, ncol = 3, legend = "bottom",vjust= 1)
+
+
+```
+
+
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
 
