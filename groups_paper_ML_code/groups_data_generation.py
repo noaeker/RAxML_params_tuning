@@ -77,8 +77,15 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_
             seed = seed + 1
 
             sampled_data,n_pars_sample,n_rand_sample = get_sampled_data(n_pars,n_rand,n_sum,i,n_sample_points,msa_data,seed, default_data = default_data, possible_spr_cutoff= possible_spr_cutoff, possible_spr_radius = possible_spr_radius)
-            sampled_data['best_sample_ll'] = sampled_data['final_ll'].max()
-            sampled_data["is_best_tree"] = sampled_data["final_ll"]>=sampled_data['best_sample_ll']-0.1
+
+            best_ll_score = sampled_data['final_ll'].max()
+            sampled_data['best_sample_ll'] = best_ll_score
+
+            best_msa_tree_topology = max(sampled_data[sampled_data["final_ll"] == best_ll_score]['final_tree_topology'])
+            sampled_data["rf_from_overall_msa_best_topology"] = msa_data["final_tree_topology"].apply(
+                lambda x: rf_distance(curr_run_dir, x, best_msa_tree_topology,
+                                      name="diff_from_final_tree"))
+            sampled_data["is_best_tree"] = (sampled_data["final_ll"]>=sampled_data['best_sample_ll']-0.1)|(sampled_data["rf_from_overall_msa_best_topology"]==0)
 
             sampled_data_good_trees = sampled_data[sampled_data["is_best_tree"]==True]
 
