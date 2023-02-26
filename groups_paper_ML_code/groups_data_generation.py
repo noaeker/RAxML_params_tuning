@@ -69,7 +69,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_
     for i,msa_path in enumerate(data["msa_path"].unique()):
         logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
         msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
-        msa_data = data.loc[data.msa_path == msa_path] # Filter on MSA data
+        msa_data = data.loc[data.msa_path == msa_path].reset_index() # Filter on MSA data
         for i in range(n_sample_points):
             print(i)
             n_sum = random.choice(n_sum_range)
@@ -81,11 +81,13 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_
             best_ll_score = sampled_data['final_ll'].max()
             sampled_data['best_sample_ll'] = best_ll_score
 
-            best_msa_tree_topology = max(sampled_data[sampled_data["final_ll"] == best_ll_score]['final_tree_topology'])
-            sampled_data["rf_from_overall_msa_best_topology"] = msa_data["final_tree_topology"].apply(
-                lambda x: rf_distance(curr_run_dir, x, best_msa_tree_topology,
-                                      name="diff_from_final_tree"))
-            sampled_data["is_best_tree"] = (sampled_data["final_ll"]>=sampled_data['best_sample_ll']-0.1)|(sampled_data["rf_from_overall_msa_best_topology"]==0)
+            best_msa_tree_topology_id = sampled_data['final_ll'].reset_index().idxmax()[0]
+            RF_distance_mat = generate_RF_distance_matrix(curr_run_dir,sampled_data['final_tree_topology'])
+            dist_from_best_tree = RF_distance_mat[:,best_msa_tree_topology_id]
+            print(dist_from_best_tree)
+
+            sampled_data["rf_from_current_sample_best_topology"] =dist_from_best_tree
+            sampled_data["is_best_tree"] = (sampled_data["final_ll"]>=sampled_data['best_sample_ll']-0.1)|(sampled_data["rf_from_current_sample_best_topology"]==0)
 
             sampled_data_good_trees = sampled_data[sampled_data["is_best_tree"]==True]
 

@@ -121,6 +121,7 @@ def fit_SVC(svc_model,X_transformed,best_tree,name, all_results):
     not_best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == False]
 
     svm_results = {f'{name}_mean_best_score': np.mean(best_svm_scores),
+                   f'{name}_max_best_score': np.mean(best_svm_scores),
                    f'{name}_min_best_score': np.mean(best_svm_scores),
                    # f'{name}_mean_best_svm_proba': np.mean(best_svm_proba ),
                    f'{name}_max_non_best_score': np.max(not_best_svm_scores),
@@ -188,7 +189,7 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
-    models_dict = {'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]) } #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
+    models_dict = {'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]) } #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
     for model_name in models_dict:
         print(model_name)
         model = models_dict[model_name]
