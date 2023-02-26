@@ -66,6 +66,10 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_
     all_sampling_results = pd.DataFrame()
 
     logging.info(f'Total MSA to run on: {len(data["msa_path"].unique())}')
+
+    ll_best_topologies = data.loc[data["delta_ll_from_overall_msa_best_topology"] <= 0.1]["tree_clusters_ind"].unique()
+    data["is_global_max"] = (data["tree_clusters_ind"].isin(ll_best_topologies)).astype('int') #global max definition
+
     for i,msa_path in enumerate(data["msa_path"].unique()):
         logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
         msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
@@ -81,24 +85,17 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_
             best_ll_score = sampled_data['final_ll'].max()
             sampled_data['best_sample_ll'] = best_ll_score
 
-            best_msa_tree_topology_id = sampled_data['final_ll'].reset_index().idxmax()[0]
-            RF_distance_mat = generate_RF_distance_matrix(curr_run_dir,sampled_data['final_tree_topology'])
-            dist_from_best_tree = RF_distance_mat[:,best_msa_tree_topology_id]
-            print(dist_from_best_tree)
-
-            sampled_data["rf_from_current_sample_best_topology"] =dist_from_best_tree
-            sampled_data["is_best_tree"] = (sampled_data["final_ll"]>=sampled_data['best_sample_ll']-0.1)|(sampled_data["rf_from_current_sample_best_topology"]==0)
-
-            sampled_data_good_trees = sampled_data[sampled_data["is_best_tree"]==True]
-
             sampled_data["log_likelihood_diff"] = sampled_data["best_sample_ll"] - sampled_data[
                 "final_ll"]
+            ll_possibly_best_topologies = sampled_data.loc[sampled_data["log_likelihood_diff"] <= 0.1][
+                "tree_clusters_ind"].unique()
+            sampled_data["is_best_tree"] = (sampled_data["tree_clusters_ind"].isin(ll_possibly_best_topologies)).astype(
+                'int')  # global max definition
+
             log_likelihood_diff_metrics = pd.DataFrame([get_summary_statistics_dict(values=[diff for diff in sampled_data["log_likelihood_diff"] if diff>0.1], feature_name='feature_general_ll_diff')])
             print(log_likelihood_diff_metrics)
-            #sampled_data["start_vs_end"] = get_rf_dist_between_cols(sampled_data["starting_tree_object"],sampled_data["final_tree_topology"], curr_run_dir)
             sampled_data["normalized_final_ll"] = sampled_data.groupby('msa_path')["final_ll"].transform(lambda x: ((x-x.mean())/x.std()))
-            #sampled_data["final_o"] = sampled_data["final_tree_topology"].apply(lambda x:Tree(x, format=1))
-
+            sampled_data_good_trees = sampled_data[sampled_data["is_best_tree"] == True]
 
             curr_iter_general_metrics = sampled_data.groupby(
                 by=["msa_path"]+general_features).agg( default_final_err = ('delta_ll_from_overall_msa_best_topology', np.min),
@@ -120,7 +117,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_
             curr_iter_general_metrics["frac_pars_trees_sampled"] = curr_iter_general_metrics["n_pars_trees_sampled"] / n_sum
 
             final_trees_RF_distance_metrics = pd.DataFrame([generate_RF_distance_matrix_statistics_final_trees(curr_run_dir,list(sampled_data["final_tree_topology"]),best_tree= list(sampled_data["is_best_tree"]), prefix = "feature_final_trees_level_distances_RF",ll=list(sampled_data["final_ll"]))])
-            final_tree_embedding_metrics = pd.DataFrame([generate_embedding_distance_matrix_statistics_final_trees(list(sampled_data["final_tree_topology"]),best_tree= list(sampled_data["is_best_tree"]), prefix = "feature_final_trees_level_distances_embedd",ll=list(sampled_data["final_ll"]))])
+            final_tree_embedding_metrics = pd.DataFrame([generate_embedding_distance_matrix_statistics_final_trees(list(sampled_data["final_tree_topology"]),best_tree= list(sampled_data["is_best_tree"]), prefix = "feature_final_trees_level_distances_embedd",tree_clusters= list(sampled_data["tree_clusters_ind"]))])
             msa_features_df = pd.DataFrame([msa_features])
             curr_iter_general_metrics = pd.concat(
                 [curr_iter_general_metrics,final_trees_RF_distance_metrics,final_tree_embedding_metrics,msa_features_df,log_likelihood_diff_metrics ], axis=1) #pars_run_metrics,rand_run_metrics # Adding all features together

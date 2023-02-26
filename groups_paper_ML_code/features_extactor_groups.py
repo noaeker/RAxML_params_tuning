@@ -121,7 +121,7 @@ def fit_SVC(svc_model,X_transformed,best_tree,name, all_results):
     not_best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == False]
 
     svm_results = {f'{name}_mean_best_score': np.mean(best_svm_scores),
-                   f'{name}_max_best_score': np.mean(best_svm_scores),
+                   f'{name}_max_best_score': np.max(best_svm_scores),
                    f'{name}_min_best_score': np.mean(best_svm_scores),
                    # f'{name}_mean_best_svm_proba': np.mean(best_svm_proba ),
                    f'{name}_max_non_best_score': np.max(not_best_svm_scores),
@@ -184,16 +184,23 @@ def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final
     return all_results
 
 
-def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_tree, prefix,ll):
+def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_tree, prefix,tree_clusters):
     all_distance_metrics = {}
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
-    models_dict = {'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]) } #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
+    models_dict = {'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA5':Pipeline(steps=[("pca", PCA(n_components=5)),]) } #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
     for model_name in models_dict:
         print(model_name)
         model = models_dict[model_name]
-        final_paired_distances = np.array([get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=False) for tree in final_trees])
+
+        df = pd.DataFrame({'tree_topologies': final_trees, 'clusters': tree_clusters})
+        df["embeddings"] = [get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=False) for tree in final_trees]
+        df["embeddings_corrected"] = df.groupby('clusters')['embeddings'].transform('first')
+
+
+
+        final_paired_distances = np.array(list(df["embeddings_corrected"]))
         final_paired_distances_transformed = model.fit_transform(final_paired_distances)
         print(f"Variance explained: {np.sum(model['pca'].explained_variance_ratio_)}")
         print(f"Number of best trees{np.sum(best_tree)}")
