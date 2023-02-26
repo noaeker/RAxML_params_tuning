@@ -128,8 +128,8 @@ def fit_SVC(svc_model,X_transformed,best_tree,name, all_results):
                    }
     print(svm_results)
     all_results.update(svm_results)
-    if LOCAL_RUN:
-        plot_svm(svm, X_transformed, best_tree)
+    #if LOCAL_RUN:
+    #    plot_svm(svm, X_transformed, best_tree)
 
 
 def extract_2d_shape_and_plot(X_transformed, best_tree, name):
@@ -163,7 +163,7 @@ def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final
     RF_distance_mat = generate_RF_distance_matrix(curr_run_directory, final_trees)
     all_results = {}
     if best_tree:
-        print(RF_distance_mat)
+        #print(RF_distance_mat)
         n_best_trees = np.sum(best_tree)
         distances_to_others_mat =  RF_distance_mat[np.array(best_tree) == True, :][:, np.array(best_tree) == False]
         mean_distance_to_others = np.mean(distances_to_others_mat, axis = 0)
@@ -188,7 +188,7 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
-    models_dict = {'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4': Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA5': Pipeline(steps=[("pca", PCA(n_components=5))])} #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])}
+    models_dict = {'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4': Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA5': Pipeline(steps=[("pca", PCA(n_components=5))])} #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
     for model_name in models_dict:
         print(model_name)
         model = models_dict[model_name]
@@ -207,7 +207,7 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
             all_distance_metrics.update(get_summary_statistics_dict(feature_name=f"{prefix}_{model_name}_distances",values = distances))
             all_distance_metrics.update(best_tree_statistics)
             all_distance_metrics.update({f'{prefix}_{model_name}_n_components':model["pca"].n_components_,f'{prefix}_{model_name}_var_explained':np.sum(model['pca'].explained_variance_ratio_) })
-            print(all_distance_metrics)
+            #print(all_distance_metrics)
             distances_to_other_trees_mat = d_mat_final[np.array(best_tree) == True, :][:, np.array(best_tree) == False]
             distances_to_other_trees = list(np.ravel(distances_to_other_trees_mat))
             distances_to_other_trees_features = get_summary_statistics_dict(
@@ -272,7 +272,7 @@ def generate_calculations_per_MSA(msa_path,curr_run_dir, n_pars_tree_sampled = 1
 
 
             embedding_msa_features = {f'{prefix_name}_var_explained': np.sum(pipe.named_steps['pca'].explained_variance_ratio_),f'{prefix_name}_var_explained5': np.sum(pipe.named_steps['pca'].explained_variance_ratio_[:5],)}
-            print(embedding_msa_features)
+            #print(embedding_msa_features)
             embedding_msa_features.update(distance_metrics)
             embedding_msa_features.update(RF_distances_metrics)
             return embedding_msa_features
