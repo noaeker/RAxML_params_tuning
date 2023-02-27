@@ -67,13 +67,17 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_
 
     logging.info(f'Total MSA to run on: {len(data["msa_path"].unique())}')
 
-    ll_best_topologies = data.loc[data["delta_ll_from_overall_msa_best_topology"] <= 0.1]["tree_clusters_ind"].unique()
-    data["is_global_max"] = (data["tree_clusters_ind"].isin(ll_best_topologies)).astype('int') #global max definition
+    percentile = data["delta_ll_from_overall_msa_best_topology"].quantile(0.05)
 
     for i,msa_path in enumerate(data["msa_path"].unique()):
         logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
         msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
         msa_data = data.loc[data.msa_path == msa_path].reset_index() # Filter on MSA data
+        ll_best_topologies = msa_data.loc[msa_data["delta_ll_from_overall_msa_best_topology"] <= 0.1][
+            "tree_clusters_ind"].unique()
+        msa_data["is_global_max"] = (msa_data["tree_clusters_ind"].isin(ll_best_topologies)).astype(
+            'int')  # global max definition
+
         for i in range(n_sample_points):
             print(i)
             n_sum = random.choice(n_sum_range)

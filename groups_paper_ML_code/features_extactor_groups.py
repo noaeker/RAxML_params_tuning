@@ -129,8 +129,19 @@ def fit_SVC(svc_model,X_transformed,best_tree,name, all_results):
                    }
     print(svm_results)
     all_results.update(svm_results)
-    #if LOCAL_RUN:
-    #    plot_svm(svm, X_transformed, best_tree)
+    if LOCAL_RUN:
+        plot_svm(svm, X_transformed, best_tree)
+
+
+def fit_gmm(all_results,X_transformed, best_tree,name):
+    gmm_not_best = GaussianMixture(n_components=1, random_state=0).fit(X_transformed[np.array(best_tree) == False, :])
+    mean_overall_ll_best_trees = np.mean(gmm_not_best.score_samples(X_transformed[np.array(best_tree) == False, :]))
+    print(mean_overall_ll_best_trees)
+
+    all_results.update({f'{name}_mean_not_best_trees_gmm_1_ll_score': mean_overall_ll_best_trees})
+    mean_overall_ll_best_trees = np.mean(gmm_not_best.score_samples(X_transformed[np.array(best_tree) == True, :]))
+    print(mean_overall_ll_best_trees)
+    all_results.update({f'{name}_mean_best_trees_gmm_1_ll_score': mean_overall_ll_best_trees})
 
 
 def extract_2d_shape_and_plot(X_transformed, best_tree, name):
@@ -141,6 +152,7 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name):
     if np.sum(best_tree)>=1 and np.sum(np.array(best_tree)==False)>=2:
 
         fit_SVC(SVC(), X_transformed, best_tree, f"{name}_rbf_svc", all_results)
+        fit_gmm(all_results,X_transformed, best_tree,name)
 
         #fit_SVC(LinearSVC(), X_transformed, best_tree, f"{name}_lin_svc", all_results)
         #fit_SVC(SVC(kernel='poly'), X_transformed, best_tree, f"{name}_poly_svc", all_results)
@@ -189,7 +201,7 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_t
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
-    models_dict = {'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA5':Pipeline(steps=[("pca", PCA(n_components=5)),]) } #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
+    models_dict = {'PCA3': Pipeline(steps=[("pca", PCA(n_components=2)),])}#{'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA5':Pipeline(steps=[("pca", PCA(n_components=5)),]) } #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
     for model_name in models_dict:
         print(model_name)
         model = models_dict[model_name]
