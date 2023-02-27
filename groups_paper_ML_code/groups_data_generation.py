@@ -67,7 +67,6 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_
 
     logging.info(f'Total MSA to run on: {len(data["msa_path"].unique())}')
 
-    percentile = data["delta_ll_from_overall_msa_best_topology"].quantile(0.05)
 
     for i,msa_path in enumerate(data["msa_path"].unique()):
         logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
