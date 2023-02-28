@@ -129,7 +129,7 @@ def main():
     create_dir_if_not_exists(existing_msas_data_path)
     logging.info(f"Reading all data from {args.file_path}")
     if LOCAL_RUN:
-        relevant_data = pd.read_csv(args.file_path, sep='\t') #,,nrows= 40000
+        relevant_data = pd.read_csv(args.file_path, sep='\t',nrows= 40000) #,,
     else:
         relevant_data = pd.read_csv(args.file_path, sep = '\t')
     if args.filter_on_default_data:
@@ -161,7 +161,7 @@ def main():
     if args.add_sample_fracs:
         for sample_frac in  sample_fracs:
             ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False,include_output_tree_features = args.include_output_tree_features,additional_validation_data = additional_validation_data)
-    if (not LOCAL_RUN) :
+    if (not LOCAL_RUN) and args.model!='sgd' :
         ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= args.include_output_tree_features,additional_validation_data = additional_validation_data)
     else:
         ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=False, large_grid=False,
