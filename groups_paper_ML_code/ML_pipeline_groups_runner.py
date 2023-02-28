@@ -140,7 +140,7 @@ def main():
         relevant_data = relevant_data[relevant_data["type"] != "default"] # Filtering on non default data
 
     #if LOCAL_RUN: #Subsampling MSAs for the local run only
-    #    msas = ['/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00071.fasta','/groups/pupko/noaeker/data/New_MSAs/Selectome_msas/msas/ENSGT00940000159159.Euteleostomi.001.aa_masked.fas','/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF07654.fasta','/groups/pupko/noaeker/data/New_MSAs/Selectome_msas/msas/ENSGT00950000183160.Euteleostomi.006.aa_masked.fas','/groups/pupko/noaeker/data/New_MSAs/Selectome_msas/msas/ENSGT00390000010116.Euteleostomi.001.aa_masked.fas','groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF02403.fasta','/groups/pupko/noaeker/data/New_MSAs/Selectome_msas/msas/ENSGT00390000013340.Euteleostomi.001.aa_masked.fas']
+    #    msas = ['/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00043']
     #    relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
 
     results_path = os.path.join(curr_run_dir,'group_results.tsv')

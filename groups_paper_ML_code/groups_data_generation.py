@@ -94,8 +94,10 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_
                 "tree_clusters_ind"].unique()
             sampled_data["is_best_tree"] = (sampled_data["tree_clusters_ind"].isin(ll_possibly_best_topologies)).astype(
                 'int')  # global max definition
-
-            log_likelihood_diff_metrics = pd.DataFrame([get_summary_statistics_dict(values=[diff for diff in sampled_data["log_likelihood_diff"] if diff>0.1], feature_name='feature_general_ll_diff')])
+            try:
+                log_likelihood_diff_metrics = pd.DataFrame([get_summary_statistics_dict(values=[np.array(sampled_data["log_likelihood_diff"])[list(sampled_data["is_best_tree"]==False)]], feature_name='feature_general_ll_diff')])
+            except:
+                log_likelihood_diff_metrics = pd.DataFrame()
             print(log_likelihood_diff_metrics)
             sampled_data["normalized_final_ll"] = sampled_data.groupby('msa_path')["final_ll"].transform(lambda x: ((x-x.mean())/x.std()))
             sampled_data_good_trees = sampled_data[sampled_data["is_best_tree"] == True]
