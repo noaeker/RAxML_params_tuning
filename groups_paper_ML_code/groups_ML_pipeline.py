@@ -46,7 +46,7 @@ def get_full_and_MSA_features(results):
     full_features = ["n_total_trees_sampled"]+general_MSA_columns +general_final_tree_metrics+final_trees_distances_metrics+MSA_level_distancs_metrics
 
     full_features = general_MSA_columns+["n_total_trees_sampled"]+[col for col in full_features if
-                                                                    'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'non_best_score' not in col and 'median' not in col and 'pct_25' not in col and 'pct_75' not in col and 'PCA3_n_components' not in col and 'll_diff' not in col]
+                                                                    'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'non_best_score' not in col and 'median' not in col and 'pct_25' not in col and 'pct_75' not in col and 'PCA3_n_components' not in col and 'll_diff' not in col and 'gmm' not in col and 'corr' not in col]
     #full_features = ["n_total_trees_sampled"]+general_MSA_columns+[col for col in full_features if 'svc'  in col or 'PCA3' in col]
     MSA_level_features = tree_search_columns+general_MSA_columns+[col for col in MSA_level_distancs_metrics if 'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'median' not in col and 'pct_25' not in col and 'pct_75' not in col]
     return full_features,MSA_level_features
@@ -55,7 +55,7 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
     name = f'M_frac_{sample_frac}_RFE_{RFE}_large_grid_{large_grid}_out_features_{include_output_tree_features}'
 
 
-    if args.model=='rf' or args.model=='sgd': #Removing NA values
+    if args.model=='rf' or args.model=='sgd' or args.model=='logistic': #Removing NA values
         results['feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score'] = results['feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score'].fillna(1)
         results = results.fillna(-1)
         results.replace([np.inf, -np.inf], -1, inplace=True)
@@ -92,6 +92,7 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
 
     model = ML_model(X_train, groups, y_train, n_jobs=args.cpus_per_main_job, path=model_path, classifier=True, model=args.model,
                      calibrate=True, name=name, large_grid=large_grid, do_RFE=RFE, n_cv_folds=args.n_cv_folds)
+
 
     print_model_statistics(model, X_train, X_test, X_val, y_train, y_test, y_val, is_classification=True,
                            vi_path=vi_path,

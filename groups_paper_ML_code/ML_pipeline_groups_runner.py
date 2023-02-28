@@ -129,7 +129,7 @@ def main():
     create_dir_if_not_exists(existing_msas_data_path)
     logging.info(f"Reading all data from {args.file_path}")
     if LOCAL_RUN:
-        relevant_data = pd.read_csv(args.file_path, sep='\t',nrows= 40000) #,
+        relevant_data = pd.read_csv(args.file_path, sep='\t') #,,nrows= 40000
     else:
         relevant_data = pd.read_csv(args.file_path, sep = '\t')
     if args.filter_on_default_data:
@@ -139,9 +139,8 @@ def main():
     else:
         relevant_data = relevant_data[relevant_data["type"] != "default"] # Filtering on non default data
 
-    #if LOCAL_RUN: #Subsampling MSAs for the local run only
-    #    msas = ['/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00043']
-    #    relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
+    if args.only_validation:
+        relevant_data = relevant_data.loc[(relevant_data["msa_path"].str.contains("Single_gene_PROTEIN") | relevant_data["msa_path"].str.contains("Single_gene_DNA"))]
 
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
     previous_results_path= os.path.join(curr_run_dir,'group_results_prev.tsv')

@@ -31,6 +31,7 @@ def group_main_parser():
     parser.add_argument('--include_output_tree_features', action = 'store_true', default= False)
     parser.add_argument('--sample_fracs', default =np.linspace(0.1,1,7) )#np.linspace(0.1,1,5)#np.linspace(0.1,1,7)
     parser.add_argument('--model', default = "lightgbm") #sgd,rf ,lightgbm
+    parser.add_argument('only_validation', action = 'store_true', default= False )
     parser.add_argument('--add_sample_fracs',action = 'store_true')
     parser.add_argument('--additional_validation', default=None)#"/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/groups_run_local_test/group_results_20_subsample.tsv"
     parser.add_argument('--prev_results_path', default = None)
