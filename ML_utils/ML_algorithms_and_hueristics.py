@@ -83,10 +83,10 @@ def ML_model(X_train, groups, y_train, n_jobs, path, classifier=False, model='li
                     param_grid.update(GENERAL_PARAM_GRID)
             elif model=='sgd':
                 model = make_pipeline(StandardScaler(),SGDClassifier(loss='modified_huber'))
-                param_grid = {}
+                param_grid = {'alpha': [0.0001,0.0001,0.0001], 'l1_ratio': [0,0.1,0.15,0.2]}
             elif model == 'rf':
                 model = RandomForestClassifier()
-                param_grid = {}
+                param_grid = {'max_depth': [3, 5, 10],'min_samples_split': [2, 5, 10]}
         else:
             model = lightgbm.LGBMRegressor()
             param_grid = REGRESSION_PARAM_GRID
