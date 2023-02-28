@@ -56,6 +56,7 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
 
 
     if args.model=='rf' or args.model=='sgd': #Removing NA values
+        results['feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score'] = results['feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score'].fillna(1)
         results = results.fillna(-1)
         results.replace([np.inf, -np.inf], -1, inplace=True)
 
