@@ -46,7 +46,7 @@ def get_full_and_MSA_features(results):
     full_features = ["n_total_trees_sampled"]+general_MSA_columns +general_final_tree_metrics+final_trees_distances_metrics+MSA_level_distancs_metrics
 
     full_features = general_MSA_columns+["n_total_trees_sampled"]+[col for col in full_features if
-                                                                    'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'non_best_score' not in col and 'median' not in col and 'pct_25' not in col and 'pct_75' not in col and 'PCA3_n_components' not in col and 'll_diff' not in col and 'gmm' not in col and 'corr' not in col]
+                                                                    'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'non_best_score' not in col and 'median' not in col and 'pct_25' not in col and 'pct_75' not in col and 'PCA3_n_components' not in col and 'll_diff' not in col and 'gmm' not in col]
     #full_features = ["n_total_trees_sampled"]+general_MSA_columns+[col for col in full_features if 'svc'  in col or 'PCA3' in col]
     MSA_level_features = tree_search_columns+general_MSA_columns+[col for col in MSA_level_distancs_metrics if 'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'median' not in col and 'pct_25' not in col and 'pct_75' not in col]
     return full_features,MSA_level_features
@@ -99,7 +99,7 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
                            metrics_path=metrics_path,
                            group_metrics_path=group_metrics_path, name=name, sampling_frac=sample_frac, test_MSAs=test["msa_path"],
                            feature_importance=True)
-    if additional_validation_data:
+    if   additional_validation_data :
         apply_on_external_validation_data(additional_validation_data, model, train, args, full_features)
 
 
