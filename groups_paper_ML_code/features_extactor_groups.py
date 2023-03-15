@@ -155,7 +155,7 @@ def kde_esitmate(X_transformed, best_tree):
     kde_best = X_transformed[np.array(best_tree) == True, :]
     bandwidth = kde_x.shape[0] ** (-1 / (kde_x.shape[1] + 4))
     #print(f"b={bandwidth}")
-    kde = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(kde_x)
+    kde = KernelDensity(kernel='gaussian').fit(kde_x) #bandwidth=bandwidth
     log_density = kde.score_samples(kde_best)
     return np.mean(log_density)
 
@@ -304,23 +304,26 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees, best_
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
-    models_dict = {'PCA5': Pipeline(steps=[("pca", PCA(n_components=0.9)),])}#{'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA5':Pipeline(steps=[("pca", PCA(n_components=5)),]) } #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
+    models_dict = {'PCA_0.9': Pipeline(steps=[("pca", PCA(n_components=0.9)),]),}#'PCA_0.8': Pipeline(steps=[("pca", PCA(n_components=0.8)),])}#{'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA5':Pipeline(steps=[("pca", PCA(n_components=5)),]) } #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
     for model_name in models_dict:
         print(model_name)
         model = models_dict[model_name]
 
         final_paired_distances = generate_embedding_per_tree2(final_trees, tree_clusters)
+        total_variance = np.sum(np.var(final_paired_distances,axis=0))
+        print(f"Total variance={total_variance}")
+        all_distance_metrics.update({f"{prefix}_{model_name}_total_var": total_variance})
         final_paired_distances_transformed = model.fit_transform(final_paired_distances)
 
         get_embedding_distance_metrics(final_paired_distances_transformed, all_distance_metrics, prefix, model,
                                        model_name, final_trees, best_tree)
-        final_paired_distances_transformed /= (model["pca"].singular_values_[0] ** 0.5)
+        final_paired_distances_transformed/= (total_variance ** 0.5)
 
 
         if True_global_trees is not None and len(True_global_trees.index) and LOCAL_RUN>0:
             final_paired_distances_overall = generate_embedding_per_tree2(True_global_trees, True_global_tree_clusters)
             final_paired_distances_overall_transformed = model.transform(final_paired_distances_overall)
-            final_paired_distances_overall_transformed /= (model["pca"].singular_values_[0] ** 0.5)
+            final_paired_distances_overall_transformed/= (total_variance ** 0.5)
         else:
             final_paired_distances_overall_transformed = None
 
@@ -332,6 +335,11 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees, best_
 
 
         best_tree_statistics = extract_2d_shape_and_plot(final_paired_distances_transformed,best_tree, tree_clusters_ind = tree_clusters, name =f'{prefix}_{model_name}',X_transformed_overall_best_tree = final_paired_distances_overall_transformed, final_ll_score= final_trees_ll )
+        #best_tree_statistics_norm = extract_2d_shape_and_plot(final_paired_distances_transformed_norm, best_tree,
+        #                                                 tree_clusters_ind=tree_clusters, name=f'{prefix}_{model_name}_normalized',
+        #                                                 X_transformed_overall_best_tree=final_paired_distances_overall_transformed_norm,
+        #                                                 final_ll_score=final_trees_ll)
+        #all_distance_metrics.update(best_tree_statistics)
         all_distance_metrics.update(best_tree_statistics)
 
 

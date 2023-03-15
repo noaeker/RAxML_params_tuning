@@ -19,22 +19,26 @@ import numpy as np
 
 def get_sampled_data(n_pars, n_rand, n_sum, i, n_sample_points, msa_data, seed,possible_spr_radius,possible_spr_cutoff,default_data = False):
     if not default_data:
+        random.seed(seed)
         spr_radius = random.choice(possible_spr_radius)
+        random.seed(seed+1)
         spr_cutoff = random.choice(possible_spr_cutoff)
         logging.info(f"Chosen SPR radius {spr_radius}, Chosen SPR cutoff {spr_cutoff}")
     if n_pars == -1 and n_rand == -1:
         min_n_pars = max(n_sum-20,0)
+        random.seed(seed+2)
         n_pars_sample = random.randint(min_n_pars, min(n_sum,20)) # Taking a max of 20 parsimony trees
         n_rand_sample = n_sum - n_pars_sample
     else:
         n_pars_sample = n_pars
         n_rand_sample = n_rand
+    print(f"n_sum {n_sum} spr radius {spr_radius} spr cutoff {spr_cutoff} n_pars {n_pars_sample}")
     logging.info(f"i = {i}/{n_sample_points}")
     if not default_data:
         sampled_data_parsimony = msa_data[(msa_data["starting_tree_type"] == "pars")&(msa_data["spr_cutoff"]==spr_cutoff)&(msa_data["spr_radius"]==spr_radius)].sample(
-            n=n_pars_sample)  # random_state=seed
+            n=n_pars_sample,random_state=seed+3)  #
         sampled_data_random = msa_data[(msa_data["starting_tree_type"] == "rand")&(msa_data["spr_cutoff"]==spr_cutoff)&(msa_data["spr_radius"]==spr_radius)].sample(
-            n=n_rand_sample)  # random_state=seed
+            n=n_rand_sample,random_state=seed+4)  # random_state=seed
     else:
         sampled_data_parsimony = msa_data[
             (msa_data["starting_tree_type"] == "pars")].sample(
@@ -80,10 +84,10 @@ def enrich_iteration_with_extra_metrics(curr_run_dir, msa_features, sampled_data
 
 def single_iteration(i,curr_run_dir, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, msa_data,overall_best_msa_data,msa_features,distinct_true_best_topologies):
     print(i)
+    random.seed(seed)
+    print(f"seed in iteration i={seed}")
     n_sum = random.choice(n_sum_range)
     logging.info(f"N sum={n_sum}")
-    seed = seed + 1
-
     sampled_data, n_pars_sample, n_rand_sample = get_sampled_data(n_pars, n_rand, n_sum, i, n_sample_points,
                                                                   msa_data, seed, default_data=default_data,
                                                                   possible_spr_cutoff=possible_spr_cutoff,
@@ -160,9 +164,9 @@ def MSA_pipeline(msa_path,i,data, curr_run_dir, n_sample_points,seed, n_pars, n_
 
 
     for i in range(n_sample_points):
+        seed = seed+1
         all_sampling_results = single_iteration(i,curr_run_dir, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, msa_data,overall_best_msa_data,msa_features,distinct_true_best_topologies)
-    return all_sampling_results
-
+    return all_sampling_results, seed
 
 
 def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_sample_points, seed, n_pars, n_rand, n_sum_range = [10, 20], default_data = True,
@@ -186,7 +190,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_
 
 
     for i,msa_path in enumerate(data["msa_path"].unique()):
-        all_sampling_results = MSA_pipeline(msa_path, i, data, curr_run_dir, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
+        all_sampling_results, seed = MSA_pipeline(msa_path, i, data, curr_run_dir, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
                      possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features)
     return all_sampling_results
 
@@ -207,7 +211,7 @@ def main():
     level = logging.INFO if args.level=='info' else logging.DEBUG
     logging.basicConfig(filename=log_file_path, level=level)
     logging.info("Generating results file")
-    results = get_average_results_on_default_configurations_per_msa(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=1, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, default_data= args.filter_on_default_data, n_sum_range= args.n_sum_range)
+    results = get_average_results_on_default_configurations_per_msa(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, default_data= args.filter_on_default_data, n_sum_range= args.n_sum_range)
     results.to_csv(args.curr_job_group_output_path, sep= '\t')
 
 
