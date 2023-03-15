@@ -132,8 +132,8 @@ def enrich_with_single_feature_metrics(var_impt, train_X, y_train, test_X, y_tes
     mcc_scores = []
     for feature in var_impt.index:
         try:
-            lg = LogisticRegression(random_state=0).fit(train_X[[feature]], y_train)
-            #lg = lightgbm.LGBMClassifier(importance_type='gain').fit(train_X[[feature]], y_train)
+            #lg = LogisticRegression(random_state=0).fit(train_X[[feature]], y_train)
+            lg = lightgbm.LGBMClassifier(importance_type='gain').fit(train_X[[feature]], y_train)
             proba = lg.predict_proba(test_X[[feature]])[:, 1]
             pred = lg.predict(test_X[[feature]])
             auc = roc_auc_score(y_test, proba)

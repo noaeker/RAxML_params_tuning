@@ -44,10 +44,7 @@ def get_full_and_MSA_features(results):
     MSA_level_distancs_metrics = [col for col in results if col.startswith('feature_MSA_level')]
 
     full_features = ["n_total_trees_sampled"]+general_MSA_columns +general_final_tree_metrics+final_trees_distances_metrics+MSA_level_distancs_metrics
-
-    full_features = general_MSA_columns+["n_total_trees_sampled"]+[col for col in full_features if
-                                                                    'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'non_best_score' not in col and 'median' not in col and 'pct_25' not in col and 'pct_75' not in col and 'PCA3_n_components' not in col and 'll_diff' not in col and 'gmm' not in col]
-    #full_features = ["n_total_trees_sampled"]+general_MSA_columns+[col for col in full_features if 'svc'  in col or 'PCA3' in col]
+    full_features = ["n_total_trees_sampled"]+general_MSA_columns+[col for col in full_features if ('feature_final_trees_level_distances_RF_rf_distances' in col or 'feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score' in col or 'feature_final_trees_level_distances_embedd_PCA3_distances' in col or 'feature_final_trees_level_distances_RF_corr_rf_from_best_trees_to_final_trees' in col or 'feature_general_pct_best' in col) and ('var' not in col and 'median' not in col and 'pct_75' not in col and 'pct_25' not in col)]
     MSA_level_features = tree_search_columns+general_MSA_columns+[col for col in MSA_level_distancs_metrics if 'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'median' not in col and 'pct_25' not in col and 'pct_75' not in col]
     return full_features,MSA_level_features
 
@@ -55,6 +52,11 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
     name = f'M_frac_{sample_frac}_RFE_{RFE}_large_grid_{large_grid}_out_features_{include_output_tree_features}'
 
 
+
+    #results["feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score"] = results["feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score"].fillna(1)
+    #results["feature_final_trees_level_distances_RF_corr_rf_from_best_trees_to_final_trees"] = results["feature_final_trees_level_distances_RF_corr_rf_from_best_trees_to_final_trees"].fillna(-1)
+    #results["feature_final_trees_level_distances_embedd_PCA3_var_explained"] = results[
+    #    "feature_final_trees_level_distances_embedd_PCA3_var_explained"].fillna(1)
     if args.model=='rf' or args.model=='sgd' or args.model=='logistic': #Removing NA values
         results['feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score'] = results['feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score'].fillna(1)
         results = results.fillna(-1)
@@ -78,9 +80,9 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
         X_test = test[[col for col in train.columns if col in MSA_level_features]]
         X_val = val[[col for col in train.columns if col in MSA_level_features]]
 
-    y_train = train["default_status"] #default_status
-    y_test = test["default_status"]
-    y_val = val["default_status"]
+    y_train = train["default_final_err"]<0.1 #default_status
+    y_test = test["default_final_err"]<0.1
+    y_val = val["default_final_err"]<0.1
     groups = train["msa_path"]
     model_path = os.path.join(curr_run_dir, f'group_classification_model')
     vi_path = os.path.join(curr_run_dir, f'group_classification_vi_large_grid_{large_grid}.tsv')

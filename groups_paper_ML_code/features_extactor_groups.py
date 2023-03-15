@@ -21,14 +21,14 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import RobustScaler
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler
-
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.pipeline import Pipeline
 from scipy.spatial import distance_matrix
 from sklearn.mixture import GaussianMixture
 from sklearn.cross_decomposition import CCA
 from scipy import stats
 from sklearn import metrics
-from sklearn.svm import OneClassSVM,LinearSVC, SVC
+from sklearn.svm import OneClassSVM,LinearSVC, SVC, SVR
 from sklearn.linear_model import SGDClassifier
 from sklearn.neighbors import KernelDensity
 from sklearn.cluster import DBSCAN
@@ -119,10 +119,13 @@ def estimate_entropy(vec):
 
 def fit_SVC(svc_model,X_transformed,best_tree,name, all_results):
     svm = svc_model.fit(X=X_transformed, y=best_tree)
+
+
     best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == True]
     not_best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == False]
 
-    svm_results = {f'{name}_mean_best_score': np.mean(best_svm_scores),
+    svm_results = {
+        f'{name}_mean_best_score': np.mean(best_svm_scores),
                    f'{name}_max_best_score': np.max(best_svm_scores),
                    f'{name}_min_best_score': np.mean(best_svm_scores),
                    # f'{name}_mean_best_svm_proba': np.mean(best_svm_proba ),
@@ -131,8 +134,8 @@ def fit_SVC(svc_model,X_transformed,best_tree,name, all_results):
                    }
     print(svm_results)
     all_results.update(svm_results)
-    if LOCAL_RUN:
-        plot_svm(svm, X_transformed, best_tree)
+    #if LOCAL_RUN:
+    #    plot_svm(svm, X_transformed, best_tree)
 
 
 def fit_gmm(all_results,X_transformed, best_tree,name):
@@ -146,29 +149,67 @@ def fit_gmm(all_results,X_transformed, best_tree,name):
     all_results.update({f'{name}_mean_best_trees_gmm_1_ll_score': mean_overall_ll_best_trees})
 
 
-def extract_2d_shape_and_plot(X_transformed, best_tree, name):
+def kde_esitmate(X_transformed, best_tree):
+
+    kde_x = X_transformed[np.array(best_tree) == False, :]
+    kde_best = X_transformed[np.array(best_tree) == True, :]
+    bandwidth = kde_x.shape[0] ** (-1 / (kde_x.shape[1] + 4))
+    #print(f"b={bandwidth}")
+    kde = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(kde_x)
+    log_density = kde.score_samples(kde_best)
+    return np.mean(log_density)
+
+
+
+def extract_2d_shape_and_plot(X_transformed, best_tree, name, X_transformed_overall_best_tree, tree_clusters_ind, final_ll_score):
 
     all_results = {}
+
+    data = pd.DataFrame({'best_tree': best_tree,'X_transformed': X_transformed.tolist(), 'final_ll_score': final_ll_score, 'tree_clusters_ind': tree_clusters_ind})
+    data = data.groupby('tree_clusters_ind').first().reset_index()
 
 
     if np.sum(best_tree)>=1 and np.sum(np.array(best_tree)==False)>=2:
 
+        from sklearn.linear_model import LinearRegression
+        from sklearn.model_selection import GridSearchCV
+
+
+        reg =  LinearRegression().fit(X=np.array(list(data['X_transformed'])), y=list(data['final_ll_score']))
+        all_results.update({f'{name}_LIN_reg':reg.score(np.array(list(data['X_transformed'])), list(data['final_ll_score']))})
+        clf = SVR()
+        svr  = clf.fit(X=np.array(list(data['X_transformed'])), y=list(data['final_ll_score']))
+        all_results.update({f'{name}_SVR_reg': svr.score(np.array(list(data['X_transformed'])), list(data['final_ll_score']))})
+        print(f'### SVR score ###{svr.score(X_transformed, final_ll_score)}')
+        kde = kde_esitmate(X_transformed, best_tree)
+        all_results.update({f'{name}_KDE_':  kde})
+        print(f'### KDE: {kde}')
         fit_SVC(SVC(), X_transformed, best_tree, f"{name}_rbf_svc", all_results)
         fit_gmm(all_results,X_transformed, best_tree,name)
 
-        #fit_SVC(LinearSVC(), X_transformed, best_tree, f"{name}_lin_svc", all_results)
+
+
+        fit_SVC(LinearSVC(), X_transformed, best_tree, f"{name}_lin_svc", all_results)
         #fit_SVC(SVC(kernel='poly'), X_transformed, best_tree, f"{name}_poly_svc", all_results)
         #fit_SVC(SVC(kernel='sigmoid'), X_transformed, best_tree, f"{name}_sig_svc", all_results)
 
 
-        if LOCAL_RUN :
-            try:
+        if LOCAL_RUN:
+            #try:
                 data = pd.DataFrame({'score1': list(X_transformed[:, 0]), 'score2': list(X_transformed[:, 1]),
                                      'best_tree': best_tree})
-                sns.scatterplot(data=data, x='score1', y='score2', hue=best_tree,s=30, alpha=0.6)
+                data['best_tree'] = data['best_tree'].apply(lambda x: 'Sample global' if x else 'Local')
+                if X_transformed_overall_best_tree is not None:
+                    best_data = pd.DataFrame({'score1': list(X_transformed_overall_best_tree[:, 0]), 'score2': list(X_transformed_overall_best_tree[:, 1]),
+                                         })
+                    best_data['best_tree'] = 'Actual global'
+                else:
+                    best_data = pd.DataFrame()
+                total_data = pd.concat([data, best_data])
+                sns.scatterplot(data=total_data, x='score1', y='score2', hue='best_tree',s=30, alpha=0.6)
                 plt.show()
-            except:
-                print("Cannot plot 2d")
+            #except:
+            #    print("Cannot plot 2d")
     return all_results
 
 
@@ -197,51 +238,103 @@ def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final
     all_results.update(rf_distance_metrics)
     return all_results
 
+#
+# def generate_embedding_per_tree(final_trees, tree_clusters):
+#     df = pd.DataFrame({'tree_topologies': final_trees, 'clusters': tree_clusters})
+#     #df_per_cluster = df.groupby('clusters').first().reset_index()
+#
+#     df["embeddings"] = df["tree_topologies"].apply(
+#         lambda tree: get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=True))
+#     #df = df.merge(df_per_cluster, on="clusters")
+#
+#     final_paired_distances = np.array(list(df["embeddings"]))
+#     return final_paired_distances
 
-def generate_embedding_distance_matrix_statistics_final_trees(final_trees,best_tree, prefix,tree_clusters):
+
+
+def generate_embedding_per_tree2(final_trees, tree_clusters):
+    df = pd.DataFrame({'tree_topologies': final_trees, 'clusters': tree_clusters})
+
+
+    df["embeddings"] = df["tree_topologies"].apply(
+        lambda tree: get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=True))
+
+    #df_per_cluster = df.groupby('clusters').first().reset_index()
+
+    #df_per_cluster["embeddings"] = df_per_cluster["tree_topologies"].apply(
+    #    lambda tree: get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=True))
+    #df = df.merge(df_per_cluster, on="clusters", how = 'left')
+
+    final_paired_distances = np.array(list(df["embeddings"]))
+    return final_paired_distances
+
+
+def get_embedding_distance_metrics(final_paired_distances_transformed, all_distance_metrics, prefix, model, model_name, final_trees, best_tree):
+    d_mat_final = distance_matrix(final_paired_distances_transformed, final_paired_distances_transformed)
+    distances = d_mat_final[np.triu_indices(n=len(final_trees), k=1)]
+    all_distance_metrics.update(
+        get_summary_statistics_dict(feature_name=f"{prefix}_{model_name}_distances", values=distances))
+    all_distance_metrics.update({f'{prefix}_{model_name}_n_components': model["pca"].n_components_,
+                                 f'{prefix}_{model_name}_var_explained': np.sum(
+                                     model['pca'].explained_variance_ratio_)})
+    print(all_distance_metrics)
+    distances_to_other_trees_mat = d_mat_final[np.array(best_tree) == True, :][:, np.array(best_tree) == False]
+    distances_to_other_trees = list(np.ravel(distances_to_other_trees_mat))
+    distances_to_other_trees_features = get_summary_statistics_dict(
+        feature_name=f"{prefix}_{model_name}_best_trees_distance_to_final_trees_", values=distances_to_other_trees)
+
+    distances_to_best_trees_mat = d_mat_final[np.array(best_tree) == True, :][:, np.array(best_tree) == True]
+    distances_to_best_trees = list(np.ravel(distances_to_best_trees_mat))
+    distances_to_best_trees_features = get_summary_statistics_dict(
+        feature_name=f"{prefix}_{model_name}_best_trees_distance_to_best_trees_", values=distances_to_best_trees)
+
+    all_distance_metrics.update(distances_to_other_trees_features)
+    all_distance_metrics.update(distances_to_best_trees_features)
+
+    #from sklearn.cluster import KMeans
+    #kmeans = KMeans(n_clusters=1, random_state=0, n_init="auto").fit(final_paired_distances_transformed)
+    #distances_from_center = kmeans.transform(final_paired_distances_transformed)
+    #print(1)
+
+
+
+
+def generate_embedding_distance_matrix_statistics_final_trees(final_trees, best_tree, prefix, tree_clusters, True_global_trees, True_global_tree_clusters, final_trees_ll):
     all_distance_metrics = {}
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
-    models_dict = {'PCA3': Pipeline(steps=[("pca", PCA(n_components=2)),])}#{'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA5':Pipeline(steps=[("pca", PCA(n_components=5)),]) } #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
+    models_dict = {'PCA5': Pipeline(steps=[("pca", PCA(n_components=0.9)),])}#{'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA5':Pipeline(steps=[("pca", PCA(n_components=5)),]) } #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
     for model_name in models_dict:
         print(model_name)
         model = models_dict[model_name]
 
-        df = pd.DataFrame({'tree_topologies': final_trees, 'clusters': tree_clusters})
-        df["embeddings"] = [get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=False) for tree in final_trees]
-        df["embeddings_corrected"] = df.groupby('clusters')['embeddings'].transform('first')
-
-
-
-        final_paired_distances = np.array(list(df["embeddings_corrected"]))
+        final_paired_distances = generate_embedding_per_tree2(final_trees, tree_clusters)
         final_paired_distances_transformed = model.fit_transform(final_paired_distances)
-        print(f"Variance explained: {np.sum(model['pca'].explained_variance_ratio_)}")
+
+        get_embedding_distance_metrics(final_paired_distances_transformed, all_distance_metrics, prefix, model,
+                                       model_name, final_trees, best_tree)
+        final_paired_distances_transformed /= (model["pca"].singular_values_[0] ** 0.5)
+
+
+        if True_global_trees is not None and len(True_global_trees.index) and LOCAL_RUN>0:
+            final_paired_distances_overall = generate_embedding_per_tree2(True_global_trees, True_global_tree_clusters)
+            final_paired_distances_overall_transformed = model.transform(final_paired_distances_overall)
+            final_paired_distances_overall_transformed /= (model["pca"].singular_values_[0] ** 0.5)
+        else:
+            final_paired_distances_overall_transformed = None
+
+
+#        print(f"Variance explained: {np.sum(model['pca'].explained_variance_ratio_)}")
         print(f"Number of best trees{np.sum(best_tree)}")
 
-        if 'whitened' not in model_name:
-            final_paired_distances_transformed/= (model["pca"].singular_values_[0]**0.5)
-        best_tree_statistics = extract_2d_shape_and_plot(final_paired_distances_transformed,best_tree, name =f'{prefix}_{model_name}')
+
+
+
+        best_tree_statistics = extract_2d_shape_and_plot(final_paired_distances_transformed,best_tree, tree_clusters_ind = tree_clusters, name =f'{prefix}_{model_name}',X_transformed_overall_best_tree = final_paired_distances_overall_transformed, final_ll_score= final_trees_ll )
         all_distance_metrics.update(best_tree_statistics)
-        if 'whitened' not in model_name:
-            d_mat_final = distance_matrix(final_paired_distances_transformed, final_paired_distances_transformed)
-            distances = d_mat_final[np.triu_indices(n=len(final_trees), k=1)]
-            all_distance_metrics.update(get_summary_statistics_dict(feature_name=f"{prefix}_{model_name}_distances",values = distances))
-            all_distance_metrics.update(best_tree_statistics)
-            all_distance_metrics.update({f'{prefix}_{model_name}_n_components':model["pca"].n_components_,f'{prefix}_{model_name}_var_explained':np.sum(model['pca'].explained_variance_ratio_) })
-            #print(all_distance_metrics)
-            distances_to_other_trees_mat = d_mat_final[np.array(best_tree) == True, :][:, np.array(best_tree) == False]
-            distances_to_other_trees = list(np.ravel(distances_to_other_trees_mat))
-            distances_to_other_trees_features = get_summary_statistics_dict(
-                feature_name=f"{prefix}_{model_name}_best_trees_distance_to_final_trees_", values=distances_to_other_trees)
 
-            distances_to_best_trees_mat = d_mat_final[np.array(best_tree) == True, :][:, np.array(best_tree) == True]
-            distances_to_best_trees = list(np.ravel(distances_to_best_trees_mat))
-            distances_to_best_trees_features = get_summary_statistics_dict(
-                feature_name=f"{prefix}_{model_name}_best_trees_distance_to_best_trees_", values=distances_to_best_trees)
 
-            all_distance_metrics.update(distances_to_other_trees_features)
-            all_distance_metrics.update(distances_to_best_trees_features)
     return all_distance_metrics
 
 
@@ -278,7 +371,7 @@ def generate_calculations_per_MSA(msa_path,curr_run_dir, n_pars_tree_sampled = 1
 
             RF_distances_metrics = get_summary_statistics_dict(feature_name=f"{prefix_name}_RF_distances", values  = RF_distances)
             pars_paired_distances = np.array(
-                [get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=True) for tree in
+                [get_distances_between_leaves(generate_tree_object_from_newick(tree), topology_only=False) for tree in
                  pars])
             #pars_kpca_10_model = KernelPCA(n_components=10, kernel='rbf').fit(pars_paired_distances)
             #pars_kpca_10_metrics = dimensionality_reduction_metrics(f'{prefix_name}_kpca10', pars_kpca_10_model,pars_paired_distances,n_trees= len(pars))
