@@ -22,7 +22,6 @@ def get_sampled_data(n_pars, n_rand, n_sum, i, n_sample_points, msa_data, seed,p
         spr_radius = random.choice(possible_spr_radius)
         spr_cutoff = random.choice(possible_spr_cutoff)
         logging.info(f"Chosen SPR radius {spr_radius}, Chosen SPR cutoff {spr_cutoff}")
-    random.seed(seed)
     if n_pars == -1 and n_rand == -1:
         min_n_pars = max(n_sum-20,0)
         n_pars_sample = random.randint(min_n_pars, min(n_sum,20)) # Taking a max of 20 parsimony trees
@@ -33,16 +32,16 @@ def get_sampled_data(n_pars, n_rand, n_sum, i, n_sample_points, msa_data, seed,p
     logging.info(f"i = {i}/{n_sample_points}")
     if not default_data:
         sampled_data_parsimony = msa_data[(msa_data["starting_tree_type"] == "pars")&(msa_data["spr_cutoff"]==spr_cutoff)&(msa_data["spr_radius"]==spr_radius)].sample(
-            n=n_pars_sample, random_state = seed)  # random_state=seed
+            n=n_pars_sample)  # random_state=seed
         sampled_data_random = msa_data[(msa_data["starting_tree_type"] == "rand")&(msa_data["spr_cutoff"]==spr_cutoff)&(msa_data["spr_radius"]==spr_radius)].sample(
-            n=n_rand_sample, random_state = seed)  # random_state=seed
+            n=n_rand_sample)  # random_state=seed
     else:
         sampled_data_parsimony = msa_data[
             (msa_data["starting_tree_type"] == "pars")].sample(
-            n=n_pars_sample, random_state=seed)  # random_state=seed
+            n=n_pars_sample)  # random_state=seed
         sampled_data_random = msa_data[
             (msa_data["starting_tree_type"] == "rand")].sample(
-            n=n_rand_sample, random_state=seed)  # random_state=seed
+            n=n_rand_sample)  # random_state=seed
     sampled_data = pd.concat([sampled_data_random, sampled_data_parsimony])
 
     return sampled_data, n_pars_sample, n_rand_sample
