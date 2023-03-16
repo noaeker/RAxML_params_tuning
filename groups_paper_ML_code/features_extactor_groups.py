@@ -39,7 +39,7 @@ from sklearn.neighbors import LocalOutlierFactor
 
 def plot_svm(clf,X,Y):
     # plot the decision function for each datapoint on the grid
-    xx, yy = np.meshgrid(np.linspace(-5, 5, 500), np.linspace(-5, 5, 500))
+    xx, yy = np.meshgrid(np.linspace(-2, 2, 500), np.linspace(-2, 2, 500))
     np.random.seed(0)
     Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
     Z = Z.reshape(xx.shape)
@@ -56,7 +56,7 @@ def plot_svm(clf,X,Y):
     levels = [0]
     contours = plt.contour(xx, yy, Z, levels=levels, linewidths=3, linestyles="dashed")
     #plt.colorbar()
-    plt.scatter(X[:, 0], X[:, 1], s=30, c=Y,  edgecolors="k",cmap=plt.cm.Paired),
+    plt.scatter(X[:, 0], X[:, 1], s=40, c=Y,  edgecolors="k",cmap=plt.cm.Paired),
     plt.xticks(())
     plt.xlabel('PC1')
     plt.ylabel('PC2')
@@ -188,7 +188,7 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name, X_transformed_over
         #print(f'### KDE: {kde}')
         fit_SVC(SVC(), X_transformed, best_tree, f"{name}_rbf_svc", all_results)
         fit_SVC(SVC(class_weight = {False:1,True:2}), X_transformed, best_tree, f"{name}_rbf_svc_weight2", all_results)
-        fit_SVC(SVC(class_weight={False: 1, True: 3}), X_transformed, best_tree, f"{name}_rbf_svc_weight2", all_results)
+        fit_SVC(SVC(class_weight={False: 1, True: 3}), X_transformed, best_tree, f"{name}_rbf_svc_weight3", all_results)
         #fit_SVC(SVC(class_weight={False: 1, True: len(best_tree/5)}), X_transformed, best_tree, f"{name}_rbf_svc_weight_div_5", all_results)
         #fit_SVC(SVC(class_weight={False: 1, True: len(best_tree / 10)}), X_transformed, best_tree,
         #        f"{name}_rbf_svc_weight_div_10", all_results)
@@ -312,7 +312,11 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees, best_
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
-    models_dict = {'PCA_0.9': Pipeline(steps=[("pca", PCA(n_components=2)),]),}#'PCA_0.8': Pipeline(steps=[("pca", PCA(n_components=0.8)),])}#{'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA5':Pipeline(steps=[("pca", PCA(n_components=5)),]) } #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
+    if LOCAL_RUN:
+        n_components =2
+    else:
+        n_components = 0.9
+    models_dict = {'PCA_0.9': Pipeline(steps=[("pca", PCA(n_components=n_components)),]),}#'PCA_0.8': Pipeline(steps=[("pca", PCA(n_components=0.8)),])}#{'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA5':Pipeline(steps=[("pca", PCA(n_components=5)),]) } #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
     for model_name in models_dict:
         print(model_name)
         model = models_dict[model_name]
