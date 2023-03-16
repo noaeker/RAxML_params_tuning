@@ -129,7 +129,7 @@ def main():
     create_dir_if_not_exists(existing_msas_data_path)
     logging.info(f"Reading all data from {args.file_path}")
     if LOCAL_RUN:
-        relevant_data = pd.read_csv(args.file_path, sep='\t',nrows= 40000) #,,
+        relevant_data = pd.read_csv(args.file_path, sep='\t',nrows= 120000) #,,
     else:
         relevant_data = pd.read_csv(args.file_path, sep = '\t')
     if args.filter_on_default_data:

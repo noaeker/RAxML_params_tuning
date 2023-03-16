@@ -43,7 +43,8 @@ def plot_svm(clf,X,Y):
     np.random.seed(0)
     Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
     Z = Z.reshape(xx.shape)
-
+    print(Z.max())
+    print(Z.min())
     plt.imshow(
         Z,
         interpolation="nearest",
@@ -52,9 +53,10 @@ def plot_svm(clf,X,Y):
         origin="lower",
         cmap=plt.cm.PuOr_r,
     )
-    contours = plt.contour(xx, yy, Z, levels=[0], linewidths=2, linestyles="dashed")
+    levels = [0]
+    contours = plt.contour(xx, yy, Z, levels=levels, linewidths=3, linestyles="dashed")
     #plt.colorbar()
-    plt.scatter(X[:, 0], X[:, 1], s=30, c=Y, cmap=plt.cm.Paired, edgecolors="k")
+    plt.scatter(X[:, 0], X[:, 1], s=30, c=Y,  edgecolors="k",cmap=plt.cm.Paired),
     plt.xticks(())
     plt.xlabel('PC1')
     plt.ylabel('PC2')
@@ -134,8 +136,8 @@ def fit_SVC(svc_model,X_transformed,best_tree,name, all_results):
                    }
     print(svm_results)
     all_results.update(svm_results)
-    #if LOCAL_RUN:
-    #    plot_svm(svm, X_transformed, best_tree)
+    if LOCAL_RUN:
+        plot_svm(svm, X_transformed, best_tree)
 
 
 def fit_gmm(all_results,X_transformed, best_tree,name):
@@ -175,21 +177,27 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name, X_transformed_over
         from sklearn.model_selection import GridSearchCV
 
 
-        reg =  LinearRegression().fit(X=np.array(list(data['X_transformed'])), y=list(data['final_ll_score']))
-        all_results.update({f'{name}_LIN_reg':reg.score(np.array(list(data['X_transformed'])), list(data['final_ll_score']))})
+        #reg =  LinearRegression().fit(X=np.array(list(data['X_transformed'])), y=list(data['final_ll_score']))
+        #all_results.update({f'{name}_LIN_reg':reg.score(np.array(list(data['X_transformed'])), list(data['final_ll_score']))})
         clf = SVR()
         svr  = clf.fit(X=np.array(list(data['X_transformed'])), y=list(data['final_ll_score']))
         all_results.update({f'{name}_SVR_reg': svr.score(np.array(list(data['X_transformed'])), list(data['final_ll_score']))})
         print(f'### SVR score ###{svr.score(X_transformed, final_ll_score)}')
-        kde = kde_esitmate(X_transformed, best_tree)
-        all_results.update({f'{name}_KDE_':  kde})
-        print(f'### KDE: {kde}')
+        #kde = kde_esitmate(X_transformed, best_tree)
+        #all_results.update({f'{name}_KDE_':  kde})
+        #print(f'### KDE: {kde}')
         fit_SVC(SVC(), X_transformed, best_tree, f"{name}_rbf_svc", all_results)
-        fit_gmm(all_results,X_transformed, best_tree,name)
+        fit_SVC(SVC(class_weight = {False:1,True:2}), X_transformed, best_tree, f"{name}_rbf_svc_weight2", all_results)
+        fit_SVC(SVC(class_weight={False: 1, True: 3}), X_transformed, best_tree, f"{name}_rbf_svc_weight2", all_results)
+        #fit_SVC(SVC(class_weight={False: 1, True: len(best_tree/5)}), X_transformed, best_tree, f"{name}_rbf_svc_weight_div_5", all_results)
+        #fit_SVC(SVC(class_weight={False: 1, True: len(best_tree / 10)}), X_transformed, best_tree,
+        #        f"{name}_rbf_svc_weight_div_10", all_results)
+        #fit_SVC(SVC(class_weight={False: 1, True: 2}), X_transformed, best_tree, f"{name}_rbf_svc_weight3", all_results)
+        #fit_gmm(all_results,X_transformed, best_tree,name)
 
 
 
-        fit_SVC(LinearSVC(), X_transformed, best_tree, f"{name}_lin_svc", all_results)
+        #fit_SVC(LinearSVC(), X_transformed, best_tree, f"{name}_lin_svc", all_results)
         #fit_SVC(SVC(kernel='poly'), X_transformed, best_tree, f"{name}_poly_svc", all_results)
         #fit_SVC(SVC(kernel='sigmoid'), X_transformed, best_tree, f"{name}_sig_svc", all_results)
 
@@ -304,7 +312,7 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees, best_
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
-    models_dict = {'PCA_0.9': Pipeline(steps=[("pca", PCA(n_components=0.9)),]),}#'PCA_0.8': Pipeline(steps=[("pca", PCA(n_components=0.8)),])}#{'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA5':Pipeline(steps=[("pca", PCA(n_components=5)),]) } #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
+    models_dict = {'PCA_0.9': Pipeline(steps=[("pca", PCA(n_components=2)),]),}#'PCA_0.8': Pipeline(steps=[("pca", PCA(n_components=0.8)),])}#{'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA5':Pipeline(steps=[("pca", PCA(n_components=5)),]) } #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
     for model_name in models_dict:
         print(model_name)
         model = models_dict[model_name]
