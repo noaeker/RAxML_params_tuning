@@ -253,7 +253,7 @@ def train_test_validation_splits(full_data, test_pct, val_pct, msa_col_name="msa
     full_data = full_data.loc[~(full_data[msa_col_name].str.contains("Single_gene_PROTEIN") | full_data[msa_col_name].str.contains("Single_gene_DNA"))]
     np.random.seed(SEED)
     logging.info("Partitioning MSAs according to number of sequences")
-    msa_n_seq_group = pd.qcut(full_data["feature_msa_n_seq"], 4)
+    msa_n_seq_group = pd.qcut(full_data["feature_msa_n_seq"], 5)
     msas = full_data[msa_col_name]
     full_sampling_data = pd.DataFrame({'msa_n_seq': msa_n_seq_group, 'msa': msas}).drop_duplicates().sample(frac=1,random_state = SEED)
     full_sampling_data  = full_sampling_data.sort_values('msa') # Sort according to MSAs
