@@ -45,6 +45,10 @@ def plot_svm(clf,X,Y):
     Z = Z.reshape(xx.shape)
     print(Z.max())
     print(Z.min())
+    data = pd.DataFrame({'xx':xx.ravel(),'yy':yy.ravel(),'Z':Z.ravel()})
+    pd.DataFrame(X).to_csv('X_svm.csv')
+    pd.DataFrame(Y).to_csv('Y_svm.csv')
+    data.to_csv('curr_svm_plot.csv')
     plt.imshow(
         Z,
         interpolation="nearest",

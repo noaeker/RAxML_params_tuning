@@ -10,7 +10,7 @@ import random
 
 
 
-class single_raxml_run:
+class single_tree_search_run:
     '''
     Class that represents a single run of RAxML
     '''
@@ -67,20 +67,20 @@ def generate_tree_type_raxml_runs(msa_path, n_tree_objects_per_msa, msa_type, tr
     :return: Default and grid points
     '''
     runs = []
-    n = n_tree_objects_per_msa * 2 if tree_type == "pars" else n_tree_objects_per_msa
+    n = n_tree_objects_per_msa * 4 if tree_type == "pars" else n_tree_objects_per_msa
     trees_path = generate_n_unique_tree_topologies_as_starting_trees(n,
                                                                      msa_path, curr_run_directory,
                                                                      seed, tree_type, msa_type)
     tree_objects = generate_multiple_tree_object_from_newick_file(trees_path)[
                    :n_tree_objects_per_msa]
     for starting_tree_ind,tree_object in enumerate(tree_objects):
-        runs.append(single_raxml_run(msa_path=msa_path, starting_tree_object=tree_object,
-                                     starting_tree_type=tree_type, starting_tree_ind = starting_tree_ind, params_config={}, type="default", msa_type = msa_type)) #Add default_run
+        runs.append(single_tree_search_run(msa_path=msa_path, starting_tree_object=tree_object,
+                                           starting_tree_type=tree_type, starting_tree_ind = starting_tree_ind, params_config={}, type="default", msa_type = msa_type)) #Add default_run
 
         if grid_points!=-1:
             for params_config in grid_points:
-                runs.append(single_raxml_run(msa_path=msa_path, starting_tree_object=tree_object,
-                                             starting_tree_type=tree_type,starting_tree_ind = starting_tree_ind, params_config=params_config, type="non-default", msa_type= msa_type))
+                runs.append(single_tree_search_run(msa_path=msa_path, starting_tree_object=tree_object,
+                                                   starting_tree_type=tree_type, starting_tree_ind = starting_tree_ind, params_config=params_config, type="non-default", msa_type= msa_type))
     return runs
 
 

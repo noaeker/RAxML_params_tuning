@@ -6,7 +6,8 @@ else:
     PROJECT_ROOT_DIRECRTORY = "/Users/noa/Workspace/RAxML_params_tuning"
 sys.path.append(PROJECT_ROOT_DIRECRTORY)
 
-from side_code.raxml import extract_param_from_raxmlNG_log, raxml_search
+from side_code.raxml import  raxml_search
+from side_code.IQTREE import iqtree_search
 from side_code.file_handling import create_or_clean_dir, unify_text_files
 #from side_code.MSA_manipulation import get_msa_type
 from msa_runs import generate_test_msa_raxml_run
@@ -17,7 +18,7 @@ import numpy as np
 from shutil import rmtree
 
 
-def single_tree_RAxML_run(curr_run_directory, single_raxml_run_obj, tmp_starting_tree_path):
+def single_tree_run(curr_run_directory, single_raxml_run_obj, tmp_starting_tree_path, program):
     '''
 
     :param curr_run_directory:
@@ -34,14 +35,18 @@ def single_tree_RAxML_run(curr_run_directory, single_raxml_run_obj, tmp_starting
     prefix = "default_params" if single_raxml_run_obj.params_config == {} else "non_default_params"
     curr_param_run_directory = os.path.join(run_directory, prefix)
     create_or_clean_dir(curr_param_run_directory)
-    raxml_search_results = raxml_search(curr_param_run_directory, single_raxml_run_obj.msa_path, msa_type, prefix,
-                                        single_raxml_run_obj.params_config,
-                                        tmp_starting_tree_path)
+    if program=='RAxML':
+        search_results = raxml_search(curr_param_run_directory, single_raxml_run_obj.msa_path, msa_type, prefix,
+                                            single_raxml_run_obj.params_config,
+                                            tmp_starting_tree_path)
+    else:
+        search_results = iqtree_search(curr_run_directory, single_raxml_run_obj.msa_path, msa_type,prefix,  tmp_starting_tree_path
+                                      )
     rmtree(run_directory)
-    return raxml_search_results
+    return search_results
 
 
-def raxml_run_on_test_msa(args, tmp_starting_tree_path):
+def tree_search_run_on_test_msa(args, tmp_starting_tree_path, program):
     '''
 
     :param args:
@@ -60,7 +65,7 @@ def raxml_run_on_test_msa(args, tmp_starting_tree_path):
         logging.debug(f"iter {i} of test")
         curr_i_folder = os.path.join(test_msa_folder, str(i))
         os.mkdir(curr_i_folder)
-        test_results = single_tree_RAxML_run(curr_i_folder, test_raxml_run, tmp_starting_tree_path)
+        test_results = single_tree_run(curr_i_folder, test_raxml_run, tmp_starting_tree_path, program= program)
         total_test_time = total_test_time + test_results["elapsed_running_time"]
     rmtree(test_msa_folder)
     return total_test_time
@@ -98,21 +103,21 @@ def main():
         MSA_tasks = job_tasks_dict_per_MSA[MSA]
         msa_job_done_dict = {}
         start_time = time.time()
-        total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
+        total_test_time = tree_search_run_on_test_msa(args, tmp_starting_tree_path, program = args.program)
         for i, task_key in (enumerate(MSA_tasks)):
             if os.path.exists(job_local_stop_running_path):  # break out of the loop if all tasks are done
                 break
             end_time = time.time() # check currnet time
             if (end_time-start_time)>args.time_between_tests:
                 logging.info(f"{args.time_between_tests} second have passed, re-performing the test")
-                total_test_time = raxml_run_on_test_msa(args, tmp_starting_tree_path)
+                total_test_time = -1#tree_search_run_on_test_msa(args, tmp_starting_tree_path, program = 'IQTREE')
                 logging.info(f"Total test time is: {total_test_time}")
             logging.info(f"Performing task number {i + 1}/{len(MSA_tasks)}, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
             raxml_run = MSA_tasks[task_key]
             with open(tmp_starting_tree_path, 'w') as TMP_STARTING_TREE_PATH:
                 TMP_STARTING_TREE_PATH.write(raxml_run.starting_tree_object.write(format=1))
 
-            results = single_tree_RAxML_run(args.curr_job_folder, raxml_run, tmp_starting_tree_path)
+            results = single_tree_run(args.curr_job_folder, raxml_run, tmp_starting_tree_path, program = args.program)
             results["test_norm_const"] = total_test_time
             results["job_ind"] = args.job_ind
             logging.debug(f"Current task results: {results}")

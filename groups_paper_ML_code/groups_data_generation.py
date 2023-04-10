@@ -190,6 +190,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_
 
 
     for i,msa_path in enumerate(data["msa_path"].unique()):
+        print(msa_path)
         all_sampling_results, seed = MSA_pipeline(msa_path, i, data, curr_run_dir, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
                      possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features)
     return all_sampling_results
