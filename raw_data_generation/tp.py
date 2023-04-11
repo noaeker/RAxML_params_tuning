@@ -75,7 +75,10 @@ def generate_file_path_list_and_test_msa(args, trimmed_test_msa_path):
         trim_MSA(test_msa_path, trimmed_test_msa_path, number_of_sequences=10, max_n_loci=500, loci_shift=0)
         logging.debug("Alignment files are " + str(file_path_list))
         random.seed(SEED)
-    file_path_list = random.sample(file_path_list_full, min(args.n_MSAs, len(file_path_list_full)))
+    if args.remove_existing_msas:
+        file_path_list = random.sample(file_path_list_full, min(args.n_MSAs, len(file_path_list_full)))
+    else:
+        file_path_list = file_path_list_full
     logging.info(
         "Using {} MSAs with at least {} sequences and {} positions".format(len(file_path_list), args.min_n_seq,
                                                                                args.min_n_loci))
@@ -299,9 +302,12 @@ def main():
 
     with open(file_paths_path, "rb") as FILE_PATHS:
         target_msas_list = pickle.load(FILE_PATHS)
-        if args.use_existing_global_data:
-            logging.info(f"Removing existing msas in {args.old_msas_folder}")
-            target_msas_list = [p for p in target_msas_list if p not in existing_msas]
+    if args.remove_existing_msas:
+        logging.info(f"Removing existing msas in {args.old_msas_folder}")
+        target_msas_list = [p for p in target_msas_list if p not in existing_msas]
+    else:
+        logging.info("Using only existing MSAs")
+        target_msas_list = [p for p in target_msas_list if p in existing_msas]
     total_msas_done = 0
     total_msas_overall = len(target_msas_list)
     logging.info(f"Number of target MSAs: {total_msas_overall}, at each iteration {args.n_MSAs_per_bunch} are handled")
