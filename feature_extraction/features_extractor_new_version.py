@@ -37,10 +37,10 @@ def pct_75(values):
 
 
 def IQR(values):
-    return np.percentile(values, 75)-np.percentile(values, 25)
+    return np.percentile(values, 75) - np.percentile(values, 25)
 
 
-def get_summary_statistics_dict(feature_name, values, funcs={'mean': np.mean,'median': np.mean,'var': np.var,
+def get_summary_statistics_dict(feature_name, values, funcs={'mean': np.mean, 'median': np.mean, 'var': np.var,
                                                              'pct_25': pct_25, 'pct_75': pct_75,
                                                              'min': np.min, 'max': np.max,
                                                              }):
@@ -50,7 +50,7 @@ def get_summary_statistics_dict(feature_name, values, funcs={'mean': np.mean,'me
     return res
 
 
-def pypythia(msa_path,msa_type):
+def pypythia(msa_path, msa_type):
     predictor = DifficultyPredictor(open(f"{PROJECT_ROOT_DIRECRTORY}/pypythia/predictor.pckl", "rb"))
     raxmlng = RAxMLNG(RAXML_NG_EXE)
     msa = MSA(msa_path)
@@ -68,7 +68,7 @@ def get_msa_stats(msa_path, msa_type):
     alignment_data = get_alignment_data(msa_path)
     alignment_df = alignment_list_to_df(alignment_data)
     alignment_df_fixed = alignment_df.replace('-', np.nan)
-    gap_fracs_per_seq = alignment_df_fixed.isna().sum(axis=1)/n_loci
+    gap_fracs_per_seq = alignment_df_fixed.isna().sum(axis=1) / n_loci
     gap_fracs_per_loci = alignment_df_fixed.isna().sum(axis=0) / n_seq
     alignment_df_unique = alignment_df.T.drop_duplicates().T
     counts_per_position = [dict(alignment_df_fixed[col].value_counts(dropna=True)) for col in list(alignment_df)]
@@ -77,34 +77,37 @@ def get_msa_stats(msa_path, msa_type):
                      list(alignment_df)]
     entropy = [sum(list(map(lambda x: -x * np.log(x), probabilities[col]))) for col in list(alignment_df)]
     constant_sites_pct = sum([1 for et in entropy if et == 0]) / len(entropy)
-    msa_difficulty = pypythia(msa_path, msa_type = msa_type)
+    msa_difficulty = pypythia(msa_path, msa_type=msa_type)
 
-    all_msa_features.update({"feature_msa_constant_sites_pct": constant_sites_pct,"feature_msa_n_unique_sites": len(alignment_df_unique.columns),
+    all_msa_features.update({"feature_msa_constant_sites_pct": constant_sites_pct,
+                             "feature_msa_n_unique_sites": len(alignment_df_unique.columns),
                              "feature_msa_pypythia_msa_difficulty": msa_difficulty})
 
-    multi_dimensional_features = {"feature_msa_entropy": entropy, "feature_msa_gap_fracs_per_seq": gap_fracs_per_seq, "feature_msa_gap_fracs_per_loci": gap_fracs_per_loci}
-
+    multi_dimensional_features = {"feature_msa_entropy": entropy, "feature_msa_gap_fracs_per_seq": gap_fracs_per_seq,
+                                  "feature_msa_gap_fracs_per_loci": gap_fracs_per_loci}
 
     for feature in multi_dimensional_features:
-         all_msa_features.update(get_summary_statistics_dict(feature, multi_dimensional_features[feature]))
+        all_msa_features.update(get_summary_statistics_dict(feature, multi_dimensional_features[feature]))
     return all_msa_features
 
 
-
-def msa_features_pipeline(msa_path, existing_msa_features_path,msa_type, args):
+def msa_features_pipeline(msa_path, existing_msa_features_path, msa_type, args):
     if os.path.exists(existing_msa_features_path):
         logging.info("Using existing MSA general features")
         existing_msa_features = pickle.load(open(existing_msa_features_path, "rb"))
         return existing_msa_features
     logging.info("Calculating MSA general features from beggining")
     msa_general_features = pd.DataFrame.from_dict(
-        {msa_path: get_msa_stats(get_local_path(msa_path),msa_type)}, orient='index').reset_index()
-    msa_final_features = msa_general_features[[col for col in msa_general_features.columns if col.startswith("feature")]]
+        {msa_path: get_msa_stats(get_local_path(msa_path), msa_type)}, orient='index').reset_index()
+    msa_final_features = msa_general_features[
+        [col for col in msa_general_features.columns if col.startswith("feature")]]
     msa_final_features["msa_path"] = msa_path
     pickle.dump(msa_final_features, open(existing_msa_features_path, 'wb'))
     return msa_final_features
 
-def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_trees_LL, tree_object, tree_LL, msa_path, msa_type, spr_iterations = 50):
+
+def single_tree_metrics(curr_run_directory, all_parsimony_trees, all_parsimony_trees_LL, tree_object, tree_LL, msa_path,
+                        msa_type, spr_iterations=50):
     tmp_folder = os.path.join(curr_run_directory, 'tmp_working_dir_tree_metrics')
     create_or_clean_dir(tmp_folder)
     curr_tree_path = os.path.join(tmp_folder, "trees_path")
@@ -112,30 +115,26 @@ def single_tree_metrics(curr_run_directory, all_parsimony_trees,all_parsimony_tr
         TREE.write(tree_object.write(format=1))
     BL_metrics = tree_branch_length_metrics(tree_object)
     tree_distances = get_distances_between_leaves(tree_object)
-    #final_tree_distances = get_distances_between_leaves(final_tree_object)
+    # final_tree_distances = get_distances_between_leaves(final_tree_object)
     rf_values = []
-    #parsimony_LL_differences = [tree_LL-pars_LL for pars_LL in all_parsimony_trees_LL]
+    # parsimony_LL_differences = [tree_LL-pars_LL for pars_LL in all_parsimony_trees_LL]
 
     for parsimony_tree in all_parsimony_trees:
         rf_values.append(
             rf_distance(curr_run_directory, tree_object.write(format=1), parsimony_tree, name="tree_vs_parsimony_rf"))
 
-    all_tree_features = {"feature_tree_MAD": mad_tree_parameter(curr_tree_path)} #"final_tree_distances": final_tree_distances'feature_corcoeff_SPR': corcoeff_SPR ,'feature_tree_parsimony_dist_vs_LL_imprv_corr':LL_rf_corr,"feature_LL_diff_vs_parsimony": parsimony_LL_differences,'feature_ll_improvements': ll_improvements,
-    multidimensional_features = {'feature_tree_branch_lengths' : BL_metrics["BL_list"], "feature_tree_distances_between_taxa":tree_distances, "feature_tree_parsimony_rf_values" : rf_values}
+    all_tree_features = {"feature_tree_MAD": mad_tree_parameter(
+        curr_tree_path)}  # "final_tree_distances": final_tree_distances'feature_corcoeff_SPR': corcoeff_SPR ,'feature_tree_parsimony_dist_vs_LL_imprv_corr':LL_rf_corr,"feature_LL_diff_vs_parsimony": parsimony_LL_differences,'feature_ll_improvements': ll_improvements,
+    multidimensional_features = {'feature_tree_branch_lengths': BL_metrics["BL_list"],
+                                 "feature_tree_distances_between_taxa": tree_distances,
+                                 "feature_tree_parsimony_rf_values": rf_values}
     for feature in multidimensional_features:
         all_tree_features.update(get_summary_statistics_dict(feature, multidimensional_features[feature]))
 
     return all_tree_features
 
 
-
-
-
-
-
-
-
-def get_basic_tree_features(msa_raw_data, curr_run_directory,msa_path,tmp_folder, msa_type, args):
+def get_basic_tree_features(msa_raw_data, curr_run_directory, msa_path, tmp_folder, msa_type, args):
     basic_tree_features = msa_raw_data[
         ["starting_tree_ind", "starting_tree_type", "starting_tree_object",
          "starting_tree_ll"]].drop_duplicates().reset_index().sort_values(["starting_tree_type", "starting_tree_ind"])
@@ -150,7 +149,7 @@ def get_basic_tree_features(msa_raw_data, curr_run_directory,msa_path,tmp_folder
     basic_tree_features["feature_tree_optimized_ll"] = optimized_tree_object_ll
     basic_tree_features["feature_tree_optimized_alpha"] = optimized_tree_object_alpha
     basic_tree_features["optimized_tree_object"] = generate_multiple_tree_object_from_newick_file(optimized_trees_file)
-    #basic_tree_features["final_tree_objects"] = generate_multiple_tree_object_from_newick_list(basic_tree_features["final_tree_topology"])
+    # basic_tree_features["final_tree_objects"] = generate_multiple_tree_object_from_newick_list(basic_tree_features["final_tree_topology"])
 
     all_parsimony_trees_LL = basic_tree_features[basic_tree_features["starting_tree_type"] == "pars"][
         "feature_tree_optimized_ll"].drop_duplicates().tolist()
@@ -161,38 +160,40 @@ def get_basic_tree_features(msa_raw_data, curr_run_directory,msa_path,tmp_folder
     return basic_tree_features
 
 
-
-
-
-
-def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_tree_features_path,msa_type, args):
+def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_tree_features_path, msa_type, args):
     tmp_folder = os.path.join(curr_run_directory, 'tmp_working_dir_tree_features_pipeline')
     create_or_clean_dir(tmp_folder)
     if os.path.exists(existing_tree_features_path):
         existing_tree_features = pickle.load(open(existing_tree_features_path, "rb"))
         return existing_tree_features
-    basic_tree_features = get_basic_tree_features(msa_raw_data, curr_run_directory,msa_path,tmp_folder,msa_type, args)
+    basic_tree_features = get_basic_tree_features(msa_raw_data, curr_run_directory, msa_path, tmp_folder, msa_type,
+                                                  args)
     all_parsimony_trees = basic_tree_features[basic_tree_features["starting_tree_type"] == "pars"][
         "starting_tree_object"].drop_duplicates().tolist()
     all_parsimony_trees_LL = basic_tree_features[basic_tree_features["starting_tree_type"] == "pars"][
         "feature_tree_optimized_ll"].drop_duplicates().tolist()
     extended_tree_metrics_lst = []
-    #all_neighbors = []
+    # all_neighbors = []
     for index, basic_features in basic_tree_features.iterrows():
-        general_tree_metrics= single_tree_metrics(tmp_folder, all_parsimony_trees,all_parsimony_trees_LL, basic_features["optimized_tree_object"],basic_features["starting_tree_ll"], msa_path, msa_type, spr_iterations = args.spr_iters)
+        general_tree_metrics = single_tree_metrics(tmp_folder, all_parsimony_trees, all_parsimony_trees_LL,
+                                                   basic_features["optimized_tree_object"],
+                                                   basic_features["starting_tree_ll"], msa_path, msa_type,
+                                                   spr_iterations=args.spr_iters)
         general_tree_metrics.update(dict(basic_features))
-        #if basic_features["starting_tree_type"]=='pars':
-            #all_neighbors.extend(neighbors)
+        # if basic_features["starting_tree_type"]=='pars':
+        # all_neighbors.extend(neighbors)
         extended_tree_metrics_lst.append(general_tree_metrics)
     extended_tree_features_df = pd.DataFrame(extended_tree_metrics_lst)
-    #extended_tree_features_df = tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory)
-    tree_features = extended_tree_features_df[[col for col in extended_tree_features_df.columns if col.startswith('feature')]+["starting_tree_ind", "starting_tree_type"]]
+    # extended_tree_features_df = tree_embeddings_pipeline(extended_tree_features_df,curr_run_directory)
+    tree_features = extended_tree_features_df[
+        [col for col in extended_tree_features_df.columns if col.startswith('feature')] + ["starting_tree_ind",
+                                                                                           "starting_tree_type"]]
     pickle.dump(tree_features, open(existing_tree_features_path, 'wb'))
     return tree_features
 
 
-def process_all_msa_RAxML_runs(curr_run_directory, processed_dataset_path, msa_data, cpus_per_job,msa_type,
-                               perform_topology_tests=False):
+def process_all_msa_runs(curr_run_directory,msa_path, processed_dataset_path, msa_data, cpus_per_job, msa_type,
+                         perform_topology_tests=False, program = 'RAxML'):
     '''
 
     :param curr_run_directory:
@@ -203,6 +204,21 @@ def process_all_msa_RAxML_runs(curr_run_directory, processed_dataset_path, msa_d
         logging.info("## Using existing data features for this MSA")
         msa_data = pickle.load(open(processed_dataset_path, "rb"))
     else:
+
+        all_external_trees_path = os.path.join(curr_run_directory, 'all_external_final_trees')
+        unify_text_files(msa_data['tree_str'], all_external_trees_path, str_given=True)
+        tmp_folder = os.path.join(curr_run_directory, 'tmp_ll_dir')
+        if program=='RAxML':
+            optimized_tree_object_ll, optimized_tree_object_alpha, optimized_trees_file = raxml_optimize_trees_for_given_msa(
+                get_local_path(msa_path), "trees_eval", all_external_trees_path,
+                tmp_folder, msa_type, opt_brlen=True)
+        else:
+                optimized_tree_object_ll, optimized_tree_object_alpha, optimized_trees_file = raxml_optimize_trees_for_given_msa(
+                    get_local_path(msa_path), "trees_eval", all_external_trees_path,
+                    tmp_folder, msa_type, opt_brlen=True)
+
+
+
         logging.info("## Calculating features from beggining for this MSA")
         best_msa_ll = max(msa_data["final_ll"])
         msa_data["best_msa_ll"] = best_msa_ll
@@ -250,25 +266,25 @@ def enrich_raw_data(curr_run_directory, raw_data, cpus_per_job, perform_topology
         msa_data = raw_data[raw_data["msa_path"] == msa_path].copy().reset_index()
         create_dir_if_not_exists(msa_folder)
         existing_msa_features_path = os.path.join(msa_folder, "msa_features")
-        existing_tree_features_path = os.path.join(msa_folder, "tree_features")
+        # existing_tree_features_path = os.path.join(msa_folder, "tree_features")
         msa_final_dataset_path = os.path.join(msa_folder, "final_dataset")
         processed_dataset_path = os.path.join(msa_folder, "processed_dataset")
-        processed_msa_data = process_all_msa_RAxML_runs(msa_folder, processed_dataset_path, msa_data, cpus_per_job,msa_type,
-                                                        perform_topology_tests=perform_topology_tests)
+        processed_msa_data = process_all_msa_runs(msa_folder,msa_path, processed_dataset_path, msa_data, cpus_per_job, msa_type,
+                                                  perform_topology_tests=perform_topology_tests)
         if not len(processed_msa_data.index) > 0:
             logging.info("no data to process")
             continue
-        st = time.time()
-        tree_features = tree_features_pipeline(msa_path, msa_folder, msa_data, existing_tree_features_path, msa_type, args)
-        ed = time.time()
-        processed_msa_data['tree_features_running_time'] = ed-st
-        processed_msa_data = processed_msa_data.merge(tree_features, right_on=["starting_tree_ind", "starting_tree_type"],
-                                                      left_on=["starting_tree_ind", "starting_tree_type"])
+        # st = time.time()
+        # tree_features = tree_features_pipeline(msa_path, msa_folder, msa_data, existing_tree_features_path, msa_type, args)
+        # ed = time.time()
+        # processed_msa_data['tree_features_running_time'] = ed-st
+        # processed_msa_data = processed_msa_data.merge(tree_features, right_on=["starting_tree_ind", "starting_tree_type"],
+        #                                              left_on=["starting_tree_ind", "starting_tree_type"])
 
         st = time.time()
-        msa_features = msa_features_pipeline(msa_path, existing_msa_features_path,msa_type, args)
+        msa_features = msa_features_pipeline(msa_path, existing_msa_features_path, msa_type, args)
         ed = time.time()
-        processed_msa_data['msa_features_running_time'] = ed-st
+        processed_msa_data['msa_features_running_time'] = ed - st
         logging.info(f"MSA features: {msa_features}")
         processed_msa_data = processed_msa_data.merge(msa_features, right_on=["msa_path"], left_on=["msa_path"])
 
@@ -285,11 +301,20 @@ def main():
     log_file_path = os.path.join(args.curr_job_folder, "features.log")
     logging.basicConfig(filename=log_file_path, level=logging.INFO)
     curr_job_raw_data = pd.read_csv(args.curr_job_raw_path, sep=CSV_SEP)
-    raw_data_with_features = enrich_raw_data(curr_run_directory=args.existing_msas_folder, raw_data=curr_job_raw_data,
-                                                     cpus_per_job=args.cpus_per_job,
-                                                     perform_topology_tests=args.perform_topology_tests, args = args)
+    if os.path.exists(args.external_best_tree_file):
+        external_best_tree_data = pd.read_csv(args.external_best_tree_file)
+        external_best_tree_data['msa_name'] = external_best_tree_data['msa_local_path'].apply(
+            lambda x: os.path.basename(x))
+        curr_job_raw_data['msa_name'] = curr_job_raw_data['msa_name'].apply(lambda x: os.path.basename(x))
 
-    #raw_data_with_features = pd.DataFrame()
+        if args.proram == 'RAxML':
+            external_best_tree_data['external_best_ll'] = raxml_optimize_trees_for_given_msa()
+
+    raw_data_with_features = enrich_raw_data(curr_run_directory=args.existing_msas_folder, raw_data=curr_job_raw_data,
+                                             cpus_per_job=args.cpus_per_job,
+                                             perform_topology_tests=args.perform_topology_tests, args=args)
+
+    # raw_data_with_features = pd.DataFrame()
     logging.info(f'Writing enriched data to {args.features_output_path}')
     raw_data_with_features.to_csv(args.features_output_path, sep=CSV_SEP)
 

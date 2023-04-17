@@ -6,10 +6,9 @@ if platform == "linux" or platform == "linux2":
 else:
     LOCAL_RUN = True
 
-MODULE_LOAD_STR = "source /groups/itay_mayrose/lab_python/anaconda3/etc/profile.d/conda.sh; source activate noa_env;  module load gcc/gcc-7.2.0; module load R/3.6.1;"
+MODULE_LOAD_STR = "source /groups/itay_mayrose/lab_python/anaconda3/etc/profile.d/conda.sh; source activate noa_env;  module load gcc/gcc-7.2.0; module load R/3.6.1; module load mafft"
 PBS_FILE_GENERATOR_CODE = "/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py"
-POSSIBLE_PROTEIN_LETTERS = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T',
-                            'W', 'Y', 'V']
+
 SEED = 5
 BASELINE = "X"
 CURR_RUN_PREFIX = "pandit_tuning"
@@ -43,6 +42,7 @@ MSAs_POOL_SIZE = 1000
 
 if not LOCAL_RUN:
     IQTREE_EXE = "/groups/pupko/noaeker/programs/tree_search_programs/iqtree/bin/iqtree"
+    IQTREE_SIM_PATH  = "/groups/pupko/noaeker/programs/other_programs/iqtree2"
     RAXML_NG_EXE = "/groups/pupko/noaeker/programs/tree_search_programs/raxml-ng/raxml-ng"
     MAD_COMMAND_PREFIX = "/groups/pupko/noaeker/programs/other_programs/mad"
     RESULTS_FOLDER = "/groups/pupko/noaeker/RAxML_params_tuning_results"
@@ -60,6 +60,7 @@ if not LOCAL_RUN:
 
 elif LOCAL_RUN:
     IQTREE_EXE = "/Users/noa/Programs/iqtree-2.1.3-MacOSX/bin/iqtree2"
+    IQTREE_SIM_PATH = "/Users/noa/Programs/iqtree-2.2.0-beta-MacOSX/bin/iqtree2"
     RAXML_NG_EXE = "/Users/noa/Programs/Raxml/raxml-ng"
     RAXML_HPC_EXE = "/Users/noa/Programs/standard-RAxML/raxmlHPC-PTHREADS "
     MAD_COMMAND_PREFIX = "/Users/noa/Programs/mad.osx"

@@ -54,7 +54,7 @@ def get_n_unique_tree_objects(msa_path, curr_run_directory, msa_stats, tree_type
 
 
 def generate_tree_type_raxml_runs(msa_path, n_tree_objects_per_msa, msa_type, tree_type, curr_run_directory,
-                                  grid_points, seed):
+                                  grid_points, seed, mul = 2):
     '''
 
     :param msa_path:
@@ -67,7 +67,7 @@ def generate_tree_type_raxml_runs(msa_path, n_tree_objects_per_msa, msa_type, tr
     :return: Default and grid points
     '''
     runs = []
-    n = n_tree_objects_per_msa * 4 if tree_type == "pars" else n_tree_objects_per_msa
+    n = n_tree_objects_per_msa * mul if tree_type == "pars" else n_tree_objects_per_msa
     trees_path = generate_n_unique_tree_topologies_as_starting_trees(n,
                                                                      msa_path, curr_run_directory,
                                                                      seed, tree_type, msa_type)
@@ -86,7 +86,7 @@ def generate_tree_type_raxml_runs(msa_path, n_tree_objects_per_msa, msa_type, tr
 
 def generate_all_raxml_runs_per_msa(msa_paths, spr_radius_grid_str, spr_cutoff_grid_str,
                                     n_parsimony_tree_objects_per_msa,
-                                    n_random_tree_objects_per_msa, curr_run_directory, seed, msa_type):
+                                    n_random_tree_objects_per_msa, curr_run_directory, seed, msa_type, mul):
 
     runs = {}
     param_grid_str = {"spr_radius": spr_radius_grid_str, "spr_cutoff": spr_cutoff_grid_str}

@@ -78,7 +78,8 @@ def main():
     dfs_in_folder = [pd.read_csv(f, sep=CSV_SEP) for f in csv_files_in_folder]
     logging.info(f"Combining CSV files: {csv_files_in_folder}")
     raw_data = pd.concat(dfs_in_folder, sort=False)
-    counts = raw_data['msa_path'].value_counts()
+
+    #counts = raw_data['msa_path'].value_counts()
     #idx = counts[counts < args.min_n_observations].index
     #raw_data = raw_data[~raw_data['msa_path'].isin(idx)]
 

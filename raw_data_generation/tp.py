@@ -330,7 +330,7 @@ def main():
                                                         spr_cutoff_grid_str=args.spr_cutoff_grid,
                                                         n_parsimony_tree_objects_per_msa=args.n_raxml_parsimony_trees,
                                                         n_random_tree_objects_per_msa=args.n_raxml_random_trees,
-                                                        curr_run_directory=trees_run_directory, seed=SEED, msa_type = args.msa_type)
+                                                        curr_run_directory=trees_run_directory, seed=SEED, msa_type = args.msa_type, mul = args.mul)
 
         logging.info(f"Generating tasks belonging to {args.n_MSAs_per_bunch} MSAs ")
         # Perform pipeline on current MSA, making sure that all tasks in current_tasks_pool are performed.

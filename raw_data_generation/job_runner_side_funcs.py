@@ -46,6 +46,7 @@ def main_parser():
     parser.add_argument('--fake_run', type = bool, default= False)
     parser.add_argument('--no_test', action='store_true', default= True)
     parser.add_argument('--program', type=str, default= 'IQTREE')
+    parser.add_argument('--mul',type=int, default=2)
     return parser
 
 
