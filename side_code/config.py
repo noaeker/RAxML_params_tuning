@@ -57,7 +57,8 @@ if not LOCAL_RUN:
     TMP_RESULTS_FOLDER = f"{RESULTS_FOLDER}/single_gene_MSAs"
     CSV_MSAs_FOLDER = "/groups/pupko/noaeker/data/ABC_DR"
     READY_RAW_DATA = f"{RESULTS_FOLDER}/global_shared_results_c_30_70"
-    MSAs_folder = "/Users/noa/Workspace/data/New_MSAs"
+    MSAs_folder = 'groups/pupko/noaeker/data/New_MSAs'
+
 
 elif LOCAL_RUN:
     IQTREE_EXE = "/Users/noa/Programs/iqtree-2.1.3-MacOSX/bin/iqtree2"
@@ -79,4 +80,4 @@ elif LOCAL_RUN:
     GROUPS_FEATURE_EXTRACTION_CODE = f"{PROJECT_ROOT_DIRECRTORY}/groups_paper_ML_code/groups_data_generation.py"
     TMP_RESULTS_FOLDER =  f"{RESULTS_FOLDER}/single_gene_MSAs"
     CSV_MSAs_FOLDER = "/Users/noa/Workspace/data/ABC_DR"
-    MSAs_folder = 'groups/pupko/noaeker/data/New_MSAs'
+    MSAs_folder = "/Users/noa/Workspace/data/New_MSAs"
