@@ -12,7 +12,7 @@ import datetime
 class GENERAL_IQTREE_ERROR(Exception):
     pass
 
-def extract_param_from_raxmlNG_log(iqtree_log_path, param_name, raise_error=True):
+def extract_param_from_IQTREE_log(iqtree_log_path, param_name, raise_error=True):
     with open(iqtree_log_path) as iqtree_log_file:
         logging.debug(f"Opened succesfully file {iqtree_log_path}")
         data = iqtree_log_file.read()
@@ -38,14 +38,16 @@ def extract_param_from_raxmlNG_log(iqtree_log_path, param_name, raise_error=True
 def iqtree_search(curr_run_directory, msa_path, msa_type,prefix,  starting_tree_path):
 
     starting_trees_command = f"-t {starting_tree_path}"
+    if LOCAL_RUN:
+        starting_trees_command+=" -n 0 "
     search_prefix = os.path.join(curr_run_directory, prefix)
     model = "GTR+G" if msa_type == "DNA" else "WAG+G"
     search_command = f"{IQTREE_EXE} -s {msa_path} -nt 1 -m {model} {starting_trees_command} -seed {SEED} -pre {search_prefix} -redo "
     iqtree_general_log_file = search_prefix + ".log"
     iqtree_log_file = search_prefix + ".iqtree"
     execute_command_and_write_to_log(search_command, print_to_log=True)
-    best_ll = extract_param_from_raxmlNG_log(iqtree_log_file, 'll')
-    starting_tree_ll = extract_param_from_raxmlNG_log(iqtree_general_log_file, 'starting_tree_ll')
+    best_ll = extract_param_from_IQTREE_log(iqtree_log_file, 'll')
+    starting_tree_ll = extract_param_from_IQTREE_log(iqtree_general_log_file, 'starting_tree_ll')
     best_tree_topology_path = search_prefix + ".treefile"
     res = {'spr_radius': -1, 'spr_cutoff': -1, 'final_ll': best_ll,
            'starting_tree_ll': starting_tree_ll,
@@ -53,3 +55,22 @@ def iqtree_search(curr_run_directory, msa_path, msa_type,prefix,  starting_tree_
            'final_tree_topology': get_tree_string(best_tree_topology_path)}
     print(res)
     return res
+
+
+
+
+
+def iqtree_ll_eval(curr_run_directory, msa_path, msa_type,prefix,  starting_tree_path):
+
+    starting_trees_command = f"-t {starting_tree_path}"
+    search_prefix = os.path.join(curr_run_directory, prefix)
+    model = "GTR+G" if msa_type == "DNA" else "WAG+G"
+    search_command = f"{IQTREE_EXE} -s {msa_path} -nt 1 -n 0 -blfix -m {model} {starting_trees_command} -seed {SEED} -pre {search_prefix} -redo "
+    iqtree_log_file = search_prefix + ".iqtree"
+    execute_command_and_write_to_log(search_command, print_to_log=True)
+    best_ll = extract_param_from_IQTREE_log(iqtree_log_file, 'll')
+    return best_ll
+
+
+
+

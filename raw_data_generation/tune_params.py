@@ -59,7 +59,7 @@ def tree_search_run_on_test_msa(args, tmp_starting_tree_path, program):
     os.mkdir(test_msa_folder)
     test_raxml_run = generate_test_msa_raxml_run(args.test_msa, test_msa_folder, seed=SEED, msa_type = args.test_msa_type)
     with open(tmp_starting_tree_path, 'w') as TMP_STARTING_TREE_PATH:
-        TMP_STARTING_TREE_PATH.write(test_raxml_run.starting_tree_object.write(format=1))
+        TMP_STARTING_TREE_PATH.write(test_raxml_run.starting_tree_str)
     total_test_time = 0
     for i in range(args.n_iters_test):
         logging.debug(f"iter {i} of test")
@@ -115,7 +115,7 @@ def main():
             logging.info(f"Performing task number {i + 1}/{len(MSA_tasks)}, time = {time.strftime('%m/%d/%Y, %H:%M:%S', time.localtime())}")
             raxml_run = MSA_tasks[task_key]
             with open(tmp_starting_tree_path, 'w') as TMP_STARTING_TREE_PATH:
-                TMP_STARTING_TREE_PATH.write(raxml_run.starting_tree_object.write(format=1))
+                TMP_STARTING_TREE_PATH.write(raxml_run.starting_tree_str)
 
             results = single_tree_run(args.curr_job_folder, raxml_run, tmp_starting_tree_path, program = args.program)
             results["test_norm_const"] = total_test_time

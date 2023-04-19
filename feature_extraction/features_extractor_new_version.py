@@ -192,8 +192,8 @@ def tree_features_pipeline(msa_path, curr_run_directory, msa_raw_data, existing_
     return tree_features
 
 
-def process_all_msa_runs(curr_run_directory,msa_path, processed_dataset_path, msa_data, cpus_per_job, msa_type,
-                         perform_topology_tests=False, program = 'RAxML'):
+def process_all_msa_runs(curr_run_directory,msa_path,processed_dataset_path, msa_data, cpus_per_job, msa_type, program,
+                         perform_topology_tests=False, simulated= False):
     '''
 
     :param curr_run_directory:
@@ -204,26 +204,18 @@ def process_all_msa_runs(curr_run_directory,msa_path, processed_dataset_path, ms
         logging.info("## Using existing data features for this MSA")
         msa_data = pickle.load(open(processed_dataset_path, "rb"))
     else:
-
-        all_external_trees_path = os.path.join(curr_run_directory, 'all_external_final_trees')
-        unify_text_files(msa_data['tree_str'], all_external_trees_path, str_given=True)
-        tmp_folder = os.path.join(curr_run_directory, 'tmp_ll_dir')
-        if program=='RAxML':
-            optimized_tree_object_ll, optimized_tree_object_alpha, optimized_trees_file = raxml_optimize_trees_for_given_msa(
-                get_local_path(msa_path), "trees_eval", all_external_trees_path,
-                tmp_folder, msa_type, opt_brlen=True)
-        else:
-                optimized_tree_object_ll, optimized_tree_object_alpha, optimized_trees_file = raxml_optimize_trees_for_given_msa(
-                    get_local_path(msa_path), "trees_eval", all_external_trees_path,
-                    tmp_folder, msa_type, opt_brlen=True)
-
-
-
         logging.info("## Calculating features from beggining for this MSA")
-        best_msa_ll = max(msa_data["final_ll"])
+
+        if simulated:
+            if program=='RAxML':
+                best_msa_ll = max(msa_data["raxml_tree_ll"])
+            else:
+                best_msa_ll = max(msa_data["iqtree_tree_ll"])
+            best_msa_tree_topology = max(msa_data["tree_str"])
+        else:
+            best_msa_ll = max(msa_data["final_ll"])
+            best_msa_tree_topology = max(msa_data[msa_data["final_ll"] == best_msa_ll]['final_tree_topology'])
         msa_data["best_msa_ll"] = best_msa_ll
-        best_msa_tree_topology = max(msa_data[msa_data["final_ll"] == best_msa_ll]['final_tree_topology'])
-        msa_path = max(msa_data[msa_data["final_ll"] == best_msa_ll]['msa_path'])
         msa_data["rf_from_overall_msa_best_topology"] = msa_data["final_tree_topology"].apply(
             lambda x: rf_distance(curr_run_directory, x, best_msa_tree_topology, name="MSA_enrichment_RF_calculations"))
         msa_data = msa_data.sort_values(["starting_tree_type", "starting_tree_ind", "spr_radius", "spr_cutoff"])
@@ -270,7 +262,7 @@ def enrich_raw_data(curr_run_directory, raw_data, cpus_per_job, perform_topology
         msa_final_dataset_path = os.path.join(msa_folder, "final_dataset")
         processed_dataset_path = os.path.join(msa_folder, "processed_dataset")
         processed_msa_data = process_all_msa_runs(msa_folder,msa_path, processed_dataset_path, msa_data, cpus_per_job, msa_type,
-                                                  perform_topology_tests=perform_topology_tests)
+                                                  perform_topology_tests=perform_topology_tests, program = args.program, simulated= args.simulated)
         if not len(processed_msa_data.index) > 0:
             logging.info("no data to process")
             continue
@@ -302,13 +294,12 @@ def main():
     logging.basicConfig(filename=log_file_path, level=logging.INFO)
     curr_job_raw_data = pd.read_csv(args.curr_job_raw_path, sep=CSV_SEP)
     if os.path.exists(args.external_best_tree_file):
-        external_best_tree_data = pd.read_csv(args.external_best_tree_file)
+        external_best_tree_data = pd.read_csv(args.external_best_tree_file, sep='\t')
         external_best_tree_data['msa_name'] = external_best_tree_data['msa_local_path'].apply(
             lambda x: os.path.basename(x))
-        curr_job_raw_data['msa_name'] = curr_job_raw_data['msa_name'].apply(lambda x: os.path.basename(x))
-
-        if args.proram == 'RAxML':
-            external_best_tree_data['external_best_ll'] = raxml_optimize_trees_for_given_msa()
+        logging.info("Merging external ll information to raw data")
+        curr_job_raw_data['msa_name'] = curr_job_raw_data['msa_path'].apply(lambda x: os.path.basename(x))
+        curr_job_raw_data = curr_job_raw_data.merge(external_best_tree_data, on = 'msa_name')
 
     raw_data_with_features = enrich_raw_data(curr_run_directory=args.existing_msas_folder, raw_data=curr_job_raw_data,
                                              cpus_per_job=args.cpus_per_job,

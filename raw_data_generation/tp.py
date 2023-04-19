@@ -293,7 +293,12 @@ def main():
 
     csv_files_in_folder = [os.path.join(args.old_msas_folder, f) for f in
                            os.listdir(args.old_msas_folder) if f.endswith(CSV_SUFFIX)]
-    dfs_in_folder = [pd.read_csv(f, sep=CSV_SEP) for f in csv_files_in_folder]
+    dfs_in_folder = []
+    for f in csv_files_in_folder:
+        try:
+            dfs_in_folder.append(pd.read_csv(f, sep=CSV_SEP))
+        except:
+            pass
     logging.info(f"Combining CSV files: {csv_files_in_folder}")
     if len(dfs_in_folder)>0:
         existing_msas = pd.concat(dfs_in_folder, sort=False)["msa_path"].unique()

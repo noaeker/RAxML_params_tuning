@@ -75,7 +75,12 @@ def main():
     logging.basicConfig(filename=log_file_path, level=logging.DEBUG)
     csv_files_in_folder = [os.path.join(args.raw_data_folder, f) for f in
                            os.listdir(args.raw_data_folder) if f.endswith(CSV_SUFFIX)]
-    dfs_in_folder = [pd.read_csv(f, sep=CSV_SEP) for f in csv_files_in_folder]
+    dfs_in_folder = []
+    for f in csv_files_in_folder:
+        try:
+            dfs_in_folder.append(pd.read_csv(f, sep=CSV_SEP))
+        except:
+            pass
     logging.info(f"Combining CSV files: {csv_files_in_folder}")
     raw_data = pd.concat(dfs_in_folder, sort=False)
 

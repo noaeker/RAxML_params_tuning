@@ -20,7 +20,9 @@ def features_main_parser():
     parser.add_argument('--perform_topology_tests', action='store_true', default=False)
     parser.add_argument('--msa_type', default='AA')
     parser.add_argument('--spr_iters',type=int, default=30)
-    parser.add_argument('--external_best_tree_file', type='str', default= "")
+    parser.add_argument('--external_best_tree_file', type=str, default= "") #/Users/noa/Workspace/data/New_MSAs/simulated_MSAs_GTR.tsv
+    parser.add_argument('--program', type=str, default= 'RAxML')
+    parser.add_argument('--simulated', action = 'store_true', default = False)
     return parser
 
 

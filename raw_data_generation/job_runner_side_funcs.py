@@ -40,7 +40,7 @@ def main_parser():
     parser.add_argument('--waiting_time_between_job_submissions', type=int, default=4)
     parser.add_argument('--msa_type', default = 'DNA',type=str)
     parser.add_argument('--old_msas_folder', type=str, default = "/Users/noa/Workspace/raxml_deep_learning_results/all_final_csvs_results")
-    parser.add_argument('--remove_existing_msas',type = bool, default= False)
+    parser.add_argument('--remove_existing_msas',action='store_true', default= True)
     parser.add_argument('--test_msa_type', default = 'AA')
     parser.add_argument('--time_between_tests',type=int, default=0)
     parser.add_argument('--fake_run', type = bool, default= False)

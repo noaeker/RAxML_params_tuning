@@ -14,9 +14,9 @@ class single_tree_search_run:
     '''
     Class that represents a single run of RAxML
     '''
-    def __init__(self, msa_path, starting_tree_object, starting_tree_type, starting_tree_ind, params_config, type, msa_type):
+    def __init__(self, msa_path, starting_tree_str, starting_tree_type, starting_tree_ind, params_config, type, msa_type):
         self.msa_path = msa_path
-        self.starting_tree_object = starting_tree_object
+        self.starting_tree_str = starting_tree_str
         self.starting_tree_type = starting_tree_type
         self.starting_tree_ind = starting_tree_ind
         self.params_config = params_config
@@ -29,7 +29,7 @@ class single_tree_search_run:
 
     def transform_to_dict(self):
         raxml_run_results = {"msa_path": self.msa_path,
-                            "starting_tree_object": self.starting_tree_object.write(format=1),
+                            "starting_tree_object": self.starting_tree_str,
                             "starting_tree_type":self.starting_tree_type,
                             "starting_tree_ind": self.starting_tree_ind,
                             "type": self.type,
@@ -74,12 +74,12 @@ def generate_tree_type_raxml_runs(msa_path, n_tree_objects_per_msa, msa_type, tr
     tree_objects = generate_multiple_tree_object_from_newick_file(trees_path)[
                    :n_tree_objects_per_msa]
     for starting_tree_ind,tree_object in enumerate(tree_objects):
-        runs.append(single_tree_search_run(msa_path=msa_path, starting_tree_object=tree_object,
+        runs.append(single_tree_search_run(msa_path=msa_path, starting_tree_str=tree_object.write(format=1),
                                            starting_tree_type=tree_type, starting_tree_ind = starting_tree_ind, params_config={}, type="default", msa_type = msa_type)) #Add default_run
 
         if grid_points!=-1:
             for params_config in grid_points:
-                runs.append(single_tree_search_run(msa_path=msa_path, starting_tree_object=tree_object,
+                runs.append(single_tree_search_run(msa_path=msa_path, starting_tree_str=tree_object.write(format=1),
                                                    starting_tree_type=tree_type, starting_tree_ind = starting_tree_ind, params_config=params_config, type="non-default", msa_type= msa_type))
     return runs
 
