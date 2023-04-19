@@ -57,7 +57,7 @@ if not LOCAL_RUN:
     TMP_RESULTS_FOLDER = f"{RESULTS_FOLDER}/single_gene_MSAs"
     CSV_MSAs_FOLDER = "/groups/pupko/noaeker/data/ABC_DR"
     READY_RAW_DATA = f"{RESULTS_FOLDER}/global_shared_results_c_30_70"
-    MSAs_folder = 'groups/pupko/noaeker/data/New_MSAs'
+    MSAs_folder = '/groups/pupko/noaeker/data/New_MSAs'
 
 
 elif LOCAL_RUN:

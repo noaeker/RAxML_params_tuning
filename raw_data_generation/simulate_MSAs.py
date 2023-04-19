@@ -92,15 +92,15 @@ def simulate_MSAs(curr_run_directory, trees_folder, model, df, csv_path):
 
 
 def main():
-    wag_trees_folder = f"{MSAs_folder}/out_WAG"
-    create_dir_if_not_exists(wag_trees_folder)
+    #wag_trees_folder = f"{MSAs_folder}/out_WAG"
+    #create_dir_if_not_exists(wag_trees_folder)
     gtr_trees_folder = f"{MSAs_folder}/out_GTR"
     create_dir_if_not_exists(gtr_trees_folder)
 
-    cmd = f'/Users/noa/Workspace/RAxMLGroveScripts/org_script.py -o {gtr_trees_folder} find -q  '+'"NUM_TAXA > 400 and NUM_TAXA<1000'+" and MODEL = 'GTR'"+'"'
-    print(cmd)
-    cmd = f'/Users/noa/Workspace/RAxMLGroveScripts/org_script.py -o {wag_trees_folder} find -q  ' + '"NUM_TAXA > 400 and NUM_TAXA<1000' + " and MODEL = 'WAG'" + '"'
-    print(cmd)
+    #cmd = f'/Users/noa/Workspace/RAxMLGroveScripts/org_script.py -o {gtr_trees_folder} find -q  '+'"NUM_TAXA > 400 and NUM_TAXA<1000'+" and MODEL = 'GTR'"+'"'
+    #print(cmd)
+    #cmd = f'/Users/noa/Workspace/RAxMLGroveScripts/org_script.py -o {wag_trees_folder} find -q  ' + '"NUM_TAXA > 400 and NUM_TAXA<1000' + " and MODEL = 'WAG'" + '"'
+    #print(cmd)
     #parser = argparse.ArgumentParser()
     #parser.add_argument('--wag_folder', action='store', type=str, default= "/Users/noa/Workspace/data/New_MSAs/out_WAG")
     #args = parser.parse_args()
