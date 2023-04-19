@@ -107,7 +107,7 @@ def main():
     #df_wag = simulate_MSAs(MSAs_folder, trees_folder= wag_trees_folder, model = 'WAG+G')
     csv_path = os.path.join(MSAs_folder, "simulated_MSAs_GTR.tsv")
     if os.path.exists(csv_path):
-        df_gtr = pd.read_csv(csv_path, sep="#")
+        df_gtr = pd.read_csv(csv_path, sep='\t')
     else:
         df_gtr = pd.DataFrame()
     simulate_MSAs(MSAs_folder, trees_folder=gtr_trees_folder, model='GTR+G', df = df_gtr, csv_path = csv_path)

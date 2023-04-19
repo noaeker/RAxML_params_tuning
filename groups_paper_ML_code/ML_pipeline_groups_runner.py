@@ -149,10 +149,11 @@ def main():
     #results["feature_sbm_sign"] = (results["feature_final_trees_level_distances_embedd_PCA_mean_best_svm_score"]/results["feature_final_trees_level_distances_embedd_PCA__max"])
     #results = results.loc[results.feature_msa_pypythia_msa_difficulty > 0.3]
     logging.info(f"Number of rows in results is {len(results.index)}")
-    if args.additional_validation and os.path.exists(args.additional_validation):
+    if os.path.exists(args.additional_validation):
         additional_validation_data = pd.read_csv(args.additional_validation, sep='\t')
     else:
         additional_validation_data = None
+    if os.path.exists()
 
 
 
