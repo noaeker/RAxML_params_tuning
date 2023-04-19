@@ -92,10 +92,6 @@ def simulate_MSAs(curr_run_directory, trees_folder, model, df, csv_path):
 
 
 def main():
-    if LOCAL_RUN:
-        MSAs_folder = '/Users/noa/Workspace/data/New_MSAs'
-    else:
-        MSAs_folder = 'groups/pupko/noaeker/data/New_MSAs'
     wag_trees_folder = f"{MSAs_folder}/out_WAG"
     create_dir_if_not_exists(wag_trees_folder)
     gtr_trees_folder = f"{MSAs_folder}/out_GTR"
@@ -114,7 +110,7 @@ def main():
         df_gtr = pd.read_csv(csv_path, sep="#")
     else:
         df_gtr = pd.DataFrame()
-    df_gtr = simulate_MSAs(MSAs_folder, trees_folder=gtr_trees_folder, model='GTR+G', df = df_gtr, csv_path = csv_path)
+    simulate_MSAs(MSAs_folder, trees_folder=gtr_trees_folder, model='GTR+G', df = df_gtr, csv_path = csv_path)
     #df = pd.concat([df_wag,df_gtr])
 
     pass
