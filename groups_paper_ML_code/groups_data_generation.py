@@ -125,19 +125,19 @@ def single_iteration(i,curr_run_dir, n_sample_points,seed, n_pars, n_rand, n_sum
         feature_general_max_ll_std=('normalized_final_ll', np.max)
     ).reset_index()
 
-    # ll_values = np.array(sampled_data["normalized_final_ll"])
-    # non_best_ll_values = ll_values[sampled_data["is_best_tree"]==False]
-    # best_ll_values = ll_values[sampled_data["is_best_tree"]==True]
-    # if len(non_best_ll_values)>0 and len(best_ll_values)>0:
-    #     kde = KernelDensity(kernel='gaussian', bandwidth=1).fit(non_best_ll_values.reshape(-1,1))
-    #     #best_ll_density = ll_density[best]
-    #
-    #     ll_density = np.max(kde.score_samples(best_ll_values.reshape(-1,1)))
-    # else:
-    #     ll_density = None
-    # curr_iter_general_metrics["feature_ll_density_mean"] = ll_density
+    ll_values = np.array(sampled_data["normalized_final_ll"])
+    non_best_ll_values = ll_values[sampled_data["is_best_tree"]==False]
+    best_ll_values = ll_values[sampled_data["is_best_tree"]==True]
+    if len(non_best_ll_values)>0 and len(best_ll_values)>0:
+        kde = KernelDensity(kernel='gaussian', bandwidth=1).fit(non_best_ll_values.reshape(-1,1))
+        #best_ll_density = ll_density[best]
 
-    #print(f"ll density = {ll_density}")
+        ll_density = np.min(kde.score_samples(best_ll_values.reshape(-1,1)))
+    else:
+        ll_density = None
+    curr_iter_general_metrics["feature_ll_density_mean"] = ll_density
+
+    print(f"ll density = {ll_density}")
     curr_iter_general_metrics["feature_pct_diff_topologies"] = curr_iter_general_metrics['feature_general_n_topologies']/n_sum
 
     #curr_iter_general_metrics["default_pct_global_max"] = topologies_found / distinct_true_best_topologies
