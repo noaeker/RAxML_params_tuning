@@ -1,5 +1,5 @@
 
-from ML_utils.ML_algorithms_and_hueristics import ML_model, print_model_statistics,train_test_validation_splits
+from ML_utils.ML_algorithms_and_hueristics import ML_model, print_model_statistics,train_test_validation_splits, model_metrics
 from groups_paper_ML_code.group_side_functions import *
 import os
 import numpy as np
@@ -22,12 +22,23 @@ def write_data_to_csv(curr_run_dir, train, test, X_test, val, X_val, model, name
     val.to_csv(final_csv_path_val, sep='\t')
 
 
-def apply_on_external_validation_data(additional_validation_data, model, train, args, full_features):
+def apply_on_external_validation_data(name,additional_validation_data, model, train, args, full_features):
     additional_validation_data_X = additional_validation_data[[col for col in train.columns if col in full_features]]
     additional_validation_data["calibrated_prob"] = model['calibrated_model'].predict_proba(
         (model['selector']).transform(additional_validation_data_X))[:, 1]
+
+    y_prob_predicted = model['best_model'].predict_proba(
+        (model['selector']).transform(additional_validation_data_X))[:, 1]
+    y_predicted = model['best_model'].predict((model['selector']).transform(additional_validation_data_X))
+    y_true = additional_validation_data["default_status"]
+
     logging.info(f"Wrote results to {args.additional_validation}")
-    additional_validation_data.to_csv(args.additional_validation, sep='\t')
+
+    metrics = model_metrics(y_true, y_predicted, y_prob_predicted, group_metrics_path = None, sampling_frac =1,
+                  is_classification=True,
+                  groups_data=None)
+    logging.info(f"{name} model metrics:\n{metrics}")
+
 
 
 def get_full_and_MSA_features(results):
@@ -51,22 +62,11 @@ def get_full_and_MSA_features(results):
 def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_output_tree_features, additional_validation_data):
     name = f'M_frac_{sample_frac}_RFE_{RFE}_large_grid_{large_grid}_out_features_{include_output_tree_features}'
 
-
-
-    #results["feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score"] = results["feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score"].fillna(1)
-    #results["feature_final_trees_level_distances_RF_corr_rf_from_best_trees_to_final_trees"] = results["feature_final_trees_level_distances_RF_corr_rf_from_best_trees_to_final_trees"].fillna(-1)
-    #results["feature_final_trees_level_distances_embedd_PCA3_var_explained"] = results[
     #    "feature_final_trees_level_distances_embedd_PCA3_var_explained"].fillna(1)
     if args.model=='rf' or args.model=='sgd' or args.model=='logistic': #Removing NA values
         results['feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score'] = results['feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score'].fillna(1)
         results = results.fillna(-1)
         results.replace([np.inf, -np.inf], -1, inplace=True)
-
-
-
-    #results = results[[col for col in results.columns if 'embedding_new' not in col]]
-    #results["feature_final_trees_level_distances_embedd_PCA_not_scaled_distances_min_log_transformed"] = np.log(results["feature_final_trees_level_distances_embedd_PCA_not_scaled_distances_min"])
-    #results["feature_3_vs_5"] = results["feature_final_trees_level_new__PCA_2_bic3"]/results["feature_final_trees_level_new__PCA_2_bic2"]
     train, test, val = train_test_validation_splits(results, test_pct=0.3, val_pct=0, msa_col_name='msa_path',subsample_train=True, subsample_train_frac= sample_frac)
 
     full_features, MSA_level_features = get_full_and_MSA_features(results)
@@ -101,8 +101,8 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
                            metrics_path=metrics_path,
                            group_metrics_path=group_metrics_path, name=name, sampling_frac=sample_frac, test_MSAs=test["msa_path"],
                            feature_importance=True)
-    if   additional_validation_data :
-        apply_on_external_validation_data(additional_validation_data, model, train, args, full_features)
+    for val_df_name in additional_validation_data :
+        apply_on_external_validation_data(val_df_name, additional_validation_data[val_df_name], model, train, args, full_features)
 
 
     if sample_frac==1 or sample_frac==-1:

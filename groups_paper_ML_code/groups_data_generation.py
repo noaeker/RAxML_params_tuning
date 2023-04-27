@@ -10,9 +10,8 @@ from scipy.stats import skew, kurtosis
 import random
 from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, add_csvs_content
 from groups_paper_ML_code.group_side_functions import *
-import pandas as pd
-import os
-import numpy as np
+from sklearn.neighbors import KernelDensity
+from feature_extraction.feature_extraction_basic import *
 
 
 
@@ -52,7 +51,7 @@ def get_sampled_data(n_pars, n_rand, n_sum, i, n_sample_points, msa_data, seed,p
 
 
 
-def enrich_iteration_with_extra_metrics(curr_run_dir, msa_features, sampled_data, True_global_max_data, curr_iter_general_metrics):
+def enrich_iteration_with_extra_metrics(curr_run_dir, sampled_data, True_global_max_data, curr_iter_general_metrics):
     final_trees_RF_distance_metrics = pd.DataFrame([generate_RF_distance_matrix_statistics_final_trees(curr_run_dir,
                                                                                                        list(
                                                                                                            sampled_data[
@@ -69,8 +68,8 @@ def enrich_iteration_with_extra_metrics(curr_run_dir, msa_features, sampled_data
         prefix="feature_final_trees_level_distances_embedd", tree_clusters=(sampled_data["tree_clusters_ind"]),
         True_global_trees=True_global_max_data["final_tree_topology"],
         True_global_tree_clusters=True_global_max_data["tree_clusters_ind"],
+        True_global_ll_values = True_global_max_data["final_ll"],
         final_trees_ll=sampled_data["final_ll"])])
-    msa_features_df = pd.DataFrame([msa_features])
     try:
         log_likelihood_diff_metrics = pd.DataFrame([get_summary_statistics_dict(
             values=[np.array(sampled_data["log_likelihood_diff"])[list(sampled_data["is_best_tree"] == False)]],
@@ -78,11 +77,11 @@ def enrich_iteration_with_extra_metrics(curr_run_dir, msa_features, sampled_data
     except:
         log_likelihood_diff_metrics = pd.DataFrame()
     curr_iter_general_metrics = pd.concat(
-        [curr_iter_general_metrics, final_trees_RF_distance_metrics, final_tree_embedding_metrics, msa_features_df,
+        [curr_iter_general_metrics, final_trees_RF_distance_metrics, final_tree_embedding_metrics,
          log_likelihood_diff_metrics], axis=1)  # pars_run_metrics,rand_run_metrics # Adding all features together
     return curr_iter_general_metrics
 
-def single_iteration(i,curr_run_dir, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, msa_data,overall_best_msa_data,msa_features,distinct_true_best_topologies):
+def single_iteration(i,curr_run_dir, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, msa_data,overall_best_msa_data):
     print(i)
     random.seed(seed)
     print(f"seed in iteration i={seed}")
@@ -125,7 +124,23 @@ def single_iteration(i,curr_run_dir, n_sample_points,seed, n_pars, n_rand, n_sum
         feature_general_final_ll_skew=('final_ll', skew),
         feature_general_max_ll_std=('normalized_final_ll', np.max)
     ).reset_index()
-    curr_iter_general_metrics["default_pct_global_max"] = topologies_found / distinct_true_best_topologies
+
+    # ll_values = np.array(sampled_data["normalized_final_ll"])
+    # non_best_ll_values = ll_values[sampled_data["is_best_tree"]==False]
+    # best_ll_values = ll_values[sampled_data["is_best_tree"]==True]
+    # if len(non_best_ll_values)>0 and len(best_ll_values)>0:
+    #     kde = KernelDensity(kernel='gaussian', bandwidth=1).fit(non_best_ll_values.reshape(-1,1))
+    #     #best_ll_density = ll_density[best]
+    #
+    #     ll_density = np.max(kde.score_samples(best_ll_values.reshape(-1,1)))
+    # else:
+    #     ll_density = None
+    # curr_iter_general_metrics["feature_ll_density_mean"] = ll_density
+
+    #print(f"ll density = {ll_density}")
+    curr_iter_general_metrics["feature_pct_diff_topologies"] = curr_iter_general_metrics['feature_general_n_topologies']/n_sum
+
+    #curr_iter_general_metrics["default_pct_global_max"] = topologies_found / distinct_true_best_topologies
     #print(curr_iter_general_metrics["default_pct_global_max"])
     print(f'default_status={curr_iter_general_metrics["default_status"]}')
     curr_iter_general_metrics["feature_general_n_topologies_best_final_trees"] = pd.Series.nunique(
@@ -136,16 +151,23 @@ def single_iteration(i,curr_run_dir, n_sample_points,seed, n_pars, n_rand, n_sum
     curr_iter_general_metrics["n_rand_trees_sampled"] = n_rand_sample
     curr_iter_general_metrics["n_total_trees_sampled"] = n_sum
     curr_iter_general_metrics["frac_pars_trees_sampled"] = curr_iter_general_metrics["n_pars_trees_sampled"] / n_sum
-    curr_iter_general_metrics = enrich_iteration_with_extra_metrics(curr_run_dir, msa_features, sampled_data, True_global_max_data, curr_iter_general_metrics)
+    curr_iter_general_metrics = enrich_iteration_with_extra_metrics(curr_run_dir,sampled_data, True_global_max_data, curr_iter_general_metrics)
 
     all_sampling_results = pd.concat(
         [all_sampling_results, curr_iter_general_metrics])  # default_results.append(general_run_metrics)
     return all_sampling_results
 
-def MSA_pipeline(msa_path,i,data, curr_run_dir, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features ):
+def MSA_pipeline(msa_path,i,data, curr_run_dir, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, simulated, msa_type, program ):
     logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
-    msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
+    #msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
     msa_data = data.loc[data.msa_path == msa_path].reset_index()  # Filter on MSA data
+
+    logging.info("Enriching MSA data")
+    msa_data = process_all_msa_runs(curr_run_dir,msa_path, msa_data, cpus_per_job = 1, msa_type=msa_type, program=program,
+                         perform_topology_tests=False, simulated= simulated)
+    msa_features = pd.DataFrame.from_dict({msa_path: get_msa_stats(msa_path, msa_type)}, orient= 'index')
+    msa_data = msa_data.merge(msa_features, on = 'msa_path')
+
     ll_best_topologies = msa_data.loc[msa_data["delta_ll_from_overall_msa_best_topology"] <= 0.1][
         "tree_clusters_ind"].unique()
     msa_data["is_global_max"] = (msa_data["tree_clusters_ind"].isin(ll_best_topologies)).astype(
@@ -165,12 +187,12 @@ def MSA_pipeline(msa_path,i,data, curr_run_dir, n_sample_points,seed, n_pars, n_
 
     for i in range(n_sample_points):
         seed = seed+1
-        all_sampling_results = single_iteration(i,curr_run_dir, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, msa_data,overall_best_msa_data,msa_features,distinct_true_best_topologies)
+        all_sampling_results = single_iteration(i,curr_run_dir, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, msa_data,overall_best_msa_data)
     return all_sampling_results, seed
 
 
-def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_sample_points, seed, n_pars, n_rand, n_sum_range = [10, 20], default_data = True,
-                                                          ):
+def get_all_sampling_results(curr_run_dir, data, n_sample_points, seed, n_pars, n_rand, n_sum_range = [10, 20], default_data = True, msa_type = 'AA', simulated = False, program = 'RAxML'
+                             ):
 
     n_sum_limits = [int(n) for n in n_sum_range.split('_')]
     n_sum_range = list(range(n_sum_limits[0], n_sum_limits[1]+1))
@@ -192,7 +214,7 @@ def get_average_results_on_default_configurations_per_msa(curr_run_dir, data, n_
     for i,msa_path in enumerate(data["msa_path"].unique()):
         print(msa_path)
         all_sampling_results, seed = MSA_pipeline(msa_path, i, data, curr_run_dir, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
-                     possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features)
+                     possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program)
     return all_sampling_results
 
 
@@ -212,7 +234,7 @@ def main():
     level = logging.INFO if args.level=='info' else logging.DEBUG
     logging.basicConfig(filename=log_file_path, level=level)
     logging.info("Generating results file")
-    results = get_average_results_on_default_configurations_per_msa(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, default_data= args.filter_on_default_data, n_sum_range= args.n_sum_range)
+    results = get_all_sampling_results(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, default_data= args.filter_on_default_data, n_sum_range= args.n_sum_range, simulated= args.simulated, program = args.program, msa_type= args.msa_type)
     results.to_csv(args.curr_job_group_output_path, sep= '\t')
 
 

@@ -21,6 +21,7 @@ import os
 import numpy as np
 from groups_paper_ML_code.groups_data_generation import generate_RF_distance_matrix
 import time
+from feature_extraction.feature_extraction_basic import *
 import timeit
 from side_code.basic_trees_manipulation import get_distances_between_leaves,generate_tree_object_from_newick
 from sklearn.manifold import MDS
@@ -127,11 +128,10 @@ def main():
     create_dir_if_not_exists(all_jobs_running_folder)
     existing_msas_data_path = os.path.join(curr_run_dir,'MSAs')
     create_dir_if_not_exists(existing_msas_data_path)
-    logging.info(f"Reading all data from {args.file_path}")
-    if LOCAL_RUN:
-        relevant_data = pd.read_csv(args.file_path, sep='\t',nrows= 120000) #,,
-    else:
-        relevant_data = pd.read_csv(args.file_path, sep = '\t')
+    logging.info(f"Reading all data from {args.raw_data_folder}")
+
+
+    relevant_data =  unify_raw_data_csvs(args.raw_data_folder)
     if args.filter_on_default_data:
         logging.info("Filtering on default data")
     if args.filter_on_default_data:
@@ -150,13 +150,11 @@ def main():
     #results = results.loc[results.feature_msa_pypythia_msa_difficulty > 0.3]
     logging.info(f"Number of rows in results is {len(results.index)}")
     if os.path.exists(args.additional_validation):
-        additional_validation_data = pd.read_csv(args.additional_validation, sep='\t')
+        with open(args.additional_validation,'r') as ADDITIONAL_VALIDATION:
+            file_names = ADDITIONAL_VALIDATION.readlines()
+            additional_validation_data = {file.split('\t')[0]:pd.read_csv(file.split('\t')[1],sep='\t') for file in file_names}
     else:
-        additional_validation_data = None
-    if os.path.exists()
-
-
-
+        additional_validation_data = {}
     logging.info(f"Using sample fracs = {args.sample_fracs}")
     logging.info(f"include_output_tree_features = {args.include_output_tree_features}")
     sample_fracs = args.sample_fracs if not LOCAL_RUN else [1]

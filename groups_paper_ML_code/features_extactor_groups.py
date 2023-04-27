@@ -123,51 +123,69 @@ def estimate_entropy(vec):
 
 
 
-def fit_SVC(svc_model,X_transformed,best_tree,name, all_results):
+def fit_SVC(svc_model, X_transformed, best_tree, name, all_results, True_global_data):
     svm = svc_model.fit(X=X_transformed, y=best_tree)
 
 
     best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == True]
-    not_best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == False]
+    #not_best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == False]
+    #print(f"True global data = {True_global_data}")
+    if True_global_data is None:
+        all_best_svm_scores = best_svm_scores
+    else:
+        all_best_svm_scores = np.array(list(best_svm_scores) + list(svm.decision_function((True_global_data))))
 
     svm_results = {
         f'{name}_mean_best_score': np.mean(best_svm_scores),
                    f'{name}_max_best_score': np.max(best_svm_scores),
                    f'{name}_min_best_score': np.mean(best_svm_scores),
                    # f'{name}_mean_best_svm_proba': np.mean(best_svm_proba ),
-                   f'{name}_max_non_best_score': np.max(not_best_svm_scores),
                    # f'{name}_mean_non_best_svm_proba': np.mean(not_best_svm_proba),
+        f'{name}_mean_TRUE_best_score_EXCLUDE': np.mean(all_best_svm_scores),
+        f'{name}_max_TRUE_best_score_EXCLUDE': np.max(all_best_svm_scores),
+        f'{name}_min_TRUE_best_score_EXCLUDE': np.mean(all_best_svm_scores),
+        # f'{name}_mean_best_svm_proba': np.mean(best_svm_proba ),
+        # f'{name}_mean_non_best_svm_proba': np.mean(not_best_svm_proba),
                    }
+
     print(svm_results)
     all_results.update(svm_results)
-    if LOCAL_RUN:
-        plot_svm(svm, X_transformed, best_tree)
+    #if LOCAL_RUN:
+    #     plot_svm(svm, X_transformed, best_tree)
+#
+#
+# def fit_gmm(all_results,X_transformed, best_tree,name):
+#     gmm_not_best = GaussianMixture(n_components=1, random_state=0).fit(X_transformed[np.array(best_tree) == False, :])
+#     mean_overall_ll_best_trees = np.mean(gmm_not_best.score_samples(X_transformed[np.array(best_tree) == False, :]))
+#     print(mean_overall_ll_best_trees)
+#
+#     all_results.update({f'{name}_mean_not_best_trees_gmm_1_ll_score': mean_overall_ll_best_trees})
+#     mean_overall_ll_best_trees = np.mean(gmm_not_best.score_samples(X_transformed[np.array(best_tree) == True, :]))
+#     print(mean_overall_ll_best_trees)
+#     all_results.update({f'{name}_mean_best_trees_gmm_1_ll_score': mean_overall_ll_best_trees})
 
-
-def fit_gmm(all_results,X_transformed, best_tree,name):
-    gmm_not_best = GaussianMixture(n_components=1, random_state=0).fit(X_transformed[np.array(best_tree) == False, :])
-    mean_overall_ll_best_trees = np.mean(gmm_not_best.score_samples(X_transformed[np.array(best_tree) == False, :]))
-    print(mean_overall_ll_best_trees)
-
-    all_results.update({f'{name}_mean_not_best_trees_gmm_1_ll_score': mean_overall_ll_best_trees})
-    mean_overall_ll_best_trees = np.mean(gmm_not_best.score_samples(X_transformed[np.array(best_tree) == True, :]))
-    print(mean_overall_ll_best_trees)
-    all_results.update({f'{name}_mean_best_trees_gmm_1_ll_score': mean_overall_ll_best_trees})
-
-
+#
 def kde_esitmate(X_transformed, best_tree):
 
     kde_x = X_transformed[np.array(best_tree) == False, :]
     kde_best = X_transformed[np.array(best_tree) == True, :]
-    bandwidth = kde_x.shape[0] ** (-1 / (kde_x.shape[1] + 4))
+    bandwidth = 1/(X_transformed.shape[1]*X_transformed.var())
     #print(f"b={bandwidth}")
-    kde = KernelDensity(kernel='gaussian').fit(kde_x) #bandwidth=bandwidth
+    kde = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(kde_x) #bandwidth=bandwidth
     log_density = kde.score_samples(kde_best)
-    return np.mean(log_density)
+    return np.min(log_density)
 
 
 
-def extract_2d_shape_and_plot(X_transformed, best_tree, name, X_transformed_overall_best_tree, tree_clusters_ind, final_ll_score):
+def three_d_plot(xdata, ydata, zdata, best_tree):
+    ax = plt.axes(projection='3d')
+    c=['red' if b else 'blue' for b in best_tree]
+    ax.scatter3D(xdata, ydata, zdata, c=c, cmap='Greens')
+    plt.show()
+
+
+
+def extract_2d_shape_and_plot(X_transformed, best_tree, name, X_transformed_overall_best_tree, tree_clusters_ind, final_ll_score,True_global_ll_values):
 
     all_results = {}
 
@@ -183,29 +201,20 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name, X_transformed_over
 
         #reg =  LinearRegression().fit(X=np.array(list(data['X_transformed'])), y=list(data['final_ll_score']))
         #all_results.update({f'{name}_LIN_reg':reg.score(np.array(list(data['X_transformed'])), list(data['final_ll_score']))})
+
+        #min_kde = kde_esitmate(X_transformed, best_tree)
+        #all_results.update({f"{name}_kde_svc":min_kde})
+        #print(f"min kde = {min_kde}")
         clf = SVR()
         svr  = clf.fit(X=np.array(list(data['X_transformed'])), y=list(data['final_ll_score']))
-        all_results.update({f'{name}_SVR_reg': svr.score(np.array(list(data['X_transformed'])), list(data['final_ll_score']))})
-        print(f'### SVR score ###{svr.score(X_transformed, final_ll_score)}')
-        #kde = kde_esitmate(X_transformed, best_tree)
-        #all_results.update({f'{name}_KDE_':  kde})
-        #print(f'### KDE: {kde}')
-        fit_SVC(SVC(), X_transformed, best_tree, f"{name}_rbf_svc", all_results)
-        fit_SVC(SVC(class_weight = {False:1,True:2}), X_transformed, best_tree, f"{name}_rbf_svc_weight2", all_results)
-        fit_SVC(SVC(class_weight={False: 1, True: 3}), X_transformed, best_tree, f"{name}_rbf_svc_weight3", all_results)
-        #fit_SVC(SVC(class_weight={False: 1, True: len(best_tree/5)}), X_transformed, best_tree, f"{name}_rbf_svc_weight_div_5", all_results)
-        #fit_SVC(SVC(class_weight={False: 1, True: len(best_tree / 10)}), X_transformed, best_tree,
-        #        f"{name}_rbf_svc_weight_div_10", all_results)
-        #fit_SVC(SVC(class_weight={False: 1, True: 2}), X_transformed, best_tree, f"{name}_rbf_svc_weight3", all_results)
-        #fit_gmm(all_results,X_transformed, best_tree,name)
+        all_results.update({f'{name}_SVR_reg': svr.score(X=np.array(list(data['X_transformed'])), y=list(data['final_ll_score']))})
+        print(all_results)
+        fit_SVC(SVC(), X_transformed, best_tree, f"{name}_rbf_svc", all_results, True_global_data= X_transformed_overall_best_tree)
+        fit_SVC(SVC(), np.array(final_ll_score).reshape(-1,1), best_tree, f"{name}_ll_rbf_svc", all_results,
+                True_global_data= True_global_ll_values)
 
 
-
-        #fit_SVC(LinearSVC(), X_transformed, best_tree, f"{name}_lin_svc", all_results)
-        #fit_SVC(SVC(kernel='poly'), X_transformed, best_tree, f"{name}_poly_svc", all_results)
-        #fit_SVC(SVC(kernel='sigmoid'), X_transformed, best_tree, f"{name}_sig_svc", all_results)
-
-
+        print("After SVC evaluations")
         if LOCAL_RUN:
             #try:
                 data = pd.DataFrame({'score1': list(X_transformed[:, 0]), 'score2': list(X_transformed[:, 1]),
@@ -311,16 +320,17 @@ def get_embedding_distance_metrics(final_paired_distances_transformed, all_dista
 
 
 
-def generate_embedding_distance_matrix_statistics_final_trees(final_trees, best_tree, prefix, tree_clusters, True_global_trees, True_global_tree_clusters, final_trees_ll):
+def generate_embedding_distance_matrix_statistics_final_trees(final_trees, best_tree, prefix, tree_clusters, True_global_trees, True_global_tree_clusters,True_global_ll_values, final_trees_ll):
     all_distance_metrics = {}
     branch_lenth_variation = np.var(
         [np.sum(tree_branch_length_metrics(generate_tree_object_from_newick(tree))["BL_list"]) for tree in final_trees])
     all_distance_metrics[f"{prefix}_bl_variation"] = branch_lenth_variation
     if LOCAL_RUN:
-        n_components =2
+        models_dict = {'PCA_0.9': Pipeline(steps=[("pca", PCA(n_components=2)),]),}
     else:
-        n_components = 0.9
-    models_dict = {'PCA_0.9': Pipeline(steps=[("pca", PCA(n_components=n_components)),]),}#'PCA_0.8': Pipeline(steps=[("pca", PCA(n_components=0.8)),])}#{'PCA3': Pipeline(steps=[("pca", PCA(n_components=3)),]),'PCA4':Pipeline(steps=[("pca", PCA(n_components=4)),]),'PCA5':Pipeline(steps=[("pca", PCA(n_components=5)),]) } #{'PCA2':Pipeline(steps=[("pca", PCA(n_components=2))])
+        models_dict = {'PCA_0.9': Pipeline(steps=[("pca", PCA(n_components=0.9)),]),'PCA_1': Pipeline(steps=[("pca", PCA(n_components=1)),]),'PCA_0.75': Pipeline(steps=[("pca", PCA(n_components=0.75)),])}
+
+    print()
     for model_name in models_dict:
         print(model_name)
         model = models_dict[model_name]
@@ -333,15 +343,17 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees, best_
 
         get_embedding_distance_metrics(final_paired_distances_transformed, all_distance_metrics, prefix, model,
                                        model_name, final_trees, best_tree)
-        final_paired_distances_transformed/= (total_variance ** 0.5)
+        #final_paired_distances_transformed/= (total_variance ** 0.5)
 
 
-        if True_global_trees is not None and len(True_global_trees.index) and LOCAL_RUN>0:
+        if True_global_trees is not None and len(True_global_trees.index)>0:
             final_paired_distances_overall = generate_embedding_per_tree2(True_global_trees, True_global_tree_clusters)
             final_paired_distances_overall_transformed = model.transform(final_paired_distances_overall)
-            final_paired_distances_overall_transformed/= (total_variance ** 0.5)
+            True_global_ll_values= np.array(True_global_ll_values).reshape(-1, 1)
+            #final_paired_distances_overall_transformed/= (total_variance ** 0.5)
         else:
             final_paired_distances_overall_transformed = None
+            True_global_ll_values = None
 
 
 #        print(f"Variance explained: {np.sum(model['pca'].explained_variance_ratio_)}")
@@ -350,7 +362,7 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees, best_
 
 
 
-        best_tree_statistics = extract_2d_shape_and_plot(final_paired_distances_transformed,best_tree, tree_clusters_ind = tree_clusters, name =f'{prefix}_{model_name}',X_transformed_overall_best_tree = final_paired_distances_overall_transformed, final_ll_score= final_trees_ll )
+        best_tree_statistics = extract_2d_shape_and_plot(final_paired_distances_transformed,best_tree, tree_clusters_ind = tree_clusters, name =f'{prefix}_{model_name}',X_transformed_overall_best_tree = final_paired_distances_overall_transformed, final_ll_score= final_trees_ll, True_global_ll_values = True_global_ll_values )
         #best_tree_statistics_norm = extract_2d_shape_and_plot(final_paired_distances_transformed_norm, best_tree,
         #                                                 tree_clusters_ind=tree_clusters, name=f'{prefix}_{model_name}_normalized',
         #                                                 X_transformed_overall_best_tree=final_paired_distances_overall_transformed_norm,
