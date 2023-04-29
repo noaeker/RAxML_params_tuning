@@ -213,8 +213,12 @@ def get_all_sampling_results(curr_run_dir, data, n_sample_points, seed, n_pars, 
 
     for i,msa_path in enumerate(data["msa_path"].unique()):
         print(msa_path)
-        all_sampling_results, seed = MSA_pipeline(msa_path, i, data, curr_run_dir, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
-                     possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program)
+        try:
+            all_sampling_results, seed = MSA_pipeline(msa_path, i, data, curr_run_dir, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
+                         possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program)
+        except Exception as e:
+            logging.error(f"Could not run on MSA {msa_path}")
+            logging.error(f"Exceprion details: {e.message}")
     return all_sampling_results
 
 
