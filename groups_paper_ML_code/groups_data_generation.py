@@ -200,7 +200,7 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon, n_sample_points, se
     tree_search_features = ["spr_radius","spr_cutoff"]
     possible_spr_radius = list(data["spr_radius"].unique())
     possible_spr_cutoff = list(data["spr_cutoff"].unique())
-    general_features = ["feature_msa_n_seq", "feature_msa_n_loci",
+    general_features = ["feature_msa_n_seq", "feature_msa_n_loci", "file_name",
                              "feature_msa_pypythia_msa_difficulty",
                              "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean","best_msa_ll"
                              ]
@@ -218,7 +218,7 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon, n_sample_points, se
                          possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program)
         except Exception as e:
             logging.error(f"Could not run on MSA {msa_path}")
-            logging.error(f"Exceprion details: {e.message}")
+            print(e)
     return all_sampling_results
 
 
