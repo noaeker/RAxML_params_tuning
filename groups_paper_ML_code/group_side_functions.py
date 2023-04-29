@@ -38,6 +38,7 @@ def group_main_parser():
     parser.add_argument('--program', type=str, default='RAxML')
     parser.add_argument('--simulated', action='store_true', default=False)
     parser.add_argument('--msa_type',type=str, default= 'AA')
+    parser.add_argument('--ll_epsilon', type = float, default = 0.1)
     return parser
 
 
