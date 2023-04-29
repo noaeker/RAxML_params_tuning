@@ -210,6 +210,8 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name, X_transformed_over
         all_results.update({f'{name}_SVR_reg': svr.score(X=np.array(list(data['X_transformed'])), y=list(data['final_ll_score']))})
         print(all_results)
         fit_SVC(SVC(), X_transformed, best_tree, f"{name}_rbf_svc", all_results, True_global_data= X_transformed_overall_best_tree)
+        fit_SVC(SVC(), X_transformed, best_tree, f"{name}_rbf_svc", all_results,
+                True_global_data=X_transformed_overall_best_tree)
         fit_SVC(SVC(), np.array(final_ll_score).reshape(-1,1), best_tree, f"{name}_ll_rbf_svc", all_results,
                 True_global_data= True_global_ll_values)
 

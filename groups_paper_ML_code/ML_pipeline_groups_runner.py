@@ -145,6 +145,8 @@ def main():
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
     previous_results_path= os.path.join(curr_run_dir,'group_results_prev.tsv')
     results = obtain_sampling_results(results_path, previous_results_path, relevant_data, all_jobs_running_folder, existing_msas_data_path, args)
+    if args.only_generate_data:
+        return
     results = results.sample(frac=1)
     #results["feature_sbm_sign"] = (results["feature_final_trees_level_distances_embedd_PCA_mean_best_svm_score"]/results["feature_final_trees_level_distances_embedd_PCA__max"])
     #results = results.loc[results.feature_msa_pypythia_msa_difficulty > 0.3]
