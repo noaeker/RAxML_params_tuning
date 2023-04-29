@@ -23,6 +23,9 @@ def get_sampled_data(n_pars, n_rand, n_sum, i, n_sample_points, msa_data, seed,p
         random.seed(seed+1)
         spr_cutoff = random.choice(possible_spr_cutoff)
         logging.info(f"Chosen SPR radius {spr_radius}, Chosen SPR cutoff {spr_cutoff}")
+    else:
+        spr_cutoff = -1
+        spr_radius = -1
     if n_pars == -1 and n_rand == -1:
         min_n_pars = max(n_sum-20,0)
         random.seed(seed+2)
@@ -213,12 +216,12 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon, n_sample_points, se
 
     for i,msa_path in enumerate(data["msa_path"].unique()):
         print(msa_path)
-        try:
-            all_sampling_results, seed = MSA_pipeline(msa_path, i, data, curr_run_dir, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
+        #try:
+        all_sampling_results, seed = MSA_pipeline(msa_path, i, data, curr_run_dir, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
                          possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program)
-        except Exception as e:
-            logging.error(f"Could not run on MSA {msa_path}")
-            print(e)
+        #except Exception as e:
+        #    logging.error(f"Could not run on MSA {msa_path}")
+        #    print(e)
     return all_sampling_results
 
 
