@@ -236,7 +236,7 @@ def main():
     level = logging.INFO if args.level=='info' else logging.DEBUG
     logging.basicConfig(filename=log_file_path, level=level)
     logging.info("Generating results file")
-    results = get_all_sampling_results(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, ll_epsilon= args.ll_epsilon, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, default_data= args.filter_on_default_data, n_sum_range= args.n_sum_range, simulated= args.simulated, program = args.program)
+    results = get_all_sampling_results(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, ll_epsilon= args.ll_epsilon, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, default_data= args.filter_on_default_data, n_sum_range= args.n_sum_range, simulated= args.simulated)
     results.to_csv(args.curr_job_group_output_path, sep= '\t')
 
 
