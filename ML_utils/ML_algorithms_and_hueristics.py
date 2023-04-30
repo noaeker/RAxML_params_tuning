@@ -153,8 +153,12 @@ def enrich_with_single_feature_metrics(var_impt, train_X, y_train, test_X, y_tes
 
 
 
-def print_model_statistics(model, train_X, test_X,val_X, y_train, y_test,y_val, is_classification, vi_path, metrics_path,
-                           group_metrics_path, name, sampling_frac, test_MSAs, feature_importance=True):
+
+
+
+
+def print_model_statistics_pipeline(model, train_X, test_X, y_train, y_test, val_dict, is_classification, vi_path, metrics_path,
+                                    group_metrics_path, name, sampling_frac, feature_importance=True):
     if feature_importance:
         try:
             var_impt = variable_importance(train_X.columns[model['selector'].get_support(indices=True)], model['best_model'])
@@ -165,17 +169,6 @@ def print_model_statistics(model, train_X, test_X,val_X, y_train, y_test,y_val, 
             logging.info(f"{name} variable importance: \n {var_impt}")
         except:
             logging.info("No existing feature importance procedure for this  model")
-    predicted_train = model['best_model'].predict((model['selector']).transform(train_X))
-    predicted_test = model['best_model'].predict((model['selector']).transform(test_X))
-    predicted_val = model['best_model'].predict((model['selector']).transform(val_X))
-    if is_classification:
-        predicted_proba_train = model['best_model'].predict_proba((model['selector']).transform(train_X))[:, 1]
-        predicted_proba_test = model['best_model'].predict_proba((model['selector']).transform(test_X))[:, 1]
-        predicted_proba_val = model['best_model'].predict_proba((model['selector']).transform(val_X))[:, 1]
-    else:
-        predicted_proba_train = predicted_train
-        predicted_proba_test = predicted_test
-        predicted_proba_val = predicted_val
     groups_data_test = test_X[
         ["feature_msa_n_seq", "feature_msa_n_loci","feature_msa_pypythia_msa_difficulty"]]#
 
@@ -183,18 +176,24 @@ def print_model_statistics(model, train_X, test_X,val_X, y_train, y_test,y_val, 
                         "n_seq_group": pd.qcut(groups_data_test["feature_msa_n_seq"], 4),
                         "feature_msa_n_loci": pd.qcut(groups_data_test["feature_msa_n_loci"], 4)}
 
-    train_metrics = model_metrics(y_train, predicted_train, predicted_proba_train, group_metrics_path, sampling_frac,
+    train_metrics = model_metrics(model,train_X,y_train, group_metrics_path, sampling_frac,
                                   is_classification=is_classification,
                                   groups_data=None)
-    test_metrics = model_metrics(y_test, predicted_test, predicted_proba_test, group_metrics_path, sampling_frac,
-                                 is_classification=is_classification, groups_data=groups_dict_test)
-
-    validation_metrics = model_metrics(y_val, predicted_val, predicted_proba_val, group_metrics_path, sampling_frac,
-                                 is_classification=is_classification, groups_data=None)
-
     logging.info(f"{name} train metrics: \n {train_metrics}")
+    test_metrics = model_metrics(model,test_X,y_test,  group_metrics_path, sampling_frac,
+                                 is_classification=is_classification, groups_data=groups_dict_test)
     logging.info(f"{name} test metrics: \n {test_metrics}")
-    logging.info(f"{name} validation metrics: \n {validation_metrics}")
+    #validation_metrics = model_metrics(y_val, predicted_val, predicted_proba_val, group_metrics_path, sampling_frac,
+    #                             is_classification=is_classification, groups_data=None)
+    for file in val_dict:
+        file_validation_metrics = model_metrics(model, val_dict[file]["X_val"], val_dict[file]["y_val"], group_metrics_path, sampling_frac,
+                      is_classification=is_classification,
+                      groups_data=None)
+        logging.info(f"{file} validation metrics: \n { file_validation_metrics}")
+
+
+
+
 
     train_metrics.update(test_metrics)
     train_metrics = pd.DataFrame.from_dict([train_metrics])
@@ -214,29 +213,35 @@ def add_to_csv(csv_path, new_data):
         metric_df.to_csv(csv_path, sep=CSV_SEP)
 
 
-def model_metrics(y_test, predictions, prob_predictions, metrics_path, sampling_frac, is_classification, groups_data):
+def model_metrics(model, X, y_true, metrics_path, sampling_frac, is_classification, groups_data):
+
+    predictions = model['best_model'].predict((model['selector']).transform(X))
+    if is_classification:
+        prob_predictions = model['best_model'].predict_proba((model['selector']).transform(X))[:, 1]
+    else:
+        prob_predictions = predictions
     if is_classification:
         if groups_data and (sampling_frac==1 or sampling_frac==-1):
-                auc_per_group = score_func(y_test, prob_predictions, classification=True, groups_data=groups_data)
+                auc_per_group = score_func(y_true, prob_predictions, classification=True, groups_data=groups_data)
                 auc_per_group["sampling_frac"] = sampling_frac
                 add_to_csv(metrics_path, auc_per_group)
                 logging.info(auc_per_group)
         # PrecisionRecallDisplay.from_predictions(y_test, prob_predictions)
         # plt.show()
-        return {'AUC': roc_auc_score(y_test, prob_predictions),
-                'logloss': log_loss(y_test, prob_predictions),
-                'average_precision': average_precision_score(y_test, prob_predictions),
-                'accuracy_score': accuracy_score(y_test, predictions),
-                'precision': precision_score(y_test, predictions), 'recall': recall_score(y_test, predictions),
-                'mcc': matthews_corrcoef(y_test, predictions)}
+        return {'AUC': roc_auc_score(y_true, prob_predictions),
+                'logloss': log_loss(y_true, prob_predictions),
+                'average_precision': average_precision_score(y_true, prob_predictions),
+                'accuracy_score': accuracy_score(y_true, predictions),
+                'precision': precision_score(y_true, predictions), 'recall': recall_score(y_true, predictions),
+                'mcc': matthews_corrcoef(y_true, predictions)}
     else:
         if groups_data and (sampling_frac==1 or sampling_frac==-1):
-            r2_per_group = score_func(y_test, predictions, classification=False, groups_data=groups_data)
+            r2_per_group = score_func(y_true, predictions, classification=False, groups_data=groups_data)
             r2_per_group["sampling_frac"] = sampling_frac
             add_to_csv(metrics_path, r2_per_group)
             logging.info(r2_per_group)
-        return {"r2": r2_score(y_test, predictions), "MAE": mean_absolute_error(y_test, predictions),
-                "MSE": mean_squared_error(y_test, predictions)
+        return {"r2": r2_score(y_true, predictions), "MAE": mean_absolute_error(y_true, predictions),
+                "MSE": mean_squared_error(y_true, predictions)
                 }
 
 
@@ -247,10 +252,15 @@ def train_test_validation_splits(full_data, test_pct, val_pct, msa_col_name="msa
         logging.info("Remove unrelaible times from data")
         full_data = full_data.loc[~full_data.non_reliable_timings]
         logging.info(f"New Number of MSAs in full data is {len(full_data.msa_path.unique())}")
-    validation_data = full_data.loc[(full_data[msa_col_name].str.contains("Single_gene_PROTEIN") | full_data[msa_col_name].str.contains("Single_gene_DNA"))]
+    validation_data_bool = (full_data["file_name"].str.contains("ps_new_msa") | full_data["file_name"].str.contains("new_msa_ds")| full_data["file_name"].str.contains("sim") | full_data["file_name"].str.contains("iqtree"))
+    validation_data = full_data.loc[validation_data_bool]
+    file_names_val = validation_data["file_name"].unique()
+    val_dict = {}
+    for f in file_names_val:
+        val_data = validation_data.loc[validation_data.file_name==f]
+        val_dict[f] = val_data
     logging.info(f"Number of MSAs in validation data is {len(validation_data.msa_path.unique())}")
-    #logging.info(f"Number of overall positive samples in validation: {len(validation_data.loc[validation_data.is_global_max == 1].index)}, Number of overall negative samples in validation is {len(validation_data.loc[validation_data.is_global_max == 0].index)}")
-    full_data = full_data.loc[~(full_data[msa_col_name].str.contains("Single_gene_PROTEIN") | full_data[msa_col_name].str.contains("Single_gene_DNA"))]
+    full_data = full_data.loc[~validation_data_bool]
     np.random.seed(SEED)
     logging.info("Partitioning MSAs according to number of sequences")
     msa_n_seq_group = pd.qcut(full_data["feature_msa_n_seq"], 5)
@@ -269,7 +279,7 @@ def train_test_validation_splits(full_data, test_pct, val_pct, msa_col_name="msa
     test_data = full_data[full_data[msa_col_name].isin(test_msas['msa'])]
     logging.info(f"Number of MSAs in test data is {len(test_data.msa_path.unique())}")
     #logging.info(f"Number of overall positive samples in test: {len(test_data.loc[test_data.is_global_max == 1].index)}, Number of overall negative samples in test {len(test_data.loc[test_data.is_global_max == 0].index)}")
-    return train_data, test_data, validation_data
+    return train_data, test_data, val_dict
 
 
 def variable_importance(columns, model):

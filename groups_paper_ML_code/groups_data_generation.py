@@ -66,13 +66,13 @@ def enrich_iteration_with_extra_metrics(curr_run_dir, sampled_data, True_global_
                                                                                                        ll=list(
                                                                                                            sampled_data[
                                                                                                                "final_ll"]))])
-    final_tree_embedding_metrics = pd.DataFrame([generate_embedding_distance_matrix_statistics_final_trees(
-        (sampled_data["final_tree_topology"]), best_tree=(sampled_data["is_best_tree"]),
-        prefix="feature_final_trees_level_distances_embedd", tree_clusters=(sampled_data["tree_clusters_ind"]),
-        True_global_trees=True_global_max_data["final_tree_topology"],
-        True_global_tree_clusters=True_global_max_data["tree_clusters_ind"],
-        True_global_ll_values = True_global_max_data["final_ll"],
-        final_trees_ll=sampled_data["final_ll"])])
+    #final_tree_embedding_metrics = pd.DataFrame([generate_embedding_distance_matrix_statistics_final_trees(
+    #    (sampled_data["final_tree_topology"]), best_tree=(sampled_data["is_best_tree"]),
+    #    prefix="feature_final_trees_level_distances_embedd", tree_clusters=(sampled_data["tree_clusters_ind"]),
+    #    True_global_trees=True_global_max_data["final_tree_topology"],
+    #    True_global_tree_clusters=True_global_max_data["tree_clusters_ind"],
+    #    True_global_ll_values = True_global_max_data["final_ll"],
+    #    final_trees_ll=sampled_data["final_ll"])])
     try:
         log_likelihood_diff_metrics = pd.DataFrame([get_summary_statistics_dict(
             values=[np.array(sampled_data["log_likelihood_diff"])[list(sampled_data["is_best_tree"] == False)]],
@@ -80,8 +80,8 @@ def enrich_iteration_with_extra_metrics(curr_run_dir, sampled_data, True_global_
     except:
         log_likelihood_diff_metrics = pd.DataFrame()
     curr_iter_general_metrics = pd.concat(
-        [curr_iter_general_metrics, final_trees_RF_distance_metrics, final_tree_embedding_metrics,
-         log_likelihood_diff_metrics], axis=1)  # pars_run_metrics,rand_run_metrics # Adding all features together
+        [curr_iter_general_metrics, final_trees_RF_distance_metrics,
+         log_likelihood_diff_metrics], axis=1)  # final_tree_embedding_metrics,
     return curr_iter_general_metrics
 
 def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, msa_data,overall_best_msa_data):
@@ -128,19 +128,6 @@ def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_
         feature_general_max_ll_std=('normalized_final_ll', np.max)
     ).reset_index()
 
-    ll_values = np.array(sampled_data["normalized_final_ll"])
-    non_best_ll_values = ll_values[sampled_data["is_best_tree"]==False]
-    best_ll_values = ll_values[sampled_data["is_best_tree"]==True]
-    if len(non_best_ll_values)>0 and len(best_ll_values)>0:
-        kde = KernelDensity(kernel='gaussian', bandwidth=1).fit(non_best_ll_values.reshape(-1,1))
-        #best_ll_density = ll_density[best]
-
-        ll_density = np.min(kde.score_samples(best_ll_values.reshape(-1,1)))
-    else:
-        ll_density = None
-    curr_iter_general_metrics["feature_ll_density_mean"] = ll_density
-
-    print(f"ll density = {ll_density}")
     curr_iter_general_metrics["feature_pct_diff_topologies"] = curr_iter_general_metrics['feature_general_n_topologies']/n_sum
 
     #curr_iter_general_metrics["default_pct_global_max"] = topologies_found / distinct_true_best_topologies
@@ -171,7 +158,7 @@ def MSA_pipeline(msa_path,i,data, curr_run_dir, ll_epsilon, n_sample_points,seed
     msa_features = pd.DataFrame.from_dict({msa_path: get_msa_stats(msa_path, msa_type)}, orient= 'index')
     msa_data = msa_data.merge(msa_features, on = 'msa_path')
 
-    ll_best_topologies = msa_data.loc[msa_data["delta_ll_from_overall_msa_best_topology"] <= 0.1][
+    ll_best_topologies = msa_data.loc[msa_data["delta_ll_from_overall_msa_best_topology"] <= ll_epsilon][
         "tree_clusters_ind"].unique()
     msa_data["is_global_max"] = (msa_data["tree_clusters_ind"].isin(ll_best_topologies)).astype(
         'int')  # global max definition

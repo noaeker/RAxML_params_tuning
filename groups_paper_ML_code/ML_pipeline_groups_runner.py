@@ -8,7 +8,7 @@ sys.path.append(PROJECT_ROOT_DIRECRTORY)
 
 from side_code.raxml import *
 from side_code.MSA_manipulation import get_local_path
-from ML_utils.ML_algorithms_and_hueristics import ML_model, print_model_statistics,train_test_validation_splits
+from ML_utils.ML_algorithms_and_hueristics import ML_model, print_model_statistics_pipeline,train_test_validation_splits
 import pickle
 from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, add_csvs_content
 from groups_paper_ML_code.group_side_functions import *
@@ -138,36 +138,26 @@ def main():
         relevant_data = relevant_data[relevant_data["type"] == "default"] #Filtering only on default data
     else:
         relevant_data = relevant_data[relevant_data["type"] != "default"] # Filtering on non default data
-
-    if args.only_validation:
-        relevant_data = relevant_data.loc[(relevant_data["msa_path"].str.contains("Single_gene_PROTEIN") | relevant_data["msa_path"].str.contains("Single_gene_DNA"))]
-
     results_path = os.path.join(curr_run_dir,'group_results.tsv')
     previous_results_path= os.path.join(curr_run_dir,'group_results_prev.tsv')
     results = obtain_sampling_results(results_path, previous_results_path, relevant_data, all_jobs_running_folder, existing_msas_data_path, args)
-    if args.only_generate_data:
-        return
-    #results = results.sample(frac=1)
+    results = results.sample(frac=1)
     #results["feature_sbm_sign"] = (results["feature_final_trees_level_distances_embedd_PCA_mean_best_svm_score"]/results["feature_final_trees_level_distances_embedd_PCA__max"])
     #results = results.loc[results.feature_msa_pypythia_msa_difficulty > 0.3]
     logging.info(f"Number of rows in results is {len(results.index)}")
-    if os.path.exists(args.additional_validation):
-        with open(args.additional_validation,'r') as ADDITIONAL_VALIDATION:
-            file_names = ADDITIONAL_VALIDATION.readlines()
-            additional_validation_data = {file.split('\t')[0]:pd.read_csv(file.split('\t')[1],sep='\t') for file in file_names}
-    else:
-        additional_validation_data = {}
     logging.info(f"Using sample fracs = {args.sample_fracs}")
     logging.info(f"include_output_tree_features = {args.include_output_tree_features}")
     sample_fracs = args.sample_fracs if not LOCAL_RUN else [1]
+
+
     if args.add_sample_fracs:
         for sample_frac in  sample_fracs:
-            ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False,include_output_tree_features = args.include_output_tree_features,additional_validation_data = additional_validation_data)
+            ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False,include_output_tree_features = args.include_output_tree_features)
     if (not LOCAL_RUN) and args.model!='sgd' :
-        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= args.include_output_tree_features,additional_validation_data = additional_validation_data)
+        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= args.include_output_tree_features)
     else:
         ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=False, large_grid=False,
-                    include_output_tree_features=args.include_output_tree_features, additional_validation_data = additional_validation_data)
+                    include_output_tree_features=args.include_output_tree_features)
     logging.info(f"Working on MSA level features")
 
 

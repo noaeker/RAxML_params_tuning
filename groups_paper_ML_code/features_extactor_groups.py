@@ -2,7 +2,7 @@
 from side_code.basic_trees_manipulation import *
 from side_code.raxml import *
 from side_code.MSA_manipulation import get_local_path
-from ML_utils.ML_algorithms_and_hueristics import ML_model, print_model_statistics,train_test_validation_splits
+from ML_utils.ML_algorithms_and_hueristics import ML_model, print_model_statistics_pipeline,train_test_validation_splits
 import pickle
 from side_code.file_handling import create_dir_if_not_exists, create_or_clean_dir, add_csvs_content
 from groups_paper_ML_code.group_side_functions import *
@@ -130,25 +130,24 @@ def fit_SVC(svc_model, X_transformed, best_tree, name, all_results, True_global_
     best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == True]
     #not_best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == False]
     #print(f"True global data = {True_global_data}")
-    if True_global_data is None:
-        all_best_svm_scores = best_svm_scores
-    else:
-        all_best_svm_scores = np.array(list(best_svm_scores) + list(svm.decision_function((True_global_data))))
+    #if True_global_data is None:
+    #    all_best_svm_scores = best_svm_scores
+    #else:
+    #    all_best_svm_scores = np.array(list(best_svm_scores) + list(svm.decision_function((True_global_data))))
 
     svm_results = {
         f'{name}_mean_best_score': np.mean(best_svm_scores),
                    f'{name}_max_best_score': np.max(best_svm_scores),
-                   f'{name}_min_best_score': np.mean(best_svm_scores),
+                   f'{name}_min_best_score': np.min(best_svm_scores),
                    # f'{name}_mean_best_svm_proba': np.mean(best_svm_proba ),
                    # f'{name}_mean_non_best_svm_proba': np.mean(not_best_svm_proba),
-        f'{name}_mean_TRUE_best_score_EXCLUDE': np.mean(all_best_svm_scores),
-        f'{name}_max_TRUE_best_score_EXCLUDE': np.max(all_best_svm_scores),
-        f'{name}_min_TRUE_best_score_EXCLUDE': np.mean(all_best_svm_scores),
+       #f'{name}_mean_TRUE_best_score_EXCLUDE': np.mean(all_best_svm_scores),
+        #f'{name}_max_TRUE_best_score_EXCLUDE': np.max(all_best_svm_scores),
+        #f'{name}_min_TRUE_best_score_EXCLUDE': np.mean(all_best_svm_scores),
         # f'{name}_mean_best_svm_proba': np.mean(best_svm_proba ),
         # f'{name}_mean_non_best_svm_proba': np.mean(not_best_svm_proba),
                    }
 
-    print(svm_results)
     all_results.update(svm_results)
     #if LOCAL_RUN:
     #     plot_svm(svm, X_transformed, best_tree)
@@ -202,8 +201,8 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name, X_transformed_over
         #reg =  LinearRegression().fit(X=np.array(list(data['X_transformed'])), y=list(data['final_ll_score']))
         #all_results.update({f'{name}_LIN_reg':reg.score(np.array(list(data['X_transformed'])), list(data['final_ll_score']))})
 
-        #min_kde = kde_esitmate(X_transformed, best_tree)
-        #all_results.update({f"{name}_kde_svc":min_kde})
+        min_kde = kde_esitmate(X_transformed, best_tree)
+        all_results.update({f"{name}_kde_svc":min_kde})
         #print(f"min kde = {min_kde}")
         clf = SVR()
         svr  = clf.fit(X=np.array(list(data['X_transformed'])), y=list(data['final_ll_score']))
@@ -238,7 +237,16 @@ def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final
     if len(final_trees)==1:
         return get_summary_statistics_dict(feature_name=f"{prefix}",values = None)
     RF_distance_mat = generate_RF_distance_matrix(curr_run_directory, final_trees)
+    mds_models = {f'{prefix}_mds_5':MDS(n_components=5, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_3':MDS(n_components=3, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_2':MDS(n_components=2, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_1':MDS(n_components=1, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat)}
     all_results = {}
+    for model in mds_models:
+        fit_SVC(SVC(), mds_models[ model], best_tree, f"{model}_rbf_svc", all_results, True_global_data=None)
+        clf = SVR()
+        svr  = clf.fit(X=mds_models[ model], y=list(ll))
+        all_results.update({f'{model}_SVR_reg': svr.score(X=mds_models[ model], y=list(ll))})
+
+
+    print(all_results)
     if best_tree:
         #print(RF_distance_mat)
         n_best_trees = np.sum(best_tree)
@@ -328,7 +336,7 @@ def generate_embedding_distance_matrix_statistics_final_trees(final_trees, best_
     if LOCAL_RUN:
         models_dict = {'PCA_0.9': Pipeline(steps=[("pca", PCA(n_components=2)),]),}
     else:
-        models_dict = {'PCA_0.9': Pipeline(steps=[("pca", PCA(n_components=0.9)),]),'PCA_1': Pipeline(steps=[("pca", PCA(n_components=1)),]),'PCA_0.75': Pipeline(steps=[("pca", PCA(n_components=0.75)),])}
+        models_dict = {'PCA_0.9': Pipeline(steps=[("pca", PCA(n_components=0.9)),])}
 
     print()
     for model_name in models_dict:
