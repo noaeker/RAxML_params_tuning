@@ -147,11 +147,7 @@ def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_
         [all_sampling_results, curr_iter_general_metrics])  # default_results.append(general_run_metrics)
     return all_sampling_results
 
-def MSA_pipeline(msa_path,i,data, curr_run_dir, ll_epsilon, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, simulated, msa_type, program ):
-    logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
-    #msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
-    msa_data = data.loc[data.msa_path == msa_path].reset_index()  # Filter on MSA data
-
+def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, simulated, msa_type, program ):
     logging.info("Enriching MSA data")
     msa_data = process_all_msa_runs(curr_run_dir,msa_path, msa_data, cpus_per_job = 1, msa_type=msa_type, program=program,
                          perform_topology_tests=False, simulated= simulated)
@@ -181,7 +177,7 @@ def MSA_pipeline(msa_path,i,data, curr_run_dir, ll_epsilon, n_sample_points,seed
     return all_sampling_results, seed
 
 
-def get_all_sampling_results(curr_run_dir, data, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range = [10, 20], default_data = True, msa_type = 'AA', simulated = False, program = 'RAxML'
+def get_all_sampling_results(curr_run_dir, data, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range = [10, 20], default_data = True, simulated = False
                              ):
 
     n_sum_limits = [int(n) for n in n_sum_range.split('_')]
@@ -202,9 +198,21 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon, n_sample_points, se
 
 
     for i,msa_path in enumerate(data["msa_path"].unique()):
-        print(msa_path)
-        #try:
-        all_sampling_results, seed = MSA_pipeline(msa_path, i, data, curr_run_dir, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
+        logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
+        # msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
+        msa_data = data.loc[data.msa_path == msa_path].reset_index()  # Filter on MSA data
+        msa_file_name = np.max(msa_data["file_name"])
+        if 'ds_new' in msa_file_name or 'd_iqtree' in msa_file_name:
+            msa_type = 'DNA'
+        else:
+            msa_type = 'AA'
+        logging.info(f"MSA type= {msa_type}")
+        if 'iqtree' in msa_file_name:
+            program = 'IQTREE'
+        else:
+            program = 'RAxML'
+        logging.info(f"program = {program}")
+        all_sampling_results, seed = MSA_pipeline(msa_path, msa_data, curr_run_dir, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
                          possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program)
         #except Exception as e:
         #    logging.error(f"Could not run on MSA {msa_path}")
@@ -228,7 +236,7 @@ def main():
     level = logging.INFO if args.level=='info' else logging.DEBUG
     logging.basicConfig(filename=log_file_path, level=level)
     logging.info("Generating results file")
-    results = get_all_sampling_results(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, ll_epsilon= args.ll_epsilon, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, default_data= args.filter_on_default_data, n_sum_range= args.n_sum_range, simulated= args.simulated, program = args.program, msa_type= args.msa_type)
+    results = get_all_sampling_results(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, ll_epsilon= args.ll_epsilon, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, default_data= args.filter_on_default_data, n_sum_range= args.n_sum_range, simulated= args.simulated, program = args.program)
     results.to_csv(args.curr_job_group_output_path, sep= '\t')
 
 
