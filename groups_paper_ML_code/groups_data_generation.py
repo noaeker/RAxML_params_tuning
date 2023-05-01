@@ -193,7 +193,7 @@ def get_msa_type_and_program(data):
 
 
 
-def get_all_sampling_results(curr_run_dir, data, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range = [10, 20], default_data = True, simulated = False
+def get_all_sampling_results(curr_run_dir, data, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range = [10, 20], default_data = True, simulated = False,external_best_tree_file = ''
                              ):
 
     n_sum_limits = [int(n) for n in n_sum_range.split('_')]
@@ -211,6 +211,16 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon, n_sample_points, se
     all_sampling_results = pd.DataFrame()
 
     logging.info(f'Total MSA to run on: {len(data["msa_path"].unique())}')
+    if simulated:
+        if os.path.exists(external_best_tree_file):
+            external_best_tree_data = pd.read_csv(external_best_tree_file, sep='\t')
+            external_best_tree_data['msa_name'] = external_best_tree_data['msa_local_path'].apply(
+                lambda x: os.path.basename(x))
+            logging.info("Merging external ll information to raw data")
+            data['msa_name'] = data['msa_path'].apply(lambda x: os.path.basename(x))
+            data = data.merge(external_best_tree_data, on='msa_name')
+        else:
+            logging.error(f"External best tree file not found in {external_best_tree_file}")
 
     for file in data["file_name"].unique():
         file_data =data.loc[data.file_name==file]
@@ -245,7 +255,7 @@ def main():
     level = logging.INFO if args.level=='info' else logging.DEBUG
     logging.basicConfig(filename=log_file_path, level=level)
     logging.info("Generating results file")
-    results = get_all_sampling_results(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, ll_epsilon= args.ll_epsilon, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, default_data= args.filter_on_default_data, n_sum_range= args.n_sum_range, simulated= args.simulated)
+    results = get_all_sampling_results(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, ll_epsilon= args.ll_epsilon, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, default_data= args.filter_on_default_data, n_sum_range= args.n_sum_range, simulated= args.simulated, external_best_tree_file= args.external_best_tree_file)
     results.to_csv(args.curr_job_group_output_path, sep= '\t')
 
 
