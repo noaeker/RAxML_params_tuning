@@ -239,7 +239,7 @@ def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final
     RF_distance_mat = generate_RF_distance_matrix(curr_run_directory, final_trees)
     all_results = {}
     try:
-        mds_models = {f'{prefix}_mds_5':MDS(n_components=5, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_3':MDS(n_components=3, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_2':MDS(n_components=2, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_1':MDS(n_components=1, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat)}
+        mds_models = {f'{prefix}_mds_5':MDS(n_components=5, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_3':MDS(n_components=3, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_10':MDS(n_components=10, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat)}
         for model in mds_models:
             fit_SVC(SVC(), mds_models[ model], best_tree, f"{model}_rbf_svc", all_results, True_global_data=None)
             clf = SVR()
