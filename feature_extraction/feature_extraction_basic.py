@@ -135,7 +135,7 @@ def unify_raw_data_csvs(raw_data_folder):
     for f in csv_files_in_folder:
         try:
             if LOCAL_RUN:
-                data = pd.read_csv(f, sep=CSV_SEP,nrows=200000)
+                data = pd.read_csv(f, sep=CSV_SEP,nrows=2000000)
             else:
                 data = pd.read_csv(f, sep=CSV_SEP)
             data['file_name'] = os.path.basename(f)
@@ -144,4 +144,5 @@ def unify_raw_data_csvs(raw_data_folder):
             pass
     logging.info(f"Combining CSV files: {csv_files_in_folder}")
     raw_data = pd.concat(dfs_in_folder, sort=False)
+    #raw_data = raw_data.loc[raw_data.msa_path=='/Users/noa/Workspace/data/New_MSAs/Pandit_msas/PF00003.fasta']
     return raw_data

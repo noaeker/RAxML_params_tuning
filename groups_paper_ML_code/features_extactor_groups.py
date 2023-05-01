@@ -237,22 +237,24 @@ def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final
     if len(final_trees)==1:
         return get_summary_statistics_dict(feature_name=f"{prefix}",values = None)
     RF_distance_mat = generate_RF_distance_matrix(curr_run_directory, final_trees)
-    mds_models = {f'{prefix}_mds_5':MDS(n_components=5, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_3':MDS(n_components=3, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_2':MDS(n_components=2, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_1':MDS(n_components=1, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat)}
-    all_results = {}
-    for model in mds_models:
-        fit_SVC(SVC(), mds_models[ model], best_tree, f"{model}_rbf_svc", all_results, True_global_data=None)
-        clf = SVR()
-        svr  = clf.fit(X=mds_models[ model], y=list(ll))
-        all_results.update({f'{model}_SVR_reg': svr.score(X=mds_models[ model], y=list(ll))})
-
+    try:
+        mds_models = {f'{prefix}_mds_5':MDS(n_components=5, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_3':MDS(n_components=3, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_2':MDS(n_components=2, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_1':MDS(n_components=1, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat)}
+        all_results = {}
+        for model in mds_models:
+            fit_SVC(SVC(), mds_models[ model], best_tree, f"{model}_rbf_svc", all_results, True_global_data=None)
+            clf = SVR()
+            svr  = clf.fit(X=mds_models[ model], y=list(ll))
+            all_results.update({f'{model}_SVR_reg': svr.score(X=mds_models[ model], y=list(ll))})
+    except:
+        logging.error("MDS not available")
+        print(RF_distance_mat)
 
     print(all_results)
     if best_tree:
-        #print(RF_distance_mat)
         n_best_trees = np.sum(best_tree)
         distances_to_others_mat =  RF_distance_mat[np.array(best_tree) == True, :][:, np.array(best_tree) == False]
         mean_distance_to_others = np.mean(distances_to_others_mat, axis = 0)
-        rf_corr = abs(stats.spearmanr(mean_distance_to_others,np.array(ll)[np.array(best_tree)==False]).correlation)
+        rf_corr = (stats.spearmanr(mean_distance_to_others,np.array(ll)[np.array(best_tree)==False]).correlation)
         all_results.update({f'{prefix}_corr_rf_from_best_trees_to_final_trees': rf_corr})
         distances_to_other_trees = list(np.ravel(distances_to_others_mat))
         distances_to_best_trees_mat = RF_distance_mat[np.array(best_tree) == True, :][:, np.array(best_tree) == True]
