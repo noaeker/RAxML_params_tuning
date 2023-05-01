@@ -247,7 +247,7 @@ def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final
             all_results.update({f'{model}_SVR_reg': svr.score(X=mds_models[ model], y=list(ll))})
     except:
         logging.error("MDS not available")
-        print(RF_distance_mat)
+
 
     print(all_results)
     if best_tree:

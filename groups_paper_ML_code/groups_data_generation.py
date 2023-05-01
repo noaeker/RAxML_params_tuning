@@ -177,6 +177,22 @@ def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon, n_sample_points,se
     return all_sampling_results, seed
 
 
+def get_msa_type_and_program(data):
+    file_name = np.max(data["file_name"])
+    if 'ds_new' in file_name or 'd_iqtree' in file_name:
+        msa_type = 'DNA'
+    else:
+        msa_type = 'AA'
+    logging.info(f"MSA type= {msa_type}")
+    if 'iqtree' in file_name:
+        program = 'IQTREE'
+    else:
+        program = 'RAxML'
+    logging.info(f"program = {program}")
+    return msa_type, program
+
+
+
 def get_all_sampling_results(curr_run_dir, data, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range = [10, 20], default_data = True, simulated = False
                              ):
 
@@ -196,25 +212,18 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon, n_sample_points, se
 
     logging.info(f'Total MSA to run on: {len(data["msa_path"].unique())}')
 
+    for file in data["file_name"].unique():
+        file_data =data.loc[data.file_name==file]
+        logging.info(f"Working on file: {file}")
+        msa_type, program = get_msa_type_and_program(file_data)
+        for i,msa_path in enumerate(file_data["msa_path"].unique()):
+            logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
+            # msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
+            msa_data = data.loc[data.msa_path == msa_path].reset_index()  # Filter on MSA data
 
-    for i,msa_path in enumerate(data["msa_path"].unique()):
-        logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
-        # msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
-        msa_data = data.loc[data.msa_path == msa_path].reset_index()  # Filter on MSA data
-        msa_file_name = np.max(msa_data["file_name"])
-        if 'ds_new' in msa_file_name or 'd_iqtree' in msa_file_name:
-            msa_type = 'DNA'
-        else:
-            msa_type = 'AA'
-        logging.info(f"MSA type= {msa_type}")
-        if 'iqtree' in msa_file_name:
-            program = 'IQTREE'
-        else:
-            program = 'RAxML'
-        logging.info(f"program = {program}")
-        all_sampling_results, seed = MSA_pipeline(msa_path, msa_data, curr_run_dir, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
-                         possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program)
-        #except Exception as e:
+            all_sampling_results, seed = MSA_pipeline(msa_path, msa_data, curr_run_dir, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
+                             possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program)
+            #except Exception as e:
         #    logging.error(f"Could not run on MSA {msa_path}")
         #    print(e)
     return all_sampling_results
