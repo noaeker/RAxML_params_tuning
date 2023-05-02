@@ -252,7 +252,7 @@ def train_test_validation_splits(full_data, test_pct, val_pct, msa_col_name="msa
         logging.info("Remove unrelaible times from data")
         full_data = full_data.loc[~full_data.non_reliable_timings]
         logging.info(f"New Number of MSAs in full data is {len(full_data.msa_path.unique())}")
-    validation_data_bool = (full_data["file_name"].str.contains("ps_new_msa") | full_data["file_name"].str.contains("new_msa_ds")| full_data["file_name"].str.contains("sim") | full_data["file_name"].str.contains("iqtree"))
+    validation_data_bool = (full_data["file_name"].str.contains("ps_new_msa") | full_data["file_name"].str.contains("new_msa_ds")| full_data["file_name"].str.contains("sim") | full_data["file_name"].str.contains("iqtree") | full_data["file_name"].str.contains("large"))
     validation_data = full_data.loc[validation_data_bool]
     file_names_val = validation_data["file_name"].unique()
     val_dict = {}
