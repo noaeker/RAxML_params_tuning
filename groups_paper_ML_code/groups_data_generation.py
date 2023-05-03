@@ -124,6 +124,7 @@ def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_
         default_final_rf_distance_from_best=('rf_from_overall_msa_best_topology', np.min),
         default_status=('is_global_max', np.max),
         feature_general_pct_best=('is_best_tree', np.mean),
+        feature_n_best = ('is_best_tree', np.sum),
         feature_general_n_topologies=('tree_clusters_ind', pd.Series.nunique),
         feature_general_final_ll_var=('final_ll', np.var),
         feature_general_final_ll_skew=('final_ll', skew),
@@ -131,7 +132,8 @@ def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_
     ).reset_index()
 
     curr_iter_general_metrics["feature_pct_diff_topologies"] = curr_iter_general_metrics['feature_general_n_topologies']/n_sum
-
+    curr_iter_general_metrics["distinct_true_best_topologies"] = distinct_true_best_topologies
+    curr_iter_general_metrics["distinct_true_topologies_found"] = topologies_found
     curr_iter_general_metrics["default_pct_global_max"] = topologies_found / distinct_true_best_topologies
     #print(curr_iter_general_metrics["default_pct_global_max"])
     print(f'default_status={curr_iter_general_metrics["default_status"]}')
