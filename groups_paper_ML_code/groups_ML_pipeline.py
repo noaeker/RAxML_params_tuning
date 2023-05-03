@@ -56,8 +56,8 @@ def get_full_and_MSA_features(results):
     MSA_level_features = tree_search_columns+general_MSA_columns+[col for col in MSA_level_distancs_metrics if 'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'median' not in col and 'pct_25' not in col and 'pct_75' not in col]
     return full_features,MSA_level_features
 
-def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_output_tree_features):
-    name = f'M_frac_{sample_frac}_RFE_{RFE}_large_grid_{large_grid}_out_features_{include_output_tree_features}'
+def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_output_tree_features, ll_epsilon):
+    name = f'M_frac_{sample_frac}_eps_{ll_epsilon}_RFE_{RFE}_large_grid_{large_grid}_out_features_{include_output_tree_features}'
 
     if args.model=='rf' or args.model=='sgd' or args.model=='logistic': #Removing NA values
         results['feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score'] = results['feature_final_trees_level_distances_embedd_PCA3_rbf_svc_mean_best_score'].fillna(1)
@@ -89,10 +89,10 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
         val_expanded_dict[file]["X_val"] = val_dict[file][[col for col in train.columns if col in full_features]]
         val_expanded_dict[file]["y_val"] = val_dict[file]["default_status"]
 
-    model_path = os.path.join(curr_run_dir, f'group_classification_model')
-    vi_path = os.path.join(curr_run_dir, f'group_classification_vi_large_grid_{large_grid}.tsv')
-    metrics_path = os.path.join(curr_run_dir, f'group_classification_metrics.tsv')
-    group_metrics_path = os.path.join(curr_run_dir, f'group_classification_group_metrics_{name}.tsv')
+    model_path = os.path.join(curr_run_dir, f'group_classification_model_eps_{ll_epsilon}')
+    vi_path = os.path.join(curr_run_dir, f'group_classification_vi_large_grid_{large_grid}eps_{ll_epsilon}.tsv')
+    metrics_path = os.path.join(curr_run_dir, f'group_classification_metrics_eps_{ll_epsilon}.tsv')
+    group_metrics_path = os.path.join(curr_run_dir, f'group_classification_group_metrics_{name}_eps_{ll_epsilon}.tsv')
 
     logging.info(f"Using model {args.model}")
 

@@ -146,15 +146,16 @@ def main():
         logging.info("Done generating data")
         return
     for ll_epsilon in results["ll_epsilon"].unique():
-        ll_epsilon_results = results.loc[results.ll_epsilon==ll_epsilon]
+        logging.info(f"#####Results for epsilon {ll_epsilon}#####\n#\n#\n#\n#\n#\n")
+        ll_epsilon_results = results.loc[results.ll_epsilon==ll_epsilon].copy()
         if args.add_sample_fracs:
             for sample_frac in  sample_fracs:
-                ML_pipeline(ll_epsilon_results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False,include_output_tree_features = args.include_output_tree_features)
+                ML_pipeline(ll_epsilon_results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False,include_output_tree_features = args.include_output_tree_features, ll_epsilon = ll_epsilon)
         if (not LOCAL_RUN) and args.model!='sgd' :
-            ML_pipeline(ll_epsilon_results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= args.include_output_tree_features)
+            ML_pipeline(ll_epsilon_results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= args.include_output_tree_features,ll_epsilon = ll_epsilon)
         else:
             ML_pipeline(ll_epsilon_results, args, curr_run_dir, sample_frac=1.0, RFE=False, large_grid=False,
-                        include_output_tree_features=args.include_output_tree_features)
+                        include_output_tree_features=args.include_output_tree_features,ll_epsilon = ll_epsilon)
         logging.info(f"Working on MSA level features")
 
 
