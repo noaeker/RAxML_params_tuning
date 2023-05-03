@@ -18,9 +18,9 @@ def group_main_parser():
     parser.add_argument('--n_iterations', action='store', type=int, default=1)
     #parser.add_argument('--n_pars_trees_sample', type=int, default=50)
     parser.add_argument('--name', type=str, default="groups_run_local_test")
-    parser.add_argument('--filter_on_default_data', action='store_true', default = False)
+    parser.add_argument('--filter_on_default_data', action='store_true', default = True)
     #parser.add_argument('--large_grid', action='store_true', default=False)
-    parser.add_argument('--n_jobs', type=int, default=2)
+    parser.add_argument('--n_jobs', type=int, default=1)
     parser.add_argument('--n_cv_folds', type=int, default=2)
     parser.add_argument('--cpus_per_job', type = int, default=1)
     parser.add_argument('--cpus_per_main_job', type=int, default=4)
@@ -38,8 +38,9 @@ def group_main_parser():
     parser.add_argument('--program', type=str, default='RAxML')
     parser.add_argument('--simulated', action='store_true', default=False)
     parser.add_argument('--msa_type',type=str, default= 'AA')
-    parser.add_argument('--ll_epsilon', type = float, default = 0.1)
+    parser.add_argument('--ll_epsilon', type = str, default = '0.01_0.1_1')
     parser.add_argument('--external_best_tree_file',type=str, default='')
+    parser.add_argument('--only_generate_data', action= 'store_true',default=False)
     return parser
 
 
