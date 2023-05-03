@@ -95,6 +95,8 @@ def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_
                                                                   possible_spr_cutoff=possible_spr_cutoff,
                                                                   possible_spr_radius=possible_spr_radius)
 
+    distinct_true_best_topologies = len(msa_data[msa_data["is_global_max"] == True]['tree_clusters_ind'].unique())
+    print(f"Overall best topologies {distinct_true_best_topologies}")
     topologies_found = len(sampled_data[sampled_data["is_global_max"] == True]['tree_clusters_ind'].unique())
     print(f"Best topologies found by the sampling trees {topologies_found}")
     True_global_max_data = overall_best_msa_data.loc[
@@ -130,7 +132,7 @@ def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_
 
     curr_iter_general_metrics["feature_pct_diff_topologies"] = curr_iter_general_metrics['feature_general_n_topologies']/n_sum
 
-    #curr_iter_general_metrics["default_pct_global_max"] = topologies_found / distinct_true_best_topologies
+    curr_iter_general_metrics["default_pct_global_max"] = topologies_found / distinct_true_best_topologies
     #print(curr_iter_general_metrics["default_pct_global_max"])
     print(f'default_status={curr_iter_general_metrics["default_status"]}')
     curr_iter_general_metrics["feature_general_n_topologies_best_final_trees"] = pd.Series.nunique(
@@ -163,13 +165,6 @@ def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon, n_sample_points,se
     msa_data["distinct_true_topologies"] = distinct_true_best_topologies
     print(f"distinct true topologies{distinct_true_best_topologies}")
 
-    #final_tree_embedding_metrics = pd.DataFrame([generate_embedding_distance_matrix_statistics_final_trees(
-    #    (msa_data["final_tree_topology"]), best_tree=(msa_data["is_global_max"]),
-    #    prefix="TRUE_final_trees_level_distances_embedd", tree_clusters=(msa_data["tree_clusters_ind"]),
-    #    True_global_trees=None,
-    #    True_global_tree_clusters=None,
-    #    final_trees_ll=msa_data["final_ll"])])
-
 
     for i in range(n_sample_points):
         seed = seed+1
@@ -178,7 +173,7 @@ def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon, n_sample_points,se
 
 
 def get_msa_type_and_program(data):
-    file_name = np.max(data["file_name"])
+    file_name = np.max(data["file_name"]).strip()
     if 'ds_new' in file_name or 'd_iqtree' in file_name:
         msa_type = 'DNA'
     else:
@@ -193,7 +188,7 @@ def get_msa_type_and_program(data):
 
 
 
-def get_all_sampling_results(curr_run_dir, data, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range = [10, 20], default_data = True, simulated = False,external_best_tree_file = ''
+def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_points, seed, n_pars, n_rand, n_sum_range = [10, 20], simulated = False, external_best_tree_file =''
                              ):
 
     n_sum_limits = [int(n) for n in n_sum_range.split('_')]
@@ -202,12 +197,11 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon, n_sample_points, se
     tree_search_features = ["spr_radius","spr_cutoff"]
     possible_spr_radius = list(data["spr_radius"].unique())
     possible_spr_cutoff = list(data["spr_cutoff"].unique())
-    general_features = ["feature_msa_n_seq", "feature_msa_n_loci", "file_name",
+    general_features = ["feature_msa_n_seq", "feature_msa_n_loci", "file_name", "ll_epsilon",
                              "feature_msa_pypythia_msa_difficulty",
                              "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean","best_msa_ll"
                              ]
-    if not default_data:
-        general_features = general_features+tree_search_features
+    general_features = general_features+tree_search_features
     all_sampling_results = pd.DataFrame()
 
     logging.info(f'Total MSA to run on: {len(data["msa_path"].unique())}')
@@ -226,13 +220,24 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon, n_sample_points, se
         file_data =data.loc[data.file_name==file]
         logging.info(f"Working on file: {file}")
         msa_type, program = get_msa_type_and_program(file_data)
+        if 'iqtree' in file:
+            logging.info("Filtering on default data")
+            default_data = True
+            file_data =file_data[file_data["type"] == "default"]  # Filtering only on default data
+        else:
+            logging.info(" Filtering on non-default data")
+            default_data = False
+            file_data = file_data[file_data["type"] != "default"]
         for i,msa_path in enumerate(file_data["msa_path"].unique()):
             logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
             # msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
             msa_data = data.loc[data.msa_path == msa_path].reset_index()  # Filter on MSA data
-
-            all_sampling_results, seed = MSA_pipeline(msa_path, msa_data, curr_run_dir, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
-                             possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program)
+            logging.info(f"LL epsilon values are: {ll_epsilon_values}")
+            for ll_epsilon in ll_epsilon_values: #for each epsilon
+                logging.info(f"Using epsilon={ll_epsilon}")
+                msa_data["ll_epsilon"] = ll_epsilon
+                all_sampling_results, seed = MSA_pipeline(msa_path, msa_data, curr_run_dir, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
+                                                          possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program)
             #except Exception as e:
         #    logging.error(f"Could not run on MSA {msa_path}")
         #    print(e)
@@ -255,7 +260,8 @@ def main():
     level = logging.INFO if args.level=='info' else logging.DEBUG
     logging.basicConfig(filename=log_file_path, level=level)
     logging.info("Generating results file")
-    results = get_all_sampling_results(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, ll_epsilon= args.ll_epsilon, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, default_data= args.filter_on_default_data, n_sum_range= args.n_sum_range, simulated= args.simulated, external_best_tree_file= args.external_best_tree_file)
+    ll_epsilon_values = [float(e) for e in (args.ll_epsilon).split('_')]
+    results = get_all_sampling_results(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, ll_epsilon_values= ll_epsilon_values, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, n_sum_range= args.n_sum_range, simulated= args.simulated, external_best_tree_file= args.external_best_tree_file)
     results.to_csv(args.curr_job_group_output_path, sep= '\t')
 
 

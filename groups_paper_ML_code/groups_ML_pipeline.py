@@ -85,7 +85,7 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
     #y_val = val["default_status"]
     val_expanded_dict = {}
     for file in val_dict:
-        val_expanded_dict[file] = {}
+        val_expanded_dict[file] = {'size': len(val_dict[file]['msa_path'].unique())}
         val_expanded_dict[file]["X_val"] = val_dict[file][[col for col in train.columns if col in full_features]]
         val_expanded_dict[file]["y_val"] = val_dict[file]["default_status"]
 

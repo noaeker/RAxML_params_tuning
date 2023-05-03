@@ -189,7 +189,7 @@ def print_model_statistics_pipeline(model, train_X, test_X, y_train, y_test, val
         file_validation_metrics = model_metrics(model, val_dict[file]["X_val"], val_dict[file]["y_val"], group_metrics_path, sampling_frac,
                       is_classification=is_classification,
                       groups_data=None)
-        logging.info(f"{file} validation metrics: \n { file_validation_metrics}")
+        logging.info(f"{file} validation metrics of size {val_dict[file]['size']}: \n { file_validation_metrics}")
 
 
 
@@ -252,8 +252,15 @@ def train_test_validation_splits(full_data, test_pct, val_pct, msa_col_name="msa
         logging.info("Remove unrelaible times from data")
         full_data = full_data.loc[~full_data.non_reliable_timings]
         logging.info(f"New Number of MSAs in full data is {len(full_data.msa_path.unique())}")
+
     validation_data_bool = (full_data["file_name"].str.contains("ps_new_msa") | full_data["file_name"].str.contains("new_msa_ds")| full_data["file_name"].str.contains("sim") | full_data["file_name"].str.contains("iqtree") | full_data["file_name"].str.contains("large"))
-    validation_data = full_data.loc[validation_data_bool]
+    zou_val_data = full_data.loc[validation_data_bool].loc[~full_data["file_name"].str.contains('large')]
+    zou_val_data['file_type'] = zou_val_data['file_name'].apply(lambda x: 'DNA' if 'new_msa_ds' in x or 'iqtree_d' in x else 'AA')
+    count_per_msa = zou_val_data.groupby("msa_path")["file_name"].nunique().reset_index()
+    valid_msas = count_per_msa.loc[count_per_msa.file_name==2]["msa_path"]
+    valid_msas_and_program = zou_val_data.loc[zou_val_data.msa_path.isin(valid_msas)][["msa_path","file_type"]].sort_values("msa_path").drop_duplicates()
+    chosen_MSAs = valid_msas_and_program.groupby('file_type').sample(n = 200)["msa_path"] #sampling 200 from each type
+    validation_data = full_data.loc[full_data["msa_path"].isin(chosen_MSAs) |full_data["file_name"].str.contains('large') ]
     file_names_val = validation_data["file_name"].unique()
     val_dict = {}
     for f in file_names_val:

@@ -128,7 +128,7 @@ def fit_SVC(svc_model, X_transformed, best_tree, name, all_results, True_global_
 
 
     best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == True]
-    #not_best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == False]
+    not_best_svm_scores = svm.decision_function(X_transformed)[np.array(best_tree) == False]
     #print(f"True global data = {True_global_data}")
     #if True_global_data is None:
     #    all_best_svm_scores = best_svm_scores
@@ -139,13 +139,14 @@ def fit_SVC(svc_model, X_transformed, best_tree, name, all_results, True_global_
         f'{name}_mean_best_score': np.mean(best_svm_scores),
                    f'{name}_max_best_score': np.max(best_svm_scores),
                    f'{name}_min_best_score': np.min(best_svm_scores),
-                   # f'{name}_mean_best_svm_proba': np.mean(best_svm_proba ),
-                   # f'{name}_mean_non_best_svm_proba': np.mean(not_best_svm_proba),
+        f'{name}_mean_non_best_score': np.mean(not_best_svm_scores),
+        f'{name}_max_non_best_score': np.max(not_best_svm_scores),
+        f'{name}_min_non_best_score': np.min(not_best_svm_scores),
+
        #f'{name}_mean_TRUE_best_score_EXCLUDE': np.mean(all_best_svm_scores),
         #f'{name}_max_TRUE_best_score_EXCLUDE': np.max(all_best_svm_scores),
         #f'{name}_min_TRUE_best_score_EXCLUDE': np.mean(all_best_svm_scores),
-        # f'{name}_mean_best_svm_proba': np.mean(best_svm_proba ),
-        # f'{name}_mean_non_best_svm_proba': np.mean(not_best_svm_proba),
+
                    }
 
     all_results.update(svm_results)
@@ -239,7 +240,7 @@ def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final
     RF_distance_mat = generate_RF_distance_matrix(curr_run_directory, final_trees)
     all_results = {}
     try:
-        mds_models = {f'{prefix}_mds_5':MDS(n_components=5, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_3':MDS(n_components=3, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_10':MDS(n_components=10, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat)}
+        mds_models = {f'{prefix}_mds_5':MDS(n_components=5, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_20':MDS(n_components=20, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_10':MDS(n_components=10, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),}
         for model in mds_models:
             fit_SVC(SVC(), mds_models[ model], best_tree, f"{model}_rbf_svc", all_results, True_global_data=None)
             clf = SVR()

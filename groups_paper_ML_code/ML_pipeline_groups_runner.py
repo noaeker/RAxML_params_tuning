@@ -134,31 +134,28 @@ def main():
     relevant_data =  unify_raw_data_csvs(args.raw_data_folder)
     if args.filter_on_default_data:
         logging.info("Filtering on default data")
-    if args.filter_on_default_data:
-        relevant_data = relevant_data[relevant_data["type"] == "default"] #Filtering only on default data
-    else:
-        relevant_data = relevant_data[relevant_data["type"] != "default"] # Filtering on non default data
-    results_path = os.path.join(curr_run_dir,'group_results.tsv')
-    previous_results_path= os.path.join(curr_run_dir,'group_results_prev.tsv')
+    results_path = os.path.join(curr_run_dir,f'group_results_{args.ll_epsilon}.tsv')
+    previous_results_path= os.path.join(curr_run_dir,f'group_results_prev_{args.ll_epsilon}.tsv')
     results = obtain_sampling_results(results_path, previous_results_path, relevant_data, all_jobs_running_folder, existing_msas_data_path, args)
     results = results.sample(frac=1)
-    #results["feature_sbm_sign"] = (results["feature_final_trees_level_distances_embedd_PCA_mean_best_svm_score"]/results["feature_final_trees_level_distances_embedd_PCA__max"])
-    #results = results.loc[results.feature_msa_pypythia_msa_difficulty > 0.3]
     logging.info(f"Number of rows in results is {len(results.index)}")
     logging.info(f"Using sample fracs = {args.sample_fracs}")
     logging.info(f"include_output_tree_features = {args.include_output_tree_features}")
     sample_fracs = args.sample_fracs if not LOCAL_RUN else [1]
-
-
-    if args.add_sample_fracs:
-        for sample_frac in  sample_fracs:
-            ML_pipeline(results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False,include_output_tree_features = args.include_output_tree_features)
-    if (not LOCAL_RUN) and args.model!='sgd' :
-        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= args.include_output_tree_features)
-    else:
-        ML_pipeline(results, args, curr_run_dir, sample_frac=1.0, RFE=False, large_grid=False,
-                    include_output_tree_features=args.include_output_tree_features)
-    logging.info(f"Working on MSA level features")
+    if args.only_generate_data:
+        logging.info("Done generating data")
+        return
+    for ll_epsilon in results["ll_epsilon"].unique():
+        ll_epsilon_results = results.loc[results.ll_epsilon==ll_epsilon]
+        if args.add_sample_fracs:
+            for sample_frac in  sample_fracs:
+                ML_pipeline(ll_epsilon_results, args, curr_run_dir, sample_frac, RFE=False, large_grid= False,include_output_tree_features = args.include_output_tree_features)
+        if (not LOCAL_RUN) and args.model!='sgd' :
+            ML_pipeline(ll_epsilon_results, args, curr_run_dir, sample_frac=1.0, RFE=True, large_grid = True, include_output_tree_features= args.include_output_tree_features)
+        else:
+            ML_pipeline(ll_epsilon_results, args, curr_run_dir, sample_frac=1.0, RFE=False, large_grid=False,
+                        include_output_tree_features=args.include_output_tree_features)
+        logging.info(f"Working on MSA level features")
 
 
 if __name__ == "__main__":
