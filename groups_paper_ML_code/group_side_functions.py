@@ -9,7 +9,7 @@ import numpy as np
 def group_main_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--raw_data_folder', action='store', type=str,
-                        default="/Users/noa/Workspace/raxml_deep_learning_results/New_pandit_data")
+                        default="/Users/noa/Workspace/raxml_deep_learning_results/New_test_data")
     parser.add_argument('--curr_working_dir',
                         default="/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test")
     parser.add_argument('--n_pars_trees', action='store', type=int, default=-1)
@@ -39,7 +39,7 @@ def group_main_parser():
     parser.add_argument('--simulated', action='store_true', default=False)
     parser.add_argument('--msa_type',type=str, default= 'AA')
     parser.add_argument('--ll_epsilon', type = str, default = '0.01_0.1_1')
-    parser.add_argument('--external_best_tree_file',type=str, default='')
+    parser.add_argument('--external_best_tree_file',type=str, default='Nope')
     parser.add_argument('--only_generate_data', action= 'store_true',default=False)
     return parser
 

@@ -197,8 +197,6 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_poi
     n_sum_range = list(range(n_sum_limits[0], n_sum_limits[1]+1))
     logging.info(f"Sum options {n_sum_range}")
     tree_search_features = ["spr_radius","spr_cutoff"]
-    possible_spr_radius = list(data["spr_radius"].unique())
-    possible_spr_cutoff = list(data["spr_cutoff"].unique())
     general_features = ["feature_msa_n_seq", "feature_msa_n_loci", "file_name", "ll_epsilon",
                              "feature_msa_pypythia_msa_difficulty",
                              "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean","best_msa_ll"
@@ -233,7 +231,10 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_poi
         for i,msa_path in enumerate(file_data["msa_path"].unique()):
             logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
             # msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
-            msa_data = data.loc[data.msa_path == msa_path].reset_index()  # Filter on MSA data
+            msa_data = data.loc[data.msa_path == msa_path].reset_index()
+            possible_spr_radius = list(msa_data["spr_radius"].unique())
+            possible_spr_cutoff = list(msa_data["spr_cutoff"].unique())
+            # Filter on MSA data
             logging.info(f"LL epsilon values are: {ll_epsilon_values}")
             for ll_epsilon in ll_epsilon_values: #for each epsilon
                 logging.info(f"Using epsilon={ll_epsilon}")

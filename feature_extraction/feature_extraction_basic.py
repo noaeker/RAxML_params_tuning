@@ -145,5 +145,5 @@ def unify_raw_data_csvs(raw_data_folder):
     logging.info(f"Combining CSV files: {csv_files_in_folder}")
     raw_data = pd.concat(dfs_in_folder, sort=False)
 
-    #raw_data = raw_data.loc[raw_data.msa_path==]
+    raw_data = raw_data.loc[raw_data.msa_path=='/groups/pupko/noaeker/data/New_MSAs/Single_gene_PROTEIN/data/6324.aln_WickA3']
     return raw_data

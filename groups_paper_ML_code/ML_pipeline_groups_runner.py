@@ -132,8 +132,6 @@ def main():
 
 
     relevant_data =  unify_raw_data_csvs(args.raw_data_folder)
-    if args.filter_on_default_data:
-        logging.info("Filtering on default data")
     results_path = os.path.join(curr_run_dir,f'group_results_{args.ll_epsilon}.tsv')
     previous_results_path= os.path.join(curr_run_dir,f'group_results_prev_{args.ll_epsilon}.tsv')
     results = obtain_sampling_results(results_path, previous_results_path, relevant_data, all_jobs_running_folder, existing_msas_data_path, args)
