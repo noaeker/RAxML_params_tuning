@@ -7,13 +7,7 @@ This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute
 
 Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
 
-```{r}
-library(scales)
-library(tidyverse)
-library(caret)
-library(ggpubr)
-library(pROC)
-```
+
 
 
 ```{r}
@@ -27,6 +21,7 @@ error_vs_group = read_tsv(paste(prefix,"group_classification_group_metrics_M_fra
 ```
 
 ```{r}
+val_data %>% filter (msa_) distinct (msa_path)
 summary(val_data %>% pull (default_status))
 ```
 
@@ -187,27 +182,28 @@ n_loci_error
 library(dplyr)
 library(MASS)
 
-Pypythia_error<-error_vs_group %>% filter (grouping_col_name =='msa_difficulty_group') %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('MSA difficulty')+ xlab('AUC')+theme(text = element_text(size = 9))
+Pypythia_error<-error_vs_group %>% filter (grouping_col_name =='msa_difficulty_group') %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('MSA\ndifficulty')+ xlab('AUC')+theme(text = element_text(size = 10))
 
 
-n_seq_error<-error_vs_group %>% filter (grouping_col_name =='n_seq_group') %>% mutate(grouping_col = factor(grouping_col, levels = c('(29.999, 45.0]','(45.0, 67.0]','(67.0, 108.0]','(108.0, 199.0]'))) %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('# Sequences')+xlab('AUC')+theme(text = element_text(size = 9))
+n_seq_error<-error_vs_group %>% filter (grouping_col_name =='n_seq_group') %>% mutate(grouping_col = factor(grouping_col, levels = c('(29.999, 45.0]','(45.0, 67.0]','(67.0, 108.0]','(108.0, 199.0]'))) %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('Number\nof sequences')+xlab('AUC')+theme(text = element_text(size = 10))
 
-n_loci_error<-error_vs_group %>% filter (grouping_col_name =='feature_msa_n_loci')  %>%  mutate(grouping_col = factor(grouping_col, levels = c('(99.999, 239.0]','(239.0, 632.0]','(632.0, 1437.0]','(1437.0, 12478.0]'))) %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('# Positions')+xlab('AUC')+theme(text = element_text(size = 9))
-
-
-Pypythia_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob,  feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_pypythia_msa_difficulty, y = mean_prob))+geom_point(size = 0.7)+xlab("MSA difficulty")+ylab("Predicted probability")+theme(text = element_text(size = 9))
-
-seq_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_n_seq, y = mean_prob))+geom_point(size = 0.7)+xlab("Number of sequences")+ylab("Predicted probability")+theme(text = element_text(size = 9))
-
-n_loci_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob, feature_msa_n_loci) %>% group_by(msa_path,feature_msa_n_loci) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_n_loci, y = mean_prob))+geom_point(size = 0.7)+xlab("Number of positions")+ylab("Predicted probability")+theme(text = element_text(size = 9))
+n_loci_error<-error_vs_group %>% filter (grouping_col_name =='feature_msa_n_loci')  %>%  mutate(grouping_col = factor(grouping_col, levels = c('(99.999, 239.0]','(239.0, 632.0]','(632.0, 1437.0]','(1437.0, 12478.0]'))) %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('Number\nof positions')+xlab('AUC')+theme(text = element_text(size = 10))
 
 
-ggarrange(seq_scatter,Pypythia_scatter,n_loci_scatter, n_seq_error,Pypythia_error, n_loci_error,labels = c("A","B","C","D","E","F"),align = "h", nrow = 3, ncol = 3, legend = "bottom",vjust= 1)
+Pypythia_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob,  feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_pypythia_msa_difficulty, y = mean_prob))+geom_point(size = 0.7)+xlab("MSA\ndifficulty")+ylab("Predicted\nprobability")+theme(text = element_text(size = 10))
+
+seq_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob, feature_msa_n_seq, feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_n_seq) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_n_seq, y = mean_prob))+geom_point(size = 0.7)+xlab("Number of\nsequences")+ylab("Predicted\nprobability")+theme(text = element_text(size = 10))
+
+n_loci_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob, feature_msa_n_loci) %>% group_by(msa_path,feature_msa_n_loci) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_n_loci, y = mean_prob))+geom_point(size = 0.7)+xlab("Number of\n positions")+ylab("Predicted\nprobability")+theme(text = element_text(size = 10))
+
+
+ggarrange(seq_scatter,Pypythia_scatter,n_loci_scatter, n_seq_error,Pypythia_error, n_loci_error,labels = c("A","C","E","B","D","F"),align = "h", nrow = 3, ncol = 3, legend = "bottom",vjust= 1)
 #error_vs_group_5_5_including_plt
 
 
 cor.test(test_data$feature_msa_pypythia_msa_difficulty, test_data$uncalibrated_prob)
 cor.test(test_data$feature_msa_n_seq, test_data$uncalibrated_prob)
+cor.test(test_data$feature_msa_n_loci, test_data$uncalibrated_prob)
 ```
 
 

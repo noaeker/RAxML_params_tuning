@@ -235,9 +235,9 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_poi
         for i,msa_path in enumerate(file_data["msa_path"].unique()):
             logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
             # msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
-            msa_data = data.loc[data.msa_path == msa_path].reset_index()
-            possible_spr_radius = list(msa_data["spr_radius"].unique())
-            possible_spr_cutoff = list(msa_data["spr_cutoff"].unique())
+            msa_data = file_data.loc[file_data.msa_path == msa_path].reset_index()
+            possible_spr_radius = list(file_data["spr_radius"].unique())
+            possible_spr_cutoff = list(file_data["spr_cutoff"].unique())
             # Filter on MSA data
             logging.info(f"LL epsilon values are: {ll_epsilon_values}")
             all_sampling_results, seed = MSA_pipeline(msa_path, msa_data, curr_run_dir, ll_epsilon_values, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
