@@ -151,26 +151,30 @@ def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_
         [all_sampling_results, curr_iter_general_metrics])  # default_results.append(general_run_metrics)
     return all_sampling_results
 
-def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, simulated, msa_type, program ):
+def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon_values, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, simulated, msa_type, program ):
     logging.info("Enriching MSA data")
     msa_data = process_all_msa_runs(curr_run_dir,msa_path, msa_data, cpus_per_job = 1, msa_type=msa_type, program=program,
                          perform_topology_tests=False, simulated= simulated)
     msa_features = pd.DataFrame.from_dict({msa_path: get_msa_stats(msa_path, msa_type)}, orient= 'index')
     msa_data = msa_data.merge(msa_features, on = 'msa_path')
 
-    ll_best_topologies = msa_data.loc[msa_data["delta_ll_from_overall_msa_best_topology"] <= ll_epsilon][
-        "tree_clusters_ind"].unique()
-    msa_data["is_global_max"] = (msa_data["tree_clusters_ind"].isin(ll_best_topologies)).astype(
-        'int')  # global max definition
-    overall_best_msa_data = msa_data.loc[msa_data.is_global_max == True]
-    distinct_true_best_topologies = len(overall_best_msa_data["tree_clusters_ind"].unique())
-    msa_data["distinct_true_topologies"] = distinct_true_best_topologies
-    print(f"distinct true topologies{distinct_true_best_topologies}")
+    for ll_epsilon in ll_epsilon_values:
+        ll_epsilon_msa_data = msa_data.copy()
+        logging.info(f"Using epsilon={ll_epsilon}")
+        ll_epsilon_msa_data["ll_epsilon"] = ll_epsilon
+        ll_best_topologies = ll_epsilon_msa_data.loc[ll_epsilon_msa_data["delta_ll_from_overall_msa_best_topology"] <= ll_epsilon][
+            "tree_clusters_ind"].unique()
+        ll_epsilon_msa_data["is_global_max"] = (ll_epsilon_msa_data["tree_clusters_ind"].isin(ll_best_topologies)).astype(
+            'int')  # global max definition
+        overall_best_msa_data = ll_epsilon_msa_data.loc[ll_epsilon_msa_data.is_global_max == True]
+        distinct_true_best_topologies = len(overall_best_msa_data["tree_clusters_ind"].unique())
+        ll_epsilon_msa_data["distinct_true_topologies"] = distinct_true_best_topologies
+        print(f"distinct true topologies{distinct_true_best_topologies}")
 
 
-    for i in range(n_sample_points):
-        seed = seed+1
-        all_sampling_results = single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, msa_data,overall_best_msa_data)
+        for i in range(n_sample_points):
+            seed = seed+1
+            all_sampling_results = single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, ll_epsilon_msa_data,overall_best_msa_data)
     return all_sampling_results, seed
 
 
@@ -236,11 +240,8 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_poi
             possible_spr_cutoff = list(msa_data["spr_cutoff"].unique())
             # Filter on MSA data
             logging.info(f"LL epsilon values are: {ll_epsilon_values}")
-            for ll_epsilon in ll_epsilon_values: #for each epsilon
-                logging.info(f"Using epsilon={ll_epsilon}")
-                msa_data["ll_epsilon"] = ll_epsilon
-                all_sampling_results, seed = MSA_pipeline(msa_path, msa_data, curr_run_dir, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
-                                                          possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program)
+            all_sampling_results, seed = MSA_pipeline(msa_path, msa_data, curr_run_dir, ll_epsilon_values, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
+                                                      possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program)
             #except Exception as e:
         #    logging.error(f"Could not run on MSA {msa_path}")
         #    print(e)
