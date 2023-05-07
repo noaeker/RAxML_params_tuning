@@ -86,17 +86,17 @@ def enrich_iteration_with_extra_metrics(curr_run_dir, sampled_data, True_global_
 
 
 
-def fit_gmm(sampled_data,best_tree, ll_values, name):
+def fit_gmm(curr_iter_general_metrics, best_tree, ll_values, name):
     gmm_1 = GaussianMixture(n_components=1, random_state=0).fit(ll_values)
     gmm_2 = GaussianMixture(n_components=2, random_state=0).fit(ll_values)
     gmm_3 = GaussianMixture(n_components=3, random_state=0).fit(ll_values)
 
-    sampled_data[f'{name}_mean_gmm_1_ll_score']= np.mean(gmm_1.score_samples(ll_values))
-    sampled_data[f'{name}_mean_gmm_1_ll_score_best'] = np.mean(gmm_1.score_samples(ll_values)[best_tree])
-    sampled_data[f'{name}_mean_gmm_2_ll_score'] = np.mean(gmm_2.score_samples(ll_values))
-    sampled_data[f'{name}_mean_gmm_2_ll_score_best'] = np.mean(gmm_2.score_samples(ll_values)[best_tree])
-    sampled_data[f'{name}_mean_gmm_3_ll_score'] = np.mean(gmm_3.score_samples(ll_values))
-    sampled_data[f'{name}_mean_gmm_3_ll_best'] = np.mean(gmm_3.score_samples(ll_values)[best_tree])
+    curr_iter_general_metrics[f'{name}_mean_gmm_1_ll_score']= np.mean(gmm_1.score_samples(ll_values))
+    curr_iter_general_metrics[f'{name}_mean_gmm_1_ll_score_best'] = np.mean(gmm_1.score_samples(ll_values)[best_tree])
+    curr_iter_general_metrics[f'{name}_mean_gmm_2_ll_score'] = np.mean(gmm_2.score_samples(ll_values))
+    curr_iter_general_metrics[f'{name}_mean_gmm_2_ll_score_best'] = np.mean(gmm_2.score_samples(ll_values)[best_tree])
+    curr_iter_general_metrics[f'{name}_mean_gmm_3_ll_score'] = np.mean(gmm_3.score_samples(ll_values))
+    curr_iter_general_metrics[f'{name}_mean_gmm_3_ll_best'] = np.mean(gmm_3.score_samples(ll_values)[best_tree])
 
 
 
@@ -132,10 +132,6 @@ def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_
         'int')  # global max definition
     sampled_data["normalized_final_ll"] = sampled_data.groupby('msa_path')["final_ll"].transform(
         lambda x: ((x - x.mean()) / x.std()))
-    try:
-        fit_gmm(sampled_data, np.array(sampled_data["is_best_tree"]), np.array(sampled_data["normalized_final_ll"]).reshape(-1,1), name = "feature_ll_distribution_")
-    except:
-        logging.error("Could not fit gmm")
     sampled_data_good_trees = sampled_data[sampled_data["is_best_tree"] == True]
 
     curr_iter_general_metrics = sampled_data.groupby(
@@ -150,6 +146,11 @@ def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_
         feature_general_final_ll_skew=('final_ll', skew),
         feature_general_max_ll_std=('normalized_final_ll', np.max)
     ).reset_index()
+
+    try:
+        fit_gmm(curr_iter_general_metrics, np.array(sampled_data["is_best_tree"]), np.array(sampled_data["normalized_final_ll"]).reshape(-1,1), name = "feature_ll_distribution_")
+    except:
+        logging.error("Could not fit gmm")
 
     curr_iter_general_metrics["feature_pct_diff_topologies"] = curr_iter_general_metrics['feature_general_n_topologies']/n_sum
     curr_iter_general_metrics["distinct_true_best_topologies"] = distinct_true_best_topologies
