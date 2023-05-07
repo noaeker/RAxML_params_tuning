@@ -110,19 +110,19 @@ def process_all_msa_runs(curr_run_directory,msa_path, msa_data, cpus_per_job, ms
     msa_data["final_trees_inds"] = list(range(len(msa_data.index)))
     unique_trees_mapping = get_unique_trees_mapping(curr_run_directory, list(msa_data["final_tree_topology"]))
     msa_data["tree_clusters_ind"] = msa_data["final_trees_inds"].apply(lambda x: unique_trees_mapping[x])
-    if perform_topology_tests:
-        try:
-            per_clusters_data = msa_data.groupby(["tree_clusters_ind"]).first().reset_index()[
-                ["tree_clusters_ind", "final_tree_topology"]]
-            au_test_results = au_test(per_tree_clusters_data=per_clusters_data, ML_tree=best_msa_tree_topology,
-                                      msa_path=get_local_path(msa_path), cpus_per_job=cpus_per_job,
-                                      name="MSA_enrichment_TREE_TEST_calculations",
-                                      curr_run_directory=curr_run_directory, msa_type=msa_type)
-            msa_data = msa_data.merge(pd.DataFrame(au_test_results), on="tree_clusters_ind")
-        except Exception as e:
-            logging.info(f"AU couldn't be estimated for current MSA")
-            logging.info(f'Error details: {str(e)}')
-            return pd.DataFrame()
+    # if perform_topology_tests:
+    #     try:
+    #         per_clusters_data = msa_data.groupby(["tree_clusters_ind"]).first().reset_index()[
+    #             ["tree_clusters_ind", "final_tree_topology"]]
+    #         au_test_results = au_test(per_tree_clusters_data=per_clusters_data, ML_tree=best_msa_tree_topology,
+    #                                   msa_path=get_local_path(msa_path), cpus_per_job=cpus_per_job,
+    #                                   name="MSA_enrichment_TREE_TEST_calculations",
+    #                                   curr_run_directory=curr_run_directory, msa_type=msa_type)
+    #         msa_data = msa_data.merge(pd.DataFrame(au_test_results), on="tree_clusters_ind")
+    #     except Exception as e:
+    #         logging.info(f"AU couldn't be estimated for current MSA")
+    #         logging.info(f'Error details: {str(e)}')
+    #         return pd.DataFrame()
     msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
         (msa_data["rf_from_overall_msa_best_topology"]) > 0, best_msa_ll - msa_data["final_ll"], 0)
     return msa_data
@@ -135,7 +135,8 @@ def unify_raw_data_csvs(raw_data_folder):
     for f in csv_files_in_folder:
         try:
             if LOCAL_RUN:
-                data = pd.read_csv(f, sep=CSV_SEP)
+                data = pd.read_csv(f, sep=CSV_SEP, nrows=1240)
+                print(data['msa_path'].unique())
             else:
                 data = pd.read_csv(f, sep=CSV_SEP)
             data['file_name'] = os.path.basename(f)

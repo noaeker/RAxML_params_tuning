@@ -254,19 +254,22 @@ def train_test_validation_splits(full_data, test_pct, val_pct, msa_col_name="msa
         logging.info(f"New Number of MSAs in full data is {len(full_data.msa_path.unique())}")
 
     validation_data_bool = (full_data["file_name"].str.contains("ps_new_msa") | full_data["file_name"].str.contains("new_msa_ds")| full_data["file_name"].str.contains("sim") | full_data["file_name"].str.contains("iqtree") | full_data["file_name"].str.contains("large"))
+    val_dict = {}
     zou_val_data = full_data.loc[validation_data_bool].loc[~full_data["file_name"].str.contains('large')]
     zou_val_data['file_type'] = zou_val_data['file_name'].apply(lambda x: 'DNA' if 'new_msa_ds' in x or 'iqtree_d' in x else 'AA')
     count_per_msa = zou_val_data.groupby("msa_path")["file_name"].nunique().reset_index()
     valid_msas = count_per_msa.loc[count_per_msa.file_name==2]["msa_path"]
     valid_msas_and_program = zou_val_data.loc[zou_val_data.msa_path.isin(valid_msas)][["msa_path","file_type"]].sort_values("msa_path").drop_duplicates()
-    chosen_MSAs = valid_msas_and_program.groupby('file_type').sample(n = 200)["msa_path"] #sampling 200 from each type
-    validation_data = full_data.loc[full_data["msa_path"].isin(chosen_MSAs) |full_data["file_name"].str.contains('large') ]
-    file_names_val = validation_data["file_name"].unique()
-    val_dict = {}
-    for f in file_names_val:
-        val_data = validation_data.loc[validation_data.file_name==f]
-        val_dict[f] = val_data
-    logging.info(f"Number of MSAs in validation data is {len(validation_data.msa_path.unique())}")
+    try:
+        chosen_MSAs = valid_msas_and_program.groupby('file_type').sample(n = 0)["msa_path"] #sampling 200 from each type
+        validation_data = full_data.loc[full_data["msa_path"].isin(chosen_MSAs) |full_data["file_name"].str.contains('large') ]
+        file_names_val = validation_data["file_name"].unique()
+        for f in file_names_val:
+            val_data = validation_data.loc[validation_data.file_name==f]
+            val_dict[f] = val_data
+        logging.info(f"Number of MSAs in validation data is {len(validation_data.msa_path.unique())}")
+    except:
+        logging.error("No validation data")
     full_data = full_data.loc[~validation_data_bool]
     np.random.seed(SEED)
     logging.info("Partitioning MSAs according to number of sequences")

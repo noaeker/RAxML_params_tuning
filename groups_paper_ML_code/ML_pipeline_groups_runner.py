@@ -132,8 +132,8 @@ def main():
 
 
     relevant_data =  unify_raw_data_csvs(args.raw_data_folder)
-    results_path = os.path.join(curr_run_dir,f'group_results_{args.ll_epsilon}.tsv')
-    previous_results_path= os.path.join(curr_run_dir,f'group_results_prev_{args.ll_epsilon}.tsv')
+    results_path = os.path.join(curr_run_dir,f'group_results.tsv')
+    previous_results_path= os.path.join(curr_run_dir,f'group_results_prev.tsv')
     results = obtain_sampling_results(results_path, previous_results_path, relevant_data, all_jobs_running_folder, existing_msas_data_path, args)
     results = results.sample(frac=1)
     logging.info(f"Number of rows in results is {len(results.index)}")

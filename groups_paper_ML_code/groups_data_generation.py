@@ -84,6 +84,22 @@ def enrich_iteration_with_extra_metrics(curr_run_dir, sampled_data, True_global_
          log_likelihood_diff_metrics], axis=1)  # final_tree_embedding_metrics,
     return curr_iter_general_metrics
 
+
+
+def fit_gmm(sampled_data,best_tree, ll_values, name):
+    gmm_1 = GaussianMixture(n_components=1, random_state=0).fit(ll_values)
+    gmm_2 = GaussianMixture(n_components=2, random_state=0).fit(ll_values)
+    gmm_3 = GaussianMixture(n_components=3, random_state=0).fit(ll_values)
+
+    sampled_data[f'{name}_mean_gmm_1_ll_score']= np.mean(gmm_1.score_samples(ll_values))
+    sampled_data[f'{name}_mean_gmm_1_ll_score_best'] = np.mean(gmm_1.score_samples(ll_values)[best_tree])
+    sampled_data[f'{name}_mean_gmm_2_ll_score'] = np.mean(gmm_2.score_samples(ll_values))
+    sampled_data[f'{name}_mean_gmm_2_ll_score_best'] = np.mean(gmm_2.score_samples(ll_values)[best_tree])
+    sampled_data[f'{name}_mean_gmm_3_ll_score'] = np.mean(gmm_3.score_samples(ll_values))
+    sampled_data[f'{name}_mean_gmm_3_ll_best'] = np.mean(gmm_3.score_samples(ll_values)[best_tree])
+
+
+
 def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, msa_data,overall_best_msa_data):
     print(i)
     random.seed(seed)
@@ -116,6 +132,10 @@ def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_
         'int')  # global max definition
     sampled_data["normalized_final_ll"] = sampled_data.groupby('msa_path')["final_ll"].transform(
         lambda x: ((x - x.mean()) / x.std()))
+    try:
+        fit_gmm(sampled_data, np.array(sampled_data["is_best_tree"]), np.array(sampled_data["normalized_final_ll"]).reshape(-1,1), name = "feature_ll_distribution_")
+    except:
+        logging.error("Could not fit gmm")
     sampled_data_good_trees = sampled_data[sampled_data["is_best_tree"] == True]
 
     curr_iter_general_metrics = sampled_data.groupby(
@@ -151,10 +171,10 @@ def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_
         [all_sampling_results, curr_iter_general_metrics])  # default_results.append(general_run_metrics)
     return all_sampling_results
 
-def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon_values, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, simulated, msa_type, program ):
+def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon_values, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, simulated, msa_type, program,perform_topology_tests ):
     logging.info("Enriching MSA data")
     msa_data = process_all_msa_runs(curr_run_dir,msa_path, msa_data, cpus_per_job = 1, msa_type=msa_type, program=program,
-                         perform_topology_tests=False, simulated= simulated)
+                         perform_topology_tests=perform_topology_tests, simulated= simulated)
     msa_features = pd.DataFrame.from_dict({msa_path: get_msa_stats(msa_path, msa_type)}, orient= 'index')
     msa_data = msa_data.merge(msa_features, on = 'msa_path')
 
@@ -194,16 +214,28 @@ def get_msa_type_and_program(data):
 
 
 
-def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_points, seed, n_pars, n_rand, n_sum_range = [10, 20], simulated = False, external_best_tree_file =''
+
+'''
+     return {'au_test_sign':relevant_line[-1], 'au_test':relevant_line[-2],
+                'wsh_test_sign':relevant_line[-5],'wsh_test':relevant_line[-6],
+                'wkh_test_sign':relevant_line[-7],'wkh_test':relevant_line[-8],
+                'sh_test_sign': relevant_line[-9], 'sh_test': relevant_line[-10],
+                'kh_test_sign': relevant_line[-11], 'kh_test': relevant_line[-12]
+'''
+
+
+
+def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_points, seed, n_pars, n_rand,perform_topology_tests, n_sum_range = [10, 20], simulated = False, external_best_tree_file ='',
                              ):
 
     n_sum_limits = [int(n) for n in n_sum_range.split('_')]
     n_sum_range = list(range(n_sum_limits[0], n_sum_limits[1]+1))
     logging.info(f"Sum options {n_sum_range}")
     tree_search_features = ["spr_radius","spr_cutoff"]
+    #topology_test_features = ['au_test_sign','wsh_test_sign','wkh_test_sign','sh_test_sign','kh_test_sign','au_test','wsh_test','wkh_test','sh_test','kh_test']
     general_features = ["feature_msa_n_seq", "feature_msa_n_loci", "file_name", "ll_epsilon",
                              "feature_msa_pypythia_msa_difficulty",
-                             "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean","best_msa_ll"
+                             "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean","best_msa_ll",
                              ]
     general_features = general_features+tree_search_features
     all_sampling_results = pd.DataFrame()
@@ -242,7 +274,7 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_poi
             logging.info(f"LL epsilon values are: {ll_epsilon_values}")
             try:
                 all_sampling_results, seed = MSA_pipeline(msa_path, msa_data, curr_run_dir, ll_epsilon_values, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
-                                                          possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program)
+                                                          possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program, perform_topology_tests=perform_topology_tests)
             except Exception as e:
                 logging.error(f"Could not run on MSA {msa_path}")
                 print(e)
@@ -266,7 +298,7 @@ def main():
     logging.basicConfig(filename=log_file_path, level=level)
     logging.info("Generating results file")
     ll_epsilon_values = [float(e) for e in (args.ll_epsilon).split('_')]
-    results = get_all_sampling_results(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, ll_epsilon_values= ll_epsilon_values, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, n_sum_range= args.n_sum_range, simulated= args.simulated, external_best_tree_file= args.external_best_tree_file)
+    results = get_all_sampling_results(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, ll_epsilon_values= ll_epsilon_values, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, n_sum_range= args.n_sum_range, simulated= args.simulated, external_best_tree_file= args.external_best_tree_file, perform_topology_tests= args.perform_topology_tests)
     results.to_csv(args.curr_job_group_output_path, sep= '\t')
 
 

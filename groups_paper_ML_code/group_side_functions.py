@@ -14,7 +14,7 @@ def group_main_parser():
                         default="/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test")
     parser.add_argument('--n_pars_trees', action='store', type=int, default=-1)
     parser.add_argument('--n_rand_trees', action='store', type=int, default=-1)
-    parser.add_argument('--n_sum_range',action='store', type=str, default = '10_40')
+    parser.add_argument('--n_sum_range',action='store', type=str, default = '1_40')
     parser.add_argument('--n_iterations', action='store', type=int, default=1)
     #parser.add_argument('--n_pars_trees_sample', type=int, default=50)
     parser.add_argument('--name', type=str, default="groups_run_local_test")
@@ -41,6 +41,7 @@ def group_main_parser():
     parser.add_argument('--ll_epsilon', type = str, default = '0.01_0.1_1')
     parser.add_argument('--external_best_tree_file',type=str, default='Nope')
     parser.add_argument('--only_generate_data', action= 'store_true',default=False)
+    parser.add_argument('--perform_topology_tests', action = 'store_true', default= True )
     return parser
 
 
