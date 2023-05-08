@@ -143,7 +143,7 @@ def main():
     if args.only_generate_data:
         logging.info("Done generating data")
         return
-    for ll_epsilon in results["ll_epsilon"].unique():
+    for ll_epsilon in [0.1]:#results["ll_epsilon"].unique():
         logging.info(f"#####Results for epsilon {ll_epsilon}#####\n#\n#\n#\n#\n#\n")
         ll_epsilon_results = results.loc[results.ll_epsilon==ll_epsilon].copy()
         if args.add_sample_fracs:

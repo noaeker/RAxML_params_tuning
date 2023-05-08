@@ -261,7 +261,7 @@ def train_test_validation_splits(full_data, test_pct, val_pct, msa_col_name="msa
     valid_msas = count_per_msa.loc[count_per_msa.file_name==2]["msa_path"]
     valid_msas_and_program = zou_val_data.loc[zou_val_data.msa_path.isin(valid_msas)][["msa_path","file_type"]].sort_values("msa_path").drop_duplicates()
     try:
-        chosen_MSAs = valid_msas_and_program.groupby('file_type').sample(n = 0)["msa_path"] #sampling 200 from each type
+        chosen_MSAs = valid_msas_and_program.groupby('file_type').sample(n = 200)["msa_path"] #sampling 200 from each type
         validation_data = full_data.loc[full_data["msa_path"].isin(chosen_MSAs) |full_data["file_name"].str.contains('large') ]
         file_names_val = validation_data["file_name"].unique()
         for f in file_names_val:

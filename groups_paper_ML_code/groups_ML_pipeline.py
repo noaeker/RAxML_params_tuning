@@ -47,12 +47,12 @@ def get_full_and_MSA_features(results):
                              "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean",
                              ]
 
-    general_final_tree_metrics = [col for col in results if col.startswith('feature_general')]
-    final_trees_distances_metrics = [col for col in results if col.startswith('feature_final_trees_level_distances')]
+    #general_final_tree_metrics = [col for col in results if col.startswith('feature_general')]
+    #final_trees_distances_metrics = [col for col in results if col.startswith('feature_final_trees_level_distances')]
     MSA_level_distancs_metrics = [col for col in results if col.startswith('feature_MSA_level')]
 
-    full_features = ["n_total_trees_sampled"]+general_MSA_columns +general_final_tree_metrics+final_trees_distances_metrics+MSA_level_distancs_metrics
-    full_features = [col for col in full_features if 'SVR' not in col and ('mds' not in col or 'mds_20_rbf_svc_max' in col)]
+    full_features = ["n_total_trees_sampled"]+general_MSA_columns +[col for col in results.columns if col.startswith('feature')]
+    full_features = [col for col in full_features if 'SVR' not in col and 'gmm' not in col and ('mds' not in col) and 'corr' not in col]
     #full_features = ["n_total_trees_sampled"]+general_MSA_columns+[col for col in full_features if  ('MSA_level' not in col and 'LIN' not in col and 'gmm' not in col and 'KDE' not in col and 'non_best_score' not in col   and 'min_best_score' not in col and 'lin_svc' not in col and 'var_explained' not in col and 'total_var' not in col and 'feature_general_ll_diff' not in col and 'median' not in col and 'n_components' not in col and 'final_ll_skew' not in col and 'rbf_svc_weight2' not in col  and 'median' not in col and 'min' not in col and ('max' not in col or 'rbf' in col) and 'pct_75' not in col and 'pct_25' not in col  )] #and 'RF' not in col and 'feature_general_ll_diff' not in col
     MSA_level_features = tree_search_columns+general_MSA_columns+[col for col in MSA_level_distancs_metrics if 'MSA_level__var' not in col and 'MSA_level__PCA' not in col and 'median' not in col and 'pct_25' not in col and 'pct_75' not in col]
     return full_features,MSA_level_features
@@ -72,6 +72,7 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
 
 
     results["file_name"] = results["file_name"].str.replace('\d+', '') #remove
+    results["feature_distinct_topologies"] = results["feature_pct_diff_topologies"]*results["n_total_trees_sampled"]
     train, test, val_dict = train_test_validation_splits(results, test_pct=0.3, val_pct=0, msa_col_name='msa_path',subsample_train=True, subsample_train_frac= sample_frac)
 
     full_features, MSA_level_features = get_full_and_MSA_features(results)
