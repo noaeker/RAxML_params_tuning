@@ -39,6 +39,7 @@ def group_main_parser():
     parser.add_argument('--simulated', action='store_true', default=False)
     parser.add_argument('--msa_type',type=str, default= 'AA')
     parser.add_argument('--ll_epsilon', type = str, default = '0.01_0.1_1')
+    parser.add_argument('--ML_epsilon', type = float, default = 0.1)
     parser.add_argument('--external_best_tree_file',type=str, default='Nope')
     parser.add_argument('--only_generate_data', action= 'store_true',default=False)
     parser.add_argument('--perform_topology_tests', action = 'store_true', default= True )

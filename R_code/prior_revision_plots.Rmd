@@ -11,13 +11,37 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 
 
 ```{r}
-prefix = "/Users/noa/Workspace/raxml_deep_learning_results/groups_new_mixed_v_1/"
+prefix = "/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/groups_run_local_test/"
 full_data = read_tsv(paste(prefix,"group_results.tsv", sep = ""))
 
-test_data = read_tsv(paste(prefix,"final_performance_on_test_M_frac_1.0_RFE_True_large_grid_True_out_features_True.tsv",sep = ""))
-val_data = read_tsv(paste(prefix,"final_performance_on_val_M_frac_1.0_RFE_True_large_grid_True_out_features_True.tsv",sep = ""))
+test_data = read_tsv(paste(prefix,"final_performance_on_test_M_frac_1.0_RFE_True_large_grid_False_out_features_True.tsv",sep = ""))
+val_data = read_tsv(paste(prefix,"final_performance_on_val_M_frac_1.0_RFE_True_large_grid_False_out_features_True.tsv",sep = ""))
 error_vs_size = read_tsv(paste(prefix,"group_classification_metrics.tsv",sep = ""))
 error_vs_group = read_tsv(paste(prefix,"group_classification_group_metrics_M_frac_1.0_RFE_True_large_grid_True_out_features_True.tsv",sep = ""))
+```
+
+Required number of starting trees
+
+```{r}
+full_data_0.1<- full_data %>% filter (ll_epsilon==0.1)
+full_data_0.1$binned_n_trees<- cut(full_data_0.1$n_total_trees_sampled, breaks=c(0,5,10,15,20,25,30,35,40))
+full_data_0.1$binned_pythia<- cut(full_data_0.1$feature_msa_pypythia_msa_difficulty, breaks=c(0,0.2,0.4,0.6,1))
+full_data_0.1 %>% group_by(binned_n_trees,binned_pythia ) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) %>% ggplot(aes(x=binned_n_trees, y = mean_pct_global, color = binned_pythia,group =binned_pythia))+geom_point()+geom_line() + expand_limits(y = 0)
+```
+
+SPR radius and SPR cutoffs
+```{r}
+
+
+
+full_data_0.1 %>% filter (spr_cutoff>0) %>% group_by(spr_cutoff, binned_pythia) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) %>% ggplot(aes(x=spr_cutoff, y = mean_pct_global,color = binned_pythia, groups = binned_pythia))+geom_point()+geom_line()+ expand_limits(y = 0)
+
+
+full_data_0.1 %>% group_by(spr_radius,binned_pythia) %>% filter (spr_radius>0) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) %>% ggplot(aes(x=spr_radius, y = mean_pct_global, color = binned_pythia, groups = binned_pythia))+geom_point()+geom_line()+ expand_limits(y = 0)
+```
+
+```{r}
+full_data %>% distinct (n_total_trees_sampled)
 ```
 
 ```{r}
