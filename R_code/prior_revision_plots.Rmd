@@ -11,13 +11,15 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 
 
 ```{r}
-prefix = "/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/groups_run_local_test/"
+prefix = "/Users/noa/Workspace/raxml_deep_learning_results/group_revision_files/"
 full_data = read_tsv(paste(prefix,"group_results.tsv", sep = ""))
-
-test_data = read_tsv(paste(prefix,"final_performance_on_test_M_frac_1.0_RFE_True_large_grid_False_out_features_True.tsv",sep = ""))
-val_data = read_tsv(paste(prefix,"final_performance_on_val_M_frac_1.0_RFE_True_large_grid_False_out_features_True.tsv",sep = ""))
-error_vs_size = read_tsv(paste(prefix,"group_classification_metrics.tsv",sep = ""))
-error_vs_group = read_tsv(paste(prefix,"group_classification_group_metrics_M_frac_1.0_RFE_True_large_grid_True_out_features_True.tsv",sep = ""))
+test_data = read_tsv(paste(prefix,"final_performance_on_test_M_frac_1.0_eps_0.1_RFE_True_large_grid_True_out_features_True.tsv",sep = ""))
+#val_data = read_tsv(paste(prefix,"final_performance_on_val_M_frac_1.0_RFE_True_large_grid_False_out_features_True.tsv",sep = ""))
+error_vs_size = read_tsv(paste(prefix,"group_classification_metrics_eps_0.1.tsv",sep = ""))
+error_vs_group = read_tsv(paste(prefix,"group_classification_group_metrics_M_frac_1.0_eps_0.1_RFE_True_large_grid_True_out_features_True_eps_0.1.tsv",sep = ""))
+```
+```{r}
+full_data_0.001<- full_data %>% filter (ll_epsilon==0.001)
 ```
 
 Required number of starting trees
@@ -26,13 +28,15 @@ Required number of starting trees
 full_data_0.1<- full_data %>% filter (ll_epsilon==0.1)
 full_data_0.1$binned_n_trees<- cut(full_data_0.1$n_total_trees_sampled, breaks=c(0,5,10,15,20,25,30,35,40))
 full_data_0.1$binned_pythia<- cut(full_data_0.1$feature_msa_pypythia_msa_difficulty, breaks=c(0,0.2,0.4,0.6,1))
-full_data_0.1 %>% group_by(binned_n_trees,binned_pythia ) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) %>% ggplot(aes(x=binned_n_trees, y = mean_pct_global, color = binned_pythia,group =binned_pythia))+geom_point()+geom_line() + expand_limits(y = 0)
+full_data_0.1 %>% group_by(n_total_trees_sampled,binned_pythia ) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) %>% ggplot(aes(x=n_total_trees_sampled, y = mean_pct_global, color = binned_pythia,group =binned_pythia))+geom_point()+geom_line() + expand_limits(y = 0) + theme(text = element_text(size = 13)) +labs(title = "", x = "Number of starting trees", y = "% Global maximum", color = "MSA difficulty")
+full_data %>% distinct (msa_path)
+
+
+
 ```
 
 SPR radius and SPR cutoffs
 ```{r}
-
-
 
 full_data_0.1 %>% filter (spr_cutoff>0) %>% group_by(spr_cutoff, binned_pythia) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) %>% ggplot(aes(x=spr_cutoff, y = mean_pct_global,color = binned_pythia, groups = binned_pythia))+geom_point()+geom_line()+ expand_limits(y = 0)
 
@@ -40,33 +44,28 @@ full_data_0.1 %>% filter (spr_cutoff>0) %>% group_by(spr_cutoff, binned_pythia) 
 full_data_0.1 %>% group_by(spr_radius,binned_pythia) %>% filter (spr_radius>0) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) %>% ggplot(aes(x=spr_radius, y = mean_pct_global, color = binned_pythia, groups = binned_pythia))+geom_point()+geom_line()+ expand_limits(y = 0)
 ```
 
-```{r}
-full_data %>% distinct (n_total_trees_sampled)
-```
 
-```{r}
-val_data %>% filter (msa_) distinct (msa_path)
-summary(val_data %>% pull (default_status))
-```
 
-Data statistics
+
+
 
 Data Per Source
 ```{r}
-full_data %>%  filter (grepl('Pandit',msa_path)) %>% distinct (msa_path) 
-full_data %>%  filter (grepl('Selectome',msa_path)) %>% distinct (msa_path) 
-full_data %>%  filter (grepl('DNA',msa_path)) %>% distinct (msa_path)
-full_data %>%  filter (grepl('PROTEIN',msa_path)) %>% distinct (msa_path)
+full_data_0.1 %>%  filter (grepl('Pandit',msa_path)) %>% distinct (msa_path) 
+full_data_0.1 %>%  filter (grepl('Selectome',msa_path)) %>% distinct (msa_path) 
+full_data_0.1 %>%  filter (grepl('DNA',msa_path)) %>% distinct (msa_path)
+full_data_0.1 %>%  filter (grepl('PROTEIN',msa_path)) %>% distinct (msa_path)
 ```
 
+Statistics on mean global max probability
 
 ```{r}
 
-summary(full_data %>% pull (feature_msa_n_loci))
+summary(full_data_0.1 %>% pull (feature_msa_n_loci))
 
-summary(full_data %>% pull (default_status))
+summary(full_data_0.1 %>% pull (default_status))
 
-data<-full_data %>% group_by(msa_path) %>% summarise(mean_prob = mean(default_status))
+data<-full_data_0.1 %>% filter (n_total_trees_sampled>20) %>% group_by(msa_path) %>% summarise(mean_prob = mean(default_status))
 
 summary(data %>% pull (mean_prob))
 
@@ -105,6 +104,7 @@ pred<- factor(conf_data %>% pull (pred_status))
 confusion_plot<-ggplotConfusionMatrix(confusionMatrix(data = pred, reference= obs))+theme(legend.position = "none")
 confusion_plot
 ```
+
 Error vs size
 ```{r}
 library(predtools)
@@ -139,6 +139,8 @@ test_data%>% group_by (default_status) %>% count()
 error_vs_group %>% filter (grouping_col_name =='n_seq_group')  %>% distinct (grouping_col)
 ```
 
+
+
 ```{r}
 library(lme4)
 
@@ -149,57 +151,8 @@ model<-glmer(formula = default_status ~ 1 + feature_msa_n_seq+(spr_radius+spr_cu
                            data    = data_for_glm,family = binomial) #to run the model
 print(summary(model))
 ```
-SVM 
-
-Success
-```{r}
-#/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00001/.fasta // /groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00002.fasta- Good
-#/groups/pupko/noaeker/data/New_MSAs/Pandit_msas/PF00006.fasta - Bad
-
-good_svm<- read_csv("/Users/noa/Workspace/RAxML_params_tuning/groups_paper_ML_code/curr_svm_plot_success2.csv")
-X<-read_csv("/Users/noa/Workspace/RAxML_params_tuning/groups_paper_ML_code/X_svm_success2.csv")
-Y<-read_csv("/Users/noa/Workspace/RAxML_params_tuning/groups_paper_ML_code/Y_svm_success2.csv")
-X$Success = as.factor(Y$is_best_tree)
 
 
-
-svm_success<-ggplot(data=good_svm,aes(x=xx,y=yy,z=Z))+ geom_contour_filled(show.legend=FALSE)+geom_point(data=X,size=2.5,mapping=aes(x=x,y=y,z=0, color=Success))+scale_color_manual(values = c("0" = "white", "1" = "red"))+labs(color='Is best final tree')+ xlab("PC1")+ylab("PC2")+theme(text = element_text(size = 11))
-svm_success
-
-
-
-```
-Failure 
-```{r}
-bad_svm<- read_csv("/Users/noa/Workspace/RAxML_params_tuning/groups_paper_ML_code/curr_svm_plot_failure.csv")
-bad_X<-read_csv("/Users/noa/Workspace/RAxML_params_tuning/groups_paper_ML_code/X_svm_failure.csv")
-bad_Y<-read_csv("/Users/noa/Workspace/RAxML_params_tuning/groups_paper_ML_code/Y_svm_failure.csv")
-bad_X$Success = as.factor(bad_Y$is_best_tree)
-
-
-svm_failure<-ggplot(data=bad_svm,aes(x=xx,y=yy,z=Z))+ geom_contour_filled(show.legend=FALSE)+geom_point(data=bad_X,size=2.5,mapping=aes(x=x,y=y,z=0,color=Success))+scale_color_manual(values = c("0" = "white", "1" = "red"))+ xlab("PC1")+ylab("PC2")+labs(color='Is best final tree')+theme(text = element_text(size = 11))
-svm_failure
-
-
-
-```
-
-```{r}
-svm_example<-ggarrange(svm_success, svm_failure, labels = c("A1","A2"),nrow=2,common.legend = TRUE, legend="bottom", vjust=1,hjust=0.05)
-svm_example
-```
-
-
-```{r}
-error_vs_group %>% filter (grouping_col_name=='feature_msa_n_loci')
-
-
-
-
-
-
-n_loci_error
-```
 
 
 ```{r}
@@ -231,35 +184,7 @@ cor.test(test_data$feature_msa_n_loci, test_data$uncalibrated_prob)
 ```
 
 
-Investigate three most important features
 
-```{r}
-test_data$default_status_name<- if_else(test_data$default_status==0,'Local maximum','Global maximum')
-
-svm_plt<-test_data %>% ggplot(aes(x=feature_final_trees_level_distances_embedd_PCA_0.9_rbf_svc_max_best_score, y =default_status_name))+geom_boxplot() +xlab("Maximal SVM decision function\n score within best final trees")+ylab("")
-
-svm_plt
-
-
-
-ggarrange(svm_example, svm_plt, labels = c("","B"),ncol=2)
-
-#ggarrange(mean_rf_plt,min_pca_plt,mim_rf_pars,svm_plt,labels = c("A","B","C","D"),align = "h", nrow = 4, ncol = 1, legend = "bottom",vjust= 1)
-
-
-```
-
-```{r}
-
-```
-
-
-
-
-```{r}
-hist(full_data %>% filter (default_status==1) %>% pull (feature_final_trees_level_distances_embedd_PCA_0.9_SVR_reg)) 
-hist(full_data %>% filter (default_status==0) %>% pull (feature_final_trees_level_distances_embedd_PCA_0.9_SVR_reg)) 
-```
 
 
 
