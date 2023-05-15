@@ -236,11 +236,11 @@ def extract_2d_shape_and_plot(X_transformed, best_tree, name, X_transformed_over
 
 def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final_trees, best_tree, prefix,ll):
     if len(final_trees)==1:
-        return get_summary_statistics_dict(feature_name=f"{prefix}",values = None)
+        return
     RF_distance_mat = generate_RF_distance_matrix(curr_run_directory, final_trees)
     all_results = {}
     try:
-        mds_models = {f'{prefix}_mds_5':MDS(n_components=5, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_20':MDS(n_components=20, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),f'{prefix}_mds_10':MDS(n_components=10, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat),}
+        mds_models = {f'{prefix}_mds_5':MDS(n_components=5, metric = False, dissimilarity='precomputed').fit_transform(RF_distance_mat).fit_transform(RF_distance_mat)}
         for model in mds_models:
             fit_SVC(SVC(), mds_models[ model], best_tree, f"{model}_rbf_svc", all_results, True_global_data=None)
             clf = SVR()
@@ -249,7 +249,8 @@ def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final
     except:
         logging.error("MDS not available")
 
-
+    silhouete = silhouette_score(X =RF_distance_mat, metric ='precomputed', labels = np.array(best_tree))
+    all_results["feature_silhouette_score"] = silhouete
     print(all_results)
     if best_tree:
         n_best_trees = np.sum(best_tree)
@@ -267,6 +268,7 @@ def generate_RF_distance_matrix_statistics_final_trees(curr_run_directory, final
         all_results.update(distances_to_best_trees_features)
     RF_distances = RF_distance_mat[np.triu_indices(n=len(final_trees), k=1)]
     rf_distance_metrics = get_summary_statistics_dict(feature_name=f"{prefix}_rf_distances",values = RF_distances)
+    all_results["feature_mean_RF_best_vs_all"] = np.mean(distances_to_best_trees) / np.mean(RF_distances)
     all_results.update(rf_distance_metrics)
     return all_results
 

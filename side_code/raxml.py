@@ -4,6 +4,7 @@ from side_code.code_submission import execute_command_and_write_to_log
 from side_code.basic_trees_manipulation import get_tree_string, generate_multiple_tree_object_from_newick_file
 import os
 import time
+import numpy as np
 import re
 # from side_code.basic_trees_manipulation import *
 import datetime
@@ -338,6 +339,20 @@ def rf_distance(curr_run_directory, tree_str_a, tree_str_b, name=f"rf_calculatio
     rf = calculate_rf_dist(rf_first_phase_trees, rf_folder,
                            prefix="rf_calculations")
     return rf
+
+
+
+def min_rf_distance(curr_run_directory, tree_str_a, tree_list_b, name=f"rf_calculations"):
+    rf_folder = os.path.join(curr_run_directory, name)
+    create_or_clean_dir(rf_folder)
+    rf_output_path = os.path.join(rf_folder, "rf_calculations")
+    rf_values = []
+    for tree_str_b in tree_list_b:
+        trees_file = unify_text_files([tree_str_a, tree_str_b], rf_output_path, str_given=True)
+        rf = calculate_rf_dist(trees_file, rf_folder,
+                               prefix="rf_calculations")
+        rf_values.append(rf)
+    return np.min(rf)
 
 
 def au_test(curr_run_directory, per_tree_clusters_data, ML_tree, msa_path, cpus_per_job,msa_type, name=f"sh_calculations"):

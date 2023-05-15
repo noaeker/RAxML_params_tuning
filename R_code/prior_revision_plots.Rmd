@@ -7,47 +7,101 @@ This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute
 
 Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
 
+```{r}
+library(scales)
+library(tidyverse)
+library(caret)
+library(ggpubr)
+library(pROC)
+```
+
 
 
 
 ```{r}
-prefix = "/Users/noa/Workspace/raxml_deep_learning_results/group_revision_files/"
+prefix = "/Users/noa/Workspace/raxml_deep_learning_results/group_revision_0_files/"
 full_data = read_tsv(paste(prefix,"group_results.tsv", sep = ""))
-test_data = read_tsv(paste(prefix,"final_performance_on_test_M_frac_1.0_eps_0.1_RFE_True_large_grid_True_out_features_True.tsv",sep = ""))
+test_data = read_tsv(paste(prefix,"final_performance_on_test_M_frac_1.0_eps_0.0_RFE_True_large_grid_True_out_features_True.tsv",sep = ""))
 #val_data = read_tsv(paste(prefix,"final_performance_on_val_M_frac_1.0_RFE_True_large_grid_False_out_features_True.tsv",sep = ""))
-error_vs_size = read_tsv(paste(prefix,"group_classification_metrics_eps_0.1.tsv",sep = ""))
-error_vs_group = read_tsv(paste(prefix,"group_classification_group_metrics_M_frac_1.0_eps_0.1_RFE_True_large_grid_True_out_features_True_eps_0.1.tsv",sep = ""))
-```
-```{r}
-full_data_0.001<- full_data %>% filter (ll_epsilon==0.001)
+error_vs_size = read_tsv(paste(prefix,"group_classification_metrics_eps_0.0.tsv",sep = ""))
+error_vs_group = read_tsv(paste(prefix,"group_classification_group_metrics_M_frac_1.0_eps_0.0_RFE_True_large_grid_True_out_features_True_eps_0.0.tsv",sep = ""))
 ```
 
-Required number of starting trees
+
+
+
 
 ```{r}
-full_data_0.1<- full_data %>% filter (ll_epsilon==0.1)
+full_data = full_data %>% filter (!grepl('large',file_name)) 
+```
+
+Required number of starting trees, SPR radius, SPR cutoff
+
+```{r}
+full_data_0.1<- full_data %>% filter (ll_epsilon==0) 
 full_data_0.1$binned_n_trees<- cut(full_data_0.1$n_total_trees_sampled, breaks=c(0,5,10,15,20,25,30,35,40))
 full_data_0.1$binned_pythia<- cut(full_data_0.1$feature_msa_pypythia_msa_difficulty, breaks=c(0,0.2,0.4,0.6,1))
-full_data_0.1 %>% group_by(n_total_trees_sampled,binned_pythia ) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) %>% ggplot(aes(x=n_total_trees_sampled, y = mean_pct_global, color = binned_pythia,group =binned_pythia))+geom_point()+geom_line() + expand_limits(y = 0) + theme(text = element_text(size = 13)) +labs(title = "", x = "Number of starting trees", y = "% Global maximum", color = "MSA difficulty")
-full_data %>% distinct (msa_path)
+starting_trees_data<-full_data_0.1 %>% group_by(n_total_trees_sampled,binned_pythia ) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) 
+
+
+starting_trees_plot<-starting_trees_data %>% ggplot(aes(x=n_total_trees_sampled, y = mean_pct_global, color = binned_pythia,group =binned_pythia))+geom_point()+geom_line() + expand_limits(y = 0) + theme(text = element_text(size = 11)) +labs(title = "", x = "Number of starting trees", y = "% Global maximum", color = "MSA difficulty")
+#full_data %>% distinct (msa_path)
+starting_trees_plot
+
+
+spr_radius_data<-  full_data_0.1 %>% filter (spr_radius>0) %>% group_by(spr_radius, binned_pythia) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) 
+spr_radius_plot<- spr_radius_data  %>% ggplot(aes(x=spr_radius, y = mean_pct_global,color = binned_pythia, groups = binned_pythia))+geom_point()+geom_line()+ expand_limits(y = 0) + theme(text = element_text(size = 11)) +labs(title = "", x = "SPR radius", y = "% Global maximum", color = "MSA difficulty")
+spr_radius_plot
+
+
+spr_cutoff_data<-  full_data_0.1 %>% filter (spr_cutoff>0) %>% group_by(spr_cutoff, binned_pythia) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) 
+spr_cutoff_plot<- spr_cutoff_data  %>% ggplot(aes(x=spr_cutoff, y = mean_pct_global,color = binned_pythia, groups = binned_pythia))+geom_point()+geom_line()+ expand_limits(y = 0) + theme(text = element_text(size = 11)) +labs(title = "", x = "SPR cutoff", y = "% Global maximum", color = "MSA difficulty")
+spr_cutoff_plot
+
+
+
+ggarrange(starting_trees_plot,spr_radius_plot,spr_cutoff_plot, labels = c("A","B","C"), nrow = 1,align = "h", common.legend  = TRUE )
 
 
 
 ```
 
-SPR radius and SPR cutoffs
+
+Finding an example MSA
+```{r}
+test_data$binned_n_trees<- cut(test_data$n_total_trees_sampled, breaks=c(0,5,10,15,20,25,30,35,40))
+test_data$binned_pythia<- cut(test_data$feature_msa_pypythia_msa_difficulty, breaks=c(0,0.2,0.4,0.6,1))
+test_data %>% group_by(msa_path,feature_msa_n_loci,feature_msa_n_seq, binned_n_trees,binned_pythia ) %>% summarise(mean_pct_global = mean (default_status), mean_predicted = mean(calibrated_prob)) %>% group_by(msa_path,feature_msa_n_loci,feature_msa_n_seq,) %>% mutate (min_pct_global_true = min(mean_pct_global), min_pct_global = min(mean_predicted),max_pct_global = max(mean_predicted), max_pct_global_true = max(mean_pct_global))  %>% ungroup() %>% ggplot(aes(x=mean_pct_global, y=mean_predicted))+geom_point(size=2, color = 'blue')+ geom_abline(intercept = 0) 
+
+
+
+data <-test_data %>% filter (msa_path=='/groups/pupko/noaeker/data/New_MSAs/Selectome_msas/msas/ENSGT00940000161785.Euteleostomi.001.aa_masked.fas') %>% group_by(n_total_trees_sampled,binned_pythia ) %>% summarise(mean_pct_global = mean (default_status), mean_predicted = mean(calibrated_prob)) %>% ungroup()
+data %>% ggplot(aes(x=mean_pct_global, y=mean_predicted))+geom_point(size=2, color = 'blue')+ geom_abline(intercept = 0)
+
+
+test_data %>% filter (msa_path=='/groups/pupko/noaeker/data/New_MSAs/Selectome_msas/msas/ENSGT00940000161785.Euteleostomi.001.aa_masked.fas') %>% dplyr::select (feature_msa_n_seq,feature_msa_n_loci, n_pars_trees_sampled, n_total_trees_sampled, calibrated_prob, default_status, default_final_err, default_final_rf_distance_from_best,best_msa_ll) %>% arrange(n_total_trees_sampled)
+
+summary(lm(mean_pct_global~mean_predicted, data = data))
+
+
+
+#%>% filter (min_pct_global_true<0.25, max_pct_global_true>0.6, abs(min_pct_global-min_pct_global_true)<0.1,abs(max_pct_global-max_pct_global_true)<0.1)
+```
+
+
+Likelihood flexibility
+
 ```{r}
 
-full_data_0.1 %>% filter (spr_cutoff>0) %>% group_by(spr_cutoff, binned_pythia) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) %>% ggplot(aes(x=spr_cutoff, y = mean_pct_global,color = binned_pythia, groups = binned_pythia))+geom_point()+geom_line()+ expand_limits(y = 0)
+summary(test_data %>% filter (calibrated_prob>0.85) %>% dplyr::pull (default_final_err))
+summary(test_data %>% dplyr::pull (default_final_err))
+
+summary(test_data %>% filter (default_status==0, calibrated_prob>0.85) %>% dplyr::pull (default_final_err))
+summary(test_data %>% filter (default_status==0) %>% dplyr::pull (default_final_err))
 
 
-full_data_0.1 %>% group_by(spr_radius,binned_pythia) %>% filter (spr_radius>0) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) %>% ggplot(aes(x=spr_radius, y = mean_pct_global, color = binned_pythia, groups = binned_pythia))+geom_point()+geom_line()+ expand_limits(y = 0)
+test_data %>% ggplot(aes(x = calibrated_prob, y = (default_final_err)))+geom_point()
 ```
-
-
-
-
-
 
 Data Per Source
 ```{r}
@@ -57,23 +111,26 @@ full_data_0.1 %>%  filter (grepl('DNA',msa_path)) %>% distinct (msa_path)
 full_data_0.1 %>%  filter (grepl('PROTEIN',msa_path)) %>% distinct (msa_path)
 ```
 
+
+
 Statistics on mean global max probability
 
 ```{r}
+full_data_0.1 %>% filter (grepl('Selectome|Pandit',msa_path)) %>% distinct(msa_path)
 
-summary(full_data_0.1 %>% pull (feature_msa_n_loci))
+summary(full_data_0.1 %>% filter (grepl('Selectome|Pandit',msa_path)) %>% pull (feature_msa_n_loci))
 
-summary(full_data_0.1 %>% pull (default_status))
+summary(full_data_0.1 %>% filter (grepl('Selectome|Pandit',msa_path)) %>% pull (default_status))
 
-data<-full_data_0.1 %>% filter (n_total_trees_sampled>20) %>% group_by(msa_path) %>% summarise(mean_prob = mean(default_status))
+data<-full_data_0.1 %>% filter (grepl('Selectome|Pandit',msa_path))  %>% group_by(msa_path) %>% summarise(mean_prob = mean(default_status))
 
 summary(data %>% pull (mean_prob))
 
 data
 (data %>% filter (mean_prob>0.9))
 (data %>% filter (mean_prob>0.5))
-(data %>% filter (mean_prob<0.1))
-(data %>% filter (mean_prob<0.05))
+(data  %>% filter (mean_prob<0.1))
+(data  %>% filter (mean_prob<0.05))
 
 
 ```
@@ -90,7 +147,7 @@ ggplotConfusionMatrix <- function(m){
            aes(x = Reference, y = Prediction)) +
     geom_tile(aes(fill = log(Freq)), colour = "white") +
     scale_fill_gradient(low = "white", high = "steelblue") +
-    geom_text(aes(x = Reference, y = Prediction, label = Freq)) +
+    geom_text(aes(x = Reference, y = Prediction, label = scales::comma(Freq))) +
     theme(legend.position = "none") +
     ggtitle(mytitle)+theme(text = element_text(size = 13))
   return(p)
@@ -104,6 +161,9 @@ pred<- factor(conf_data %>% pull (pred_status))
 confusion_plot<-ggplotConfusionMatrix(confusionMatrix(data = pred, reference= obs))+theme(legend.position = "none")
 confusion_plot
 ```
+```{r}
+confusionMatrix(data = pred, reference= obs)
+```
 
 Error vs size
 ```{r}
@@ -112,20 +172,18 @@ library(MASS)
 library(caret)
 
 
-error_vs_size_plt = error_vs_size %>% mutate(n_MSAs = round(868*sample_fraction)) %>% ggplot(aes(x=n_MSAs, y = AUC))+geom_line()+ expand_limits(y = 0.5)+xlab("Number of MSAs")+ theme(text = element_text(size = 13))+ylab("AUC")+geom_point()
+error_vs_size_plt = error_vs_size %>% mutate(n_MSAs = round(1203*sample_fraction)) %>% ggplot(aes(x=n_MSAs, y = AUC))+geom_line()+ expand_limits(y = 0.5)+xlab("Number of MSAs")+ theme(text = element_text(size = 13))+ylab("AUC")+geom_point()
 
-rocobj <- roc(test_data$default_status, test_data$calibrated_prob)
-auc <- round(auc(test_data$default_status, test_data$calibrated_prob),3)
+rocobj <- roc(test_data$default_status, test_data$uncalibrated_prob)
+auc <- round(auc(test_data$default_status, test_data$uncalibrated_prob),3)
 
 global_max_auc_plt<-ggroc(rocobj,colour = 'steelblue', size = 2)+
   ggtitle(paste0('AUC = ', auc))+theme(text = element_text(size = 13))+xlab("Specificity")
 
 
-calibration_plt<-xyplot(calPlotData, auto.key = list(columns = 2),xlab="Observed",ylab="Predicted")
 
 
-
-ggarrange(global_max_auc_plt,confusion_plot,error_vs_size_plt, calibration_plt ,labels = c("A","B","C","D"),align = "h", nrow = 2, ncol = 2 ,vjust= 1)
+ggarrange(global_max_auc_plt,confusion_plot,error_vs_size_plt, labels = c("A","B","C"),align = "h", nrow = 2, ncol = 2 )
 
 
 test_data%>% group_by (default_status) %>% count()
@@ -135,9 +193,7 @@ test_data%>% group_by (default_status) %>% count()
 
 
 
-```{r}
-error_vs_group %>% filter (grouping_col_name =='n_seq_group')  %>% distinct (grouping_col)
-```
+
 
 
 
@@ -153,6 +209,11 @@ print(summary(model))
 ```
 
 
+```{r}
+error_vs_group %>% filter (grouping_col_name =='n_seq_group')  %>% distinct (grouping_col)
+error_vs_group %>% filter (grouping_col_name =='msa_difficulty_group')  %>% distinct (grouping_col)
+error_vs_group %>% filter (grouping_col_name =='feature_msa_n_loci')  %>% distinct (grouping_col)
+```
 
 
 ```{r}
@@ -162,9 +223,9 @@ library(MASS)
 Pypythia_error<-error_vs_group %>% filter (grouping_col_name =='msa_difficulty_group') %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('MSA\ndifficulty')+ xlab('AUC')+theme(text = element_text(size = 10))
 
 
-n_seq_error<-error_vs_group %>% filter (grouping_col_name =='n_seq_group') %>% mutate(grouping_col = factor(grouping_col, levels = c('(29.999, 45.0]','(45.0, 67.0]','(67.0, 108.0]','(108.0, 199.0]'))) %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('Number\nof sequences')+xlab('AUC')+theme(text = element_text(size = 10))
+n_seq_error<-error_vs_group %>% filter (grouping_col_name =='n_seq_group') %>% mutate(grouping_col = factor(grouping_col, levels = c('(29.999, 44.0]','(44.0, 68.0]','(68.0, 108.0]','(108.0, 199.0]'))) %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('Number\nof sequences')+xlab('AUC')+theme(text = element_text(size = 10))
 
-n_loci_error<-error_vs_group %>% filter (grouping_col_name =='feature_msa_n_loci')  %>%  mutate(grouping_col = factor(grouping_col, levels = c('(99.999, 239.0]','(239.0, 632.0]','(632.0, 1437.0]','(1437.0, 12478.0]'))) %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('Number\nof positions')+xlab('AUC')+theme(text = element_text(size = 10))
+n_loci_error<-error_vs_group %>% filter (grouping_col_name =='feature_msa_n_loci')  %>%  mutate(grouping_col = factor(grouping_col, levels = c('(99.999, 219.0]','(219.0, 546.0]','(546.0, 1519.0]','(1519.0, 16115.0]'))) %>% ggplot(aes(y=grouping_col, x=AUC))+geom_col()+ expand_limits(y = c(0.5,1))+ylab('Number\nof positions')+xlab('AUC')+theme(text = element_text(size = 10))
 
 
 Pypythia_scatter<-test_data %>% dplyr::select (msa_path,uncalibrated_prob,calibrated_prob,  feature_msa_pypythia_msa_difficulty) %>% group_by(msa_path,feature_msa_pypythia_msa_difficulty) %>% summarise(mean_prob = mean(calibrated_prob)) %>% ggplot(aes(x=feature_msa_pypythia_msa_difficulty, y = mean_prob))+geom_point(size = 0.7)+xlab("MSA\ndifficulty")+ylab("Predicted\nprobability")+theme(text = element_text(size = 10))

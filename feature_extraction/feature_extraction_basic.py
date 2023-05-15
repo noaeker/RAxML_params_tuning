@@ -102,14 +102,17 @@ def process_all_msa_runs(curr_run_directory,msa_path, msa_data, cpus_per_job, ms
         best_msa_tree_topology = max(msa_data["tree_str"])
     else:
         best_msa_ll = max(msa_data["final_ll"])
-        best_msa_tree_topology = max(msa_data[msa_data["final_ll"] == best_msa_ll]['final_tree_topology'])
-    msa_data["best_msa_ll"] = np.float(best_msa_ll)
-    msa_data["rf_from_overall_msa_best_topology"] = msa_data["final_tree_topology"].apply(
-        lambda x: rf_distance(curr_run_directory, x, best_msa_tree_topology, name="MSA_enrichment_RF_calculations"))
+
+
     msa_data = msa_data.sort_values(["starting_tree_type", "starting_tree_ind", "spr_radius", "spr_cutoff"])
     msa_data["final_trees_inds"] = list(range(len(msa_data.index)))
     unique_trees_mapping = get_unique_trees_mapping(curr_run_directory, list(msa_data["final_tree_topology"]))
     msa_data["tree_clusters_ind"] = msa_data["final_trees_inds"].apply(lambda x: unique_trees_mapping[x])
+    best_msa_tree_topologies = list((msa_data[msa_data["final_ll"] == best_msa_ll].groupby('tree_clusters_ind')['final_tree_topology'].first()))
+    msa_data["best_msa_ll"] = np.float(best_msa_ll)
+    msa_data["rf_from_overall_msa_best_topology"] = msa_data["final_tree_topology"].apply(
+        lambda x: min_rf_distance(curr_run_directory, x, best_msa_tree_topologies, name="MSA_enrichment_RF_calculations"))
+
     # if perform_topology_tests:
     #     try:
     #         per_clusters_data = msa_data.groupby(["tree_clusters_ind"]).first().reset_index()[
@@ -123,6 +126,7 @@ def process_all_msa_runs(curr_run_directory,msa_path, msa_data, cpus_per_job, ms
     #         logging.info(f"AU couldn't be estimated for current MSA")
     #         logging.info(f'Error details: {str(e)}')
     #         return pd.DataFrame()
+    msa_data["final_ll"] = msa_data.groupby("tree_clusters_ind")["final_ll"].transform(max)
     msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
         (msa_data["rf_from_overall_msa_best_topology"]) > 0, best_msa_ll - msa_data["final_ll"], 0)
     return msa_data
@@ -135,7 +139,7 @@ def unify_raw_data_csvs(raw_data_folder):
     for f in csv_files_in_folder:
         try:
             if LOCAL_RUN:
-                data = pd.read_csv(f, sep=CSV_SEP, nrows=1240)
+                data = pd.read_csv(f, sep=CSV_SEP, nrows = 1240*4)
                 print(data['msa_path'].unique())
             else:
                 data = pd.read_csv(f, sep=CSV_SEP)
@@ -146,5 +150,5 @@ def unify_raw_data_csvs(raw_data_folder):
     logging.info(f"Combining CSV files: {csv_files_in_folder}")
     raw_data = pd.concat(dfs_in_folder, sort=False)
 
-    #raw_data = raw_data.loc[raw_data.msa_path=='/groups/pupko/noaeker/data/New_MSAs/Single_gene_PROTEIN/data/6324.aln_WickA3']
+    #raw_data = raw_data.loc[raw_data.msa_path=='/groups/pupko/noaeker/data/New_MSAs/Selectome_msas/msas/ENSGT00940000154914.Euteleostomi.002.aa_masked.fas']
     return raw_data
