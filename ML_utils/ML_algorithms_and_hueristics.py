@@ -157,7 +157,7 @@ def enrich_with_single_feature_metrics(var_impt, train_X, y_train, test_X, y_tes
 
 
 
-def print_model_statistics_pipeline(model, train_X, test_X, y_train, y_test, val_dict, is_classification, vi_path, metrics_path,
+def print_model_statistics_pipeline(model, train_X, test_X, y_train, y_test, val_dict, is_classification, vi_path, error_vs_size_path,classification_metrics_path,
                                     group_metrics_path, name, sampling_frac, feature_importance=True):
     if feature_importance:
         try:
@@ -179,26 +179,30 @@ def print_model_statistics_pipeline(model, train_X, test_X, y_train, y_test, val
     train_metrics = model_metrics(model,train_X,y_train, group_metrics_path, sampling_frac,
                                   is_classification=is_classification,
                                   groups_data=None)
+    all_metrics = []
+    train_metrics["dataset"] = "training"
+    all_metrics.append(train_metrics)
     logging.info(f"{name} train metrics: \n {train_metrics}")
     test_metrics = model_metrics(model,test_X,y_test,  group_metrics_path, sampling_frac,
                                  is_classification=is_classification, groups_data=groups_dict_test)
+    test_metrics["dataset"] = "test"
+    all_metrics.append(test_metrics)
     logging.info(f"{name} test metrics: \n {test_metrics}")
-    #validation_metrics = model_metrics(y_val, predicted_val, predicted_proba_val, group_metrics_path, sampling_frac,
-    #                             is_classification=is_classification, groups_data=None)
+
     for file in val_dict:
         file_validation_metrics = model_metrics(model, val_dict[file]["X_val"], val_dict[file]["y_val"], group_metrics_path, sampling_frac,
                       is_classification=is_classification,
                       groups_data=None)
+        file_validation_metrics["dataset"] = file
+        all_metrics.append(file_validation_metrics)
         logging.info(f"{file} validation metrics of size {val_dict[file]['size']}: \n { file_validation_metrics}")
+    classification_metrics_df = pd.DataFrame(all_metrics)
+    classification_metrics_df.to_csv(classification_metrics_path, sep= '\t')
 
 
-
-
-
-    train_metrics.update(test_metrics)
-    train_metrics = pd.DataFrame.from_dict([train_metrics])
-    train_metrics["sample_fraction"] = sampling_frac
-    add_to_csv(csv_path=metrics_path, new_data=train_metrics)
+    test_metrics = pd.DataFrame.from_dict([test_metrics])
+    test_metrics["sample_fraction"] = sampling_frac
+    add_to_csv(csv_path=error_vs_size_path, new_data=test_metrics)
 
     if is_classification:
         calibration_plot(model, test_X, y_test)

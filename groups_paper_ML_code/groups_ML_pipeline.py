@@ -35,6 +35,7 @@ def apply_on_external_validation_data(name,additional_validation_data, model, tr
                   is_classification=True,
                   groups_data=None)
     logging.info(f"{name} model metrics:\n{metrics}")
+    return metrics
 
 
 
@@ -97,7 +98,8 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
 
     model_path = os.path.join(curr_run_dir, f'group_classification_model_eps_{ll_epsilon}')
     vi_path = os.path.join(curr_run_dir, f'group_classification_vi_large_grid_{large_grid}_eps_{ll_epsilon}.tsv')
-    metrics_path = os.path.join(curr_run_dir, f'group_classification_metrics_eps_{ll_epsilon}.tsv')
+    error_vs_size_path = os.path.join(curr_run_dir, f'group_error_vs_size_eps_{ll_epsilon}.tsv')
+    all_classification_metrics_path = os.path.join(curr_run_dir, f'group_classification_metrics_eps_{ll_epsilon}.tsv')
     group_metrics_path = os.path.join(curr_run_dir, f'group_classification_group_metrics_{name}_eps_{ll_epsilon}.tsv')
 
     logging.info(f"Using model {args.model}")
@@ -109,7 +111,8 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
 
     print_model_statistics_pipeline(model, X_train, X_test, y_train, y_test, val_expanded_dict, is_classification=True,
                                     vi_path=vi_path,
-                                    metrics_path=metrics_path,
+                                    error_vs_size_path=error_vs_size_path,
+                                    classification_metrics_path=  all_classification_metrics_path,
                                     group_metrics_path=group_metrics_path, name=name, sampling_frac=sample_frac,
                                     feature_importance=True)
 
