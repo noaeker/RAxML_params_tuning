@@ -263,12 +263,12 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_poi
             possible_spr_cutoff = list(file_data["spr_cutoff"].unique())
             # Filter on MSA data
             logging.info(f"LL epsilon values are: {ll_epsilon_values}")
-            #try:
-            all_sampling_results, seed = MSA_pipeline(msa_path, msa_data, curr_run_dir, ll_epsilon_values, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
-                                                          possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program, perform_topology_tests=perform_topology_tests)
-            #except Exception as e:
-            #    logging.error(f"Could not run on MSA {msa_path}")
-            #    print(e)
+            try:
+                all_sampling_results, seed = MSA_pipeline(msa_path, msa_data, curr_run_dir, ll_epsilon_values, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
+                                                              possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program, perform_topology_tests=perform_topology_tests)
+            except Exception as e:
+                logging.error(f"Could not run on MSA {msa_path}")
+                print(e)
     return all_sampling_results
 
 
