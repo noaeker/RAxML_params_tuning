@@ -109,16 +109,26 @@ def obtain_sampling_results(results_path, raw_results_path,previous_results_path
     else:
         logging.info("Reading existing results file")
         results = pd.read_csv(results_path, sep='\t', index_col=False)
+        raw_results = pd.read_csv(raw_results_path,sep='\t', index_col=False)
     return results,raw_results
 
 
 
 def filter_full_data(full_data, only_validation, n_validation):
     validation_data_bool = (
-                full_data["file_name"].str.contains("ps_new_msa") | full_data["file_name"].str.contains("new_msa_ds") |
-                full_data["file_name"].str.contains("sim") | full_data["file_name"].str.contains("iqtree") | full_data[
-                    "file_name"].str.contains("large"))
-    zou_val_data = full_data.loc[validation_data_bool].loc[~full_data["file_name"].str.contains('large')]
+            full_data["file_name"].str.contains("ps_new_msa") | full_data["file_name"].str.contains("new_msa_ds") |
+            full_data["file_name"].str.contains("iqtree"))
+    try:
+        full_data.loc[validation_data_bool]
+    except:
+        logging.error("First part failed")
+        logging.error(full_data.head(5))
+    try:
+
+        zou_val_data = full_data.loc[validation_data_bool].loc[~full_data["file_name"].str.contains('large')]
+    except:
+        logging.info(full_data.index)
+        logging.error("filter problem")
     zou_val_data['file_type'] = zou_val_data['file_name'].apply(
         lambda x: 'DNA' if 'new_msa_ds' in x or 'iqtree_d' in x else 'AA')
     count_per_msa = zou_val_data.groupby("msa_path")["file_name"].nunique().reset_index()
@@ -174,7 +184,7 @@ def main():
     logging.info(f"Reading all data from {args.raw_data_folder}")
 
 
-    relevant_data =  unify_raw_data_csvs(args.raw_data_folder)
+    relevant_data =  unify_raw_data_csvs(args.raw_data_folder).reset_index()
     relevant_data = filter_full_data(relevant_data, only_validation = args.only_validation, n_validation= args.n_validation)
 
     relevant_data["msa_type"] = relevant_data["file_name"].apply(lambda s: get_msa_type(s) )
