@@ -16,6 +16,9 @@ library(pROC)
 ```
 
 
+```{r}
+full_data_0 %>% ggplot(aes(x=feature_silhouette_score, y = as.factor(default_status)))+geom_boxplot()
+```
 
 
 ```{r}
@@ -31,6 +34,9 @@ error_vs_group = read_tsv(paste(prefix,"group_classification_group_metrics_M_fra
 
 
 
+
+
+
 ```{r}
 full_data = full_data %>% filter (!grepl('large',file_name)) 
 ```
@@ -38,10 +44,10 @@ full_data = full_data %>% filter (!grepl('large',file_name))
 Required number of starting trees, SPR radius, SPR cutoff
 
 ```{r}
-full_data_0.1<- full_data %>% filter (ll_epsilon==0) 
-full_data_0.1$binned_n_trees<- cut(full_data_0.1$n_total_trees_sampled, breaks=c(0,5,10,15,20,25,30,35,40))
-full_data_0.1$binned_pythia<- cut(full_data_0.1$feature_msa_pypythia_msa_difficulty, breaks=c(0,0.2,0.4,0.6,1))
-starting_trees_data<-full_data_0.1 %>% group_by(n_total_trees_sampled,binned_pythia ) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) 
+full_data_0<- full_data %>% filter (ll_epsilon==0) 
+full_data_0$binned_n_trees<- cut(full_data_0$n_total_trees_sampled, breaks=c(0,5,10,15,20,25,30,35,40))
+full_data_0$binned_pythia<- cut(full_data_0$feature_msa_pypythia_msa_difficulty, breaks=c(0,0.2,0.4,0.6,1))
+starting_trees_data<-full_data_0 %>% group_by(n_total_trees_sampled,binned_pythia ) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) 
 
 
 starting_trees_plot<-starting_trees_data %>% ggplot(aes(x=n_total_trees_sampled, y = mean_pct_global, color = binned_pythia,group =binned_pythia))+geom_point()+geom_line() + expand_limits(y = 0) + theme(text = element_text(size = 11)) +labs(title = "", x = "Number of starting trees", y = "% Global maximum", color = "MSA difficulty")
@@ -49,12 +55,13 @@ starting_trees_plot<-starting_trees_data %>% ggplot(aes(x=n_total_trees_sampled,
 starting_trees_plot
 
 
-spr_radius_data<-  full_data_0.1 %>% filter (spr_radius>0) %>% group_by(spr_radius, binned_pythia) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) 
+spr_radius_data<-  full_data_0 %>% filter (spr_radius>0) %>% group_by(spr_radius, binned_pythia) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) 
 spr_radius_plot<- spr_radius_data  %>% ggplot(aes(x=spr_radius, y = mean_pct_global,color = binned_pythia, groups = binned_pythia))+geom_point()+geom_line()+ expand_limits(y = 0) + theme(text = element_text(size = 11)) +labs(title = "", x = "SPR radius", y = "% Global maximum", color = "MSA difficulty")
 spr_radius_plot
+spr_radius_data
 
 
-spr_cutoff_data<-  full_data_0.1 %>% filter (spr_cutoff>0) %>% group_by(spr_cutoff, binned_pythia) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) 
+spr_cutoff_data<-  full_data_0 %>% filter (spr_cutoff>0) %>% group_by(spr_cutoff, binned_pythia) %>% summarise(mean_ll_diff = mean(default_final_err), mean_pct_global = mean (default_status)) 
 spr_cutoff_plot<- spr_cutoff_data  %>% ggplot(aes(x=spr_cutoff, y = mean_pct_global,color = binned_pythia, groups = binned_pythia))+geom_point()+geom_line()+ expand_limits(y = 0) + theme(text = element_text(size = 11)) +labs(title = "", x = "SPR cutoff", y = "% Global maximum", color = "MSA difficulty")
 spr_cutoff_plot
 
@@ -64,6 +71,24 @@ ggarrange(starting_trees_plot,spr_radius_plot,spr_cutoff_plot, labels = c("A","B
 
 
 
+```
+
+
+
+
+```{r}
+#full_data_0 %>% filter (spr_radius==25, feature_msa_pypythia_msa_difficulty>0.6, n_total_trees_sampled>30)  %>% summarise(mean_ll_diff = mean(default_final_err), #mean_pct_global = mean (default_status))
+
+#full_data_0 %>% filter (spr_radius==20, feature_msa_pypythia_msa_difficulty>0.6, n_total_trees_sampled>30)  %>% summarise(mean_ll_diff = mean(default_final_err), #mean_pct_global = mean (default_status))
+
+full_data_0 %>% filter (spr_radius==5, feature_msa_pypythia_msa_difficulty>0.6)  %>% distinct (n_total_trees_sampled)
+full_data_0 %>% filter (spr_radius==10, feature_msa_pypythia_msa_difficulty>0.6)  %>% distinct (n_total_trees_sampled)
+full_data_0 %>% filter (spr_radius==25, feature_msa_pypythia_msa_difficulty>0.6)  %>% distinct (n_total_trees_sampled)
+
+
+full_data_0 %>% filter (spr_cutoff==1, feature_msa_pypythia_msa_difficulty>0.6)  %>% distinct (n_total_trees_sampled)
+full_data_0 %>% filter (spr_cutoff==2, feature_msa_pypythia_msa_difficulty>0.6)  %>% distinct (n_total_trees_sampled)
+full_data_0 %>% filter (spr_cutoff==4, feature_msa_pypythia_msa_difficulty>0.6)  %>% distinct (n_total_trees_sampled)
 ```
 
 
@@ -105,10 +130,11 @@ test_data %>% ggplot(aes(x = calibrated_prob, y = (default_final_err)))+geom_poi
 
 Data Per Source
 ```{r}
-full_data_0.1 %>%  filter (grepl('Pandit',msa_path)) %>% distinct (msa_path) 
-full_data_0.1 %>%  filter (grepl('Selectome',msa_path)) %>% distinct (msa_path) 
-full_data_0.1 %>%  filter (grepl('DNA',msa_path)) %>% distinct (msa_path)
-full_data_0.1 %>%  filter (grepl('PROTEIN',msa_path)) %>% distinct (msa_path)
+
+full_data %>%  filter (grepl('Pandit',msa_path)) %>% distinct (msa_path) 
+full_data %>%  filter (grepl('Selectome',msa_path)) %>% distinct (msa_path) 
+full_data_0 %>%  filter (grepl('DNA',msa_path)) %>% distinct (msa_path)
+full_data_0 %>%  filter (grepl('PROTEIN',msa_path)) %>% distinct (msa_path)
 ```
 
 
@@ -116,13 +142,13 @@ full_data_0.1 %>%  filter (grepl('PROTEIN',msa_path)) %>% distinct (msa_path)
 Statistics on mean global max probability
 
 ```{r}
-full_data_0.1 %>% filter (grepl('Selectome|Pandit',msa_path)) %>% distinct(msa_path)
+full_data_0 %>% filter (grepl('Selectome|Pandit',msa_path)) %>% distinct(msa_path)
 
-summary(full_data_0.1 %>% filter (grepl('Selectome|Pandit',msa_path)) %>% pull (feature_msa_n_loci))
+summary(full_data_0 %>% filter (grepl('Selectome|Pandit',msa_path)) %>% pull (feature_msa_n_loci))
 
-summary(full_data_0.1 %>% filter (grepl('Selectome|Pandit',msa_path)) %>% pull (default_status))
+summary(full_data_0 %>% filter (grepl('Selectome|Pandit',msa_path)) %>% pull (default_status))
 
-data<-full_data_0.1 %>% filter (grepl('Selectome|Pandit',msa_path))  %>% group_by(msa_path) %>% summarise(mean_prob = mean(default_status))
+data<-full_data_0 %>% filter (grepl('Selectome|Pandit',msa_path))  %>% group_by(msa_path) %>% summarise(mean_prob = mean(default_status))
 
 summary(data %>% pull (mean_prob))
 

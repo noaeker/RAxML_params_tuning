@@ -45,11 +45,12 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_fo
         create_or_clean_dir(curr_job_folder)
         current_raw_data_path = os.path.join(curr_job_folder, f"job_{job_ind}_raw_data{CSV_SUFFIX}")
         current_job_group_output_path = os.path.join(curr_job_folder, f"job_{job_ind}_raw_data_with_features{CSV_SUFFIX}")
+        current_job_group_output_raw_path = os.path.join(curr_job_folder, f"job_{job_ind}_raw_data_with_features_raw{CSV_SUFFIX}")
         curr_job_MSA_output_path = os.path.join(curr_job_folder, f"job_{job_ind}_MSA_data_with_features{CSV_SUFFIX}")
         current_raw_data = raw_data[raw_data["msa_path"].isin(job_msas)]
         current_raw_data.to_csv(current_raw_data_path, sep=CSV_SEP)
 
-        run_command = f' python {GROUPS_FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --curr_job_group_output_path {current_job_group_output_path}  {generate_argument_str(args, exclude=["sample_fracs"])}'
+        run_command = f' python {GROUPS_FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --curr_job_group_output_raw_path {current_job_group_output_raw_path} --curr_job_group_output_raw_path {current_job_group_output_path}  {generate_argument_str(args, exclude=["sample_fracs"])}'
 
         job_name = args.jobs_prefix + str(job_ind)
         if not LOCAL_RUN:
@@ -61,9 +62,9 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_fo
             submit_local_job(GROUPS_FEATURE_EXTRACTION_CODE,
                              ["--job_ind", str(job_ind), "--curr_job_folder", curr_job_folder, "--curr_job_raw_path",
                               current_raw_data_path,
-                              "--curr_job_group_output_path", current_job_group_output_path
+                              "--curr_job_group_output_path", current_job_group_output_path, "--curr_job_group_output_raw_path",current_job_group_output_raw_path,
                               ]+ generate_argument_list(args, exclude=['sample_fracs']))
-        job_dict[job_ind] = {"curr_job_group_output_path": current_job_group_output_path, "job_name": job_name}
+        job_dict[job_ind] = {"curr_job_group_output_path": current_job_group_output_path,"curr_job_group_output_raw_path": current_job_group_output_raw_path, "job_name": job_name}
 
     return job_dict
 
@@ -76,7 +77,7 @@ def finish_all_running_jobs(job_names):
 
 
 
-def obtain_sampling_results(results_path,previous_results_path, relevant_data, all_jobs_running_folder, existing_msas_data_path, args):
+def obtain_sampling_results(results_path, raw_results_path,previous_results_path, relevant_data, all_jobs_running_folder, existing_msas_data_path, args):
     if not os.path.exists(results_path):
         if os.path.exists(previous_results_path):
             logging.info("Using previous results path")
@@ -97,19 +98,61 @@ def obtain_sampling_results(results_path,previous_results_path, relevant_data, a
                 logging.info(f"total jobs done = {len(existing_csv_paths)}")
                 # add_csvs_content(existing_csv_paths, features_out_path)
         all_csv_paths = [jobs_dict[job_ind]["curr_job_group_output_path"] for job_ind in jobs_dict]
+        all_csvs_raw_paths = [jobs_dict[job_ind]["curr_job_group_output_raw_path"] for job_ind in jobs_dict]
         logging.info(f"done with all jobs! writing to csv in {results_path}")
         time.sleep(60)
         if not LOCAL_RUN:
             job_names = [jobs_dict[job_ind]["job_name"] for job_ind in jobs_dict]
             finish_all_running_jobs(job_names)
         results = add_csvs_content(all_csv_paths, results_path)
+        raw_results = add_csvs_content(all_csvs_raw_paths, raw_results_path)
     else:
         logging.info("Reading existing results file")
         results = pd.read_csv(results_path, sep='\t', index_col=False)
-    return results
+    return results,raw_results
 
 
 
+def filter_full_data(full_data, only_validation):
+    validation_data_bool = (
+                full_data["file_name"].str.contains("ps_new_msa") | full_data["file_name"].str.contains("new_msa_ds") |
+                full_data["file_name"].str.contains("sim") | full_data["file_name"].str.contains("iqtree") | full_data[
+                    "file_name"].str.contains("large"))
+    zou_val_data = full_data.loc[validation_data_bool].loc[~full_data["file_name"].str.contains('large')]
+    zou_val_data['file_type'] = zou_val_data['file_name'].apply(
+        lambda x: 'DNA' if 'new_msa_ds' in x or 'iqtree_d' in x else 'AA')
+    count_per_msa = zou_val_data.groupby("msa_path")["file_name"].nunique().reset_index()
+    valid_msas = count_per_msa.loc[count_per_msa.file_name == 2]["msa_path"]
+    valid_msas_and_program = zou_val_data.loc[zou_val_data.msa_path.isin(valid_msas)][
+        ["msa_path", "file_type"]].sort_values("msa_path").drop_duplicates()
+    n_valid_msas = len(pd.unique(valid_msas ))
+    n_samples = min(250, n_valid_msas)
+    logging.info(f"Subsampling {n_samples} validation MSAs from validation")
+    chosen_MSAs = valid_msas_and_program.groupby('file_type').sample(n=min(200, n_valid_msas))[
+            "msa_path"]  # sampling 200 from each type
+    validation_data = full_data.loc[
+            full_data["msa_path"].isin(chosen_MSAs) | full_data["file_name"].str.contains('large')]
+    if only_validation:
+        return validation_data
+    else:
+        full_data = pd.concat([full_data.loc[~validation_data_bool], validation_data])
+        return full_data
+
+
+def get_msa_type(file_name):
+    if 'ds_new' in file_name or 'd_iqtree' in file_name:
+        msa_type = 'DNA'
+    else:
+        msa_type = 'AA'
+    return msa_type
+
+
+def get_msa_program(file_name):
+    if 'iqtree' in file_name:
+        program = 'IQTREE'
+    else:
+        program = 'RAxML'
+    return program
 
 
 import sklearn
@@ -132,9 +175,16 @@ def main():
 
 
     relevant_data =  unify_raw_data_csvs(args.raw_data_folder)
+    relevant_data = filter_full_data(relevant_data, only_validation = args.only_validation)
+
+    relevant_data["msa_type"] = relevant_data["file_name"].apply(lambda s: get_msa_type(s) )
+    relevant_data["program"] = relevant_data["file_name"].apply(lambda s: get_msa_program(s) )
+
+
     results_path = os.path.join(curr_run_dir,f'group_results.tsv')
+    raw_results_path = os.path.join(curr_run_dir,f'group_results_raw.tsv')
     previous_results_path= os.path.join(curr_run_dir,f'group_results_prev.tsv')
-    results = obtain_sampling_results(results_path, previous_results_path, relevant_data, all_jobs_running_folder, existing_msas_data_path, args)
+    results, raw_results = obtain_sampling_results(results_path, raw_results_path, previous_results_path, relevant_data, all_jobs_running_folder, existing_msas_data_path, args)
     results = results.sample(frac=1)
     logging.info(f"Number of rows in results is {len(results.index)}")
     logging.info(f"Using sample fracs = {args.sample_fracs}")

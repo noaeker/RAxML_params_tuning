@@ -100,14 +100,16 @@ def enrich_iteration_with_extra_metrics(curr_run_dir, sampled_data, curr_iter_ge
 
 
 
-def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features,msa_data, distinct_true_best_topologies):
+def single_iteration(i, curr_run_dir, ll_epsilon, n_sample_points, seed, n_pars, n_rand, n_sum_range, is_default_data, all_sampling_results, general_features, msa_data, distinct_true_best_topologies):
     print(i)
+    possible_spr_radius = list(msa_data["spr_radius"].unique())
+    possible_spr_cutoff = list(msa_data["spr_cutoff"].unique())
     random.seed(seed)
     print(f"seed in iteration i={seed}")
     n_sum = random.choice(n_sum_range)
     logging.info(f"N sum={n_sum}")
     sampled_data, n_pars_sample, n_rand_sample = get_sampled_data(n_pars, n_rand, n_sum, i, n_sample_points,
-                                                                  msa_data, seed, default_data=default_data,
+                                                                  msa_data, seed, default_data=is_default_data,
                                                                   possible_spr_cutoff=possible_spr_cutoff,
                                                                   possible_spr_radius=possible_spr_radius)
 
@@ -146,7 +148,7 @@ def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_
     curr_iter_general_metrics["feature_pct_diff_topologies"] = curr_iter_general_metrics['feature_general_n_topologies']/n_sum
     curr_iter_general_metrics["feature_pct_diff_topologies_best_trees"] = len(ll_possibly_best_topology)/curr_iter_general_metrics["feature_n_top_scoring_trees"]
     curr_iter_general_metrics["distinct_true_topologies_found"] = N_topologies_found
-    curr_iter_general_metrics["default_pct_global_max"] = N_topologies_found / len(distinct_true_best_topologies)
+    curr_iter_general_metrics["default_pct_global_max"] = 0 if len(distinct_true_best_topologies)==0 else N_topologies_found / len(distinct_true_best_topologies)
     curr_iter_general_metrics["final_topology_obtained"] = np.max(sampled_data.loc[sampled_data['log_likelihood_diff']==0]["tree_clusters_ind"])
     curr_iter_general_metrics["feature_general_n_topologies_best_final_trees"] = len(ll_possibly_best_topology)
     print(f'default_status={curr_iter_general_metrics["default_status"]}')
@@ -162,46 +164,42 @@ def single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_
         [all_sampling_results, curr_iter_general_metrics])  # default_results.append(general_run_metrics)
     return all_sampling_results
 
-def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon_values, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, simulated, msa_type, program,perform_topology_tests ):
+
+
+
+
+def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon_values, n_sample_points,seed, n_pars, n_rand, n_sum_range, all_sampling_results,all_raw_results, general_features ):
     logging.info("Enriching MSA data")
-    msa_data = process_all_msa_runs(curr_run_dir,msa_path, msa_data, cpus_per_job = 1, msa_type=msa_type, program=program,
-                         perform_topology_tests=perform_topology_tests, simulated= simulated)
+    msa_data, msa_type = process_all_msa_runs(curr_run_dir,msa_path, msa_data)
     msa_features = pd.DataFrame.from_dict({msa_path: get_msa_stats(msa_path, msa_type)}, orient= 'index')
     msa_data = msa_data.merge(msa_features, on = 'msa_path')
+    if len(msa_data["file_name"].unique())>1: ## use raw data only for
+        all_raw_results = pd.concat(
+            [all_raw_results, msa_data])
 
-    for ll_epsilon in ll_epsilon_values:
-        ll_epsilon_msa_data = msa_data.copy()
-        logging.info(f"Using epsilon={ll_epsilon}")
-        ll_epsilon_msa_data["ll_epsilon"] = ll_epsilon
-        ll_best_topologies = ll_epsilon_msa_data.loc[ll_epsilon_msa_data["delta_ll_from_overall_msa_best_topology"] <= ll_epsilon][
-            "tree_clusters_ind"].unique()
-        ll_epsilon_msa_data["is_global_max"] = (ll_epsilon_msa_data["tree_clusters_ind"].isin(ll_best_topologies)).astype(
-            'int')  # global max definition
-        overall_best_msa_data = ll_epsilon_msa_data.loc[ll_epsilon_msa_data.is_global_max == True]
-        distinct_true_best_topologies = list(overall_best_msa_data["tree_clusters_ind"].unique())
-        ll_epsilon_msa_data["n_distinct_true_topologies"] = len(distinct_true_best_topologies)
-        print(f"Number of distinct true topologies{len(distinct_true_best_topologies)}")
+    for file in msa_data["file_name"].unique():
+        default_data = True if 'iqtree' in file else False
+        file_data = msa_data.loc[msa_data.file_name==file]
+        for ll_epsilon in ll_epsilon_values:
+            ll_epsilon_msa_data = file_data.copy()
+            logging.info(f"Using epsilon={ll_epsilon}")
+            ll_epsilon_msa_data["ll_epsilon"] = ll_epsilon
+            ll_best_topologies = ll_epsilon_msa_data.loc[ll_epsilon_msa_data["delta_ll_from_overall_msa_best_topology"] <= ll_epsilon][
+                "tree_clusters_ind"].unique()
+            ll_epsilon_msa_data["is_global_max"] = (ll_epsilon_msa_data["tree_clusters_ind"].isin(ll_best_topologies)).astype(
+                'int')  # global max definition
+            overall_best_msa_data = ll_epsilon_msa_data.loc[ll_epsilon_msa_data.is_global_max == True]
+            distinct_true_best_topologies = list(overall_best_msa_data["tree_clusters_ind"].unique())
+            ll_epsilon_msa_data["n_distinct_true_topologies"] = len(distinct_true_best_topologies)
+            print(f"Number of distinct true topologies{len(distinct_true_best_topologies)}")
 
 
         for i in range(n_sample_points):
             seed = seed+1
-            all_sampling_results = single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, possible_spr_cutoff,possible_spr_radius,all_sampling_results, general_features, ll_epsilon_msa_data,distinct_true_best_topologies)
-    return all_sampling_results, seed
+            all_sampling_results = single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, all_sampling_results, general_features, ll_epsilon_msa_data,distinct_true_best_topologies)
+    return all_sampling_results,all_raw_results, seed
 
 
-def get_msa_type_and_program(data):
-    file_name = np.max(data["file_name"]).strip()
-    if 'ds_new' in file_name or 'd_iqtree' in file_name:
-        msa_type = 'DNA'
-    else:
-        msa_type = 'AA'
-    logging.info(f"MSA type= {msa_type}")
-    if 'iqtree' in file_name:
-        program = 'IQTREE'
-    else:
-        program = 'RAxML'
-    logging.info(f"program = {program}")
-    return msa_type, program
 
 
 
@@ -216,7 +214,7 @@ def get_msa_type_and_program(data):
 
 
 
-def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_points, seed, n_pars, n_rand,perform_topology_tests, n_sum_range = [10, 20], simulated = False, external_best_tree_file ='',
+def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_points, seed, n_pars, n_rand, n_sum_range = [10, 20]
                              ):
 
     n_sum_limits = [int(n) for n in n_sum_range.split('_')]
@@ -226,50 +224,28 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_poi
     #topology_test_features = ['au_test_sign','wsh_test_sign','wkh_test_sign','sh_test_sign','kh_test_sign','au_test','wsh_test','wkh_test','sh_test','kh_test']
     general_features = ["feature_msa_n_seq", "feature_msa_n_loci", "file_name", "ll_epsilon",
                              "feature_msa_pypythia_msa_difficulty",
-                             "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean","best_msa_ll",
+                             "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean","best_msa_ll","best_tree_ll_per_file"
                              ]
     general_features = general_features+tree_search_features
     all_sampling_results = pd.DataFrame()
+    all_raw_results = pd.DataFrame()
 
     logging.info(f'Total MSA to run on: {len(data["msa_path"].unique())}')
-    if simulated:
-        if os.path.exists(external_best_tree_file):
-            external_best_tree_data = pd.read_csv(external_best_tree_file, sep='\t')
-            external_best_tree_data['msa_name'] = external_best_tree_data['msa_local_path'].apply(
-                lambda x: os.path.basename(x))
-            logging.info("Merging external ll information to raw data")
-            data['msa_name'] = data['msa_path'].apply(lambda x: os.path.basename(x))
-            data = data.merge(external_best_tree_data, on='msa_name')
-        else:
-            logging.error(f"External best tree file not found in {external_best_tree_file}")
 
-    for file in data["file_name"].unique():
-        file_data =data.loc[data.file_name==file]
-        logging.info(f"Working on file: {file}")
-        msa_type, program = get_msa_type_and_program(file_data)
-        if 'iqtree' in file:
-            logging.info("Filtering on default data")
-            default_data = True
-            file_data =file_data[file_data["type"] == "default"]  # Filtering only on default data
-        else:
-            logging.info(" Filtering on non-default data")
-            default_data = False
-            file_data = file_data[file_data["type"] != "default"]
-        for i,msa_path in enumerate(file_data["msa_path"].unique()):
-            logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
-            # msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
-            msa_data = file_data.loc[file_data.msa_path == msa_path].reset_index()
-            possible_spr_radius = list(file_data["spr_radius"].unique())
-            possible_spr_cutoff = list(file_data["spr_cutoff"].unique())
-            # Filter on MSA data
-            logging.info(f"LL epsilon values are: {ll_epsilon_values}")
-            try:
-                all_sampling_results, seed = MSA_pipeline(msa_path, msa_data, curr_run_dir, ll_epsilon_values, n_sample_points, seed, n_pars, n_rand, n_sum_range, default_data,
-                                                              possible_spr_cutoff, possible_spr_radius, all_sampling_results, general_features, msa_type= msa_type, simulated= simulated, program = program, perform_topology_tests=perform_topology_tests)
-            except Exception as e:
-                logging.error(f"Could not run on MSA {msa_path}")
-                print(e)
-    return all_sampling_results
+    for i,msa_path in enumerate(data["msa_path"].unique()):
+        logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
+        # msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
+        msa_data = data.loc[data.msa_path == msa_path].reset_index()
+
+        # Filter on MSA data
+        logging.info(f"LL epsilon values are: {ll_epsilon_values}")
+        #:
+        all_sampling_results, all_raw_results, seed = MSA_pipeline(msa_path, msa_data, curr_run_dir, ll_epsilon_values, n_sample_points, seed, n_pars, n_rand, n_sum_range,
+                                                          all_sampling_results,all_raw_results, general_features)
+        #except Exception as e:
+        #    logging.error(f"Could not run on MSA {msa_path}")
+        #    print(e)
+    return all_sampling_results,all_raw_results
 
 
 
@@ -289,8 +265,9 @@ def main():
     logging.basicConfig(filename=log_file_path, level=level)
     logging.info("Generating results file")
     ll_epsilon_values = [float(e) for e in (args.ll_epsilon).split('_')]
-    results = get_all_sampling_results(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, ll_epsilon_values= ll_epsilon_values, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, n_sum_range= args.n_sum_range, simulated= args.simulated, external_best_tree_file= args.external_best_tree_file, perform_topology_tests= args.perform_topology_tests)
+    results, raw_results = get_all_sampling_results(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, ll_epsilon_values= ll_epsilon_values, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, n_sum_range= args.n_sum_range)
     results.to_csv(args.curr_job_group_output_path, sep= '\t')
+    raw_results.to_csv(args.curr_job_group_output_raw_path, sep= '\t')
 
 
 

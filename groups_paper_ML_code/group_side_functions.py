@@ -9,7 +9,7 @@ import numpy as np
 def group_main_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--raw_data_folder', action='store', type=str,
-                        default="/Users/noa/Workspace/raxml_deep_learning_results/New_selectome_data")
+                        default="/Users/noa/Workspace/raxml_deep_learning_results/ds_data")
     parser.add_argument('--curr_working_dir',
                         default="/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test")
     parser.add_argument('--n_pars_trees', action='store', type=int, default=-1)
@@ -31,7 +31,6 @@ def group_main_parser():
     parser.add_argument('--include_output_tree_features', action = 'store_true', default= True)
     parser.add_argument('--sample_fracs', default =np.linspace(0.1,1,7) )#np.linspace(0.1,1,5)#np.linspace(0.1,1,7)
     parser.add_argument('--model', default = "lightgbm") #sgd,rf ,lightgbm
-    parser.add_argument('--only_validation', action = 'store_true', default=False )
     parser.add_argument('--add_sample_fracs',action = 'store_true')
     parser.add_argument('--additional_validation', default=None)#"/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test/groups_run_local_test/group_results_20_subsample.tsv"
     parser.add_argument('--prev_results_path', default = None)
@@ -43,6 +42,7 @@ def group_main_parser():
     parser.add_argument('--external_best_tree_file',type=str, default='Nope')
     parser.add_argument('--only_generate_data', action= 'store_true',default=False)
     parser.add_argument('--perform_topology_tests', action = 'store_true', default= True )
+    parser.add_argument('--only_validation', action = 'store_true', default= False )
     return parser
 
 
@@ -52,4 +52,6 @@ def group_job_parser():
     parser.add_argument('--curr_job_raw_path', action='store', type=str)
     parser.add_argument('--curr_job_folder', action='store', type=str)
     parser.add_argument('--curr_job_group_output_path', action='store', type=str)
+    parser.add_argument('--curr_job_group_output_raw_path', action='store', type=str)
+
     return parser

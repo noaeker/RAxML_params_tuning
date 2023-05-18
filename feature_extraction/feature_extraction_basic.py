@@ -84,8 +84,14 @@ def get_msa_stats(msa_path, msa_type):
         all_msa_features.update(get_summary_statistics_dict(feature, multi_dimensional_features[feature]))
     return all_msa_features
 
-def process_all_msa_runs(curr_run_directory,msa_path, msa_data, cpus_per_job, msa_type, program,
-                         perform_topology_tests=False, simulated= False):
+
+
+
+
+
+
+
+def process_all_msa_runs(curr_run_directory,msa_path, msa_data):
     '''
 
     :param curr_run_directory:
@@ -93,43 +99,41 @@ def process_all_msa_runs(curr_run_directory,msa_path, msa_data, cpus_per_job, ms
     :return:
     '''
     logging.info("## Calculating features from beggining for this MSA")
-
-    if simulated:
-        if program=='RAxML':
-            best_msa_ll = max(msa_data["raxml_tree_ll"])
-        else:
-            best_msa_ll = max(msa_data["iqtree_tree_ll"])
-        best_msa_tree_topology = max(msa_data["tree_str"])
-    else:
-        best_msa_ll = max(msa_data["final_ll"])
-
-
-    msa_data = msa_data.sort_values(["starting_tree_type", "starting_tree_ind", "spr_radius", "spr_cutoff"])
+    msa_type = np.max(msa_data['msa_type'])
+    msa_data = msa_data.loc[((msa_data.program=='IQTREE')& (msa_data.type=='default')) | ((msa_data.program=='RAxML')& (msa_data.type!='default'))]
     msa_data["final_trees_inds"] = list(range(len(msa_data.index)))
     unique_trees_mapping = get_unique_trees_mapping(curr_run_directory, list(msa_data["final_tree_topology"]))
     msa_data["tree_clusters_ind"] = msa_data["final_trees_inds"].apply(lambda x: unique_trees_mapping[x])
+    if len(msa_data["file_name"].unique())>1:
+        logging.info("MSA of both IQTREE and RAxML")
+        trees_path = os.path.join(curr_run_directory, 'trees_for_ll_evaluation')
+
+        unique_trees = msa_data.groupby(['tree_clusters_ind'])["final_tree_topology"].first().reset_index()
+
+
+        final_trees = list(unique_trees["final_tree_topology"])
+        with open(trees_path,'w') as TREES_ML:
+            TREES_ML.writelines(final_trees)
+        trees_ll_on_data, tree_alpha, optimized_trees_final_path = raxml_optimize_trees_for_given_msa(get_local_path(msa_path), ll_on_data_prefix = "iqtree_raxml", tree_file=trees_path,
+                                           curr_run_directory=curr_run_directory, msa_type=msa_type, opt_brlen=True
+                                           )
+
+        unique_trees["final_ll"] = trees_ll_on_data
+        msa_data = msa_data.drop(columns = ['final_ll','final_tree_topology'])
+        msa_data = msa_data.merge(unique_trees, on  = ['tree_clusters_ind'] )
+
+        msa_data["best_tree_ll_per_file"] = msa_data.groupby('file_name')['final_ll'].transform('max')
+
+    best_msa_ll = max(msa_data["final_ll"])
+    msa_data = msa_data.sort_values(["starting_tree_type", "starting_tree_ind", "spr_radius", "spr_cutoff"])
     best_msa_tree_topologies = list((msa_data[msa_data["final_ll"] == best_msa_ll].groupby('tree_clusters_ind')['final_tree_topology'].first()))
     msa_data["best_msa_ll"] = np.float(best_msa_ll)
     msa_data["rf_from_overall_msa_best_topology"] = msa_data["final_tree_topology"].apply(
         lambda x: min_rf_distance(curr_run_directory, x, best_msa_tree_topologies, name="MSA_enrichment_RF_calculations"))
-
-    # if perform_topology_tests:
-    #     try:
-    #         per_clusters_data = msa_data.groupby(["tree_clusters_ind"]).first().reset_index()[
-    #             ["tree_clusters_ind", "final_tree_topology"]]
-    #         au_test_results = au_test(per_tree_clusters_data=per_clusters_data, ML_tree=best_msa_tree_topology,
-    #                                   msa_path=get_local_path(msa_path), cpus_per_job=cpus_per_job,
-    #                                   name="MSA_enrichment_TREE_TEST_calculations",
-    #                                   curr_run_directory=curr_run_directory, msa_type=msa_type)
-    #         msa_data = msa_data.merge(pd.DataFrame(au_test_results), on="tree_clusters_ind")
-    #     except Exception as e:
-    #         logging.info(f"AU couldn't be estimated for current MSA")
-    #         logging.info(f'Error details: {str(e)}')
-    #         return pd.DataFrame()
     msa_data["final_ll"] = msa_data.groupby("tree_clusters_ind")["final_ll"].transform(max)
     msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
         (msa_data["rf_from_overall_msa_best_topology"]) > 0, best_msa_ll - msa_data["final_ll"], 0)
-    return msa_data
+    return msa_data, msa_type
 
 
 def unify_raw_data_csvs(raw_data_folder):
@@ -139,7 +143,7 @@ def unify_raw_data_csvs(raw_data_folder):
     for f in csv_files_in_folder:
         try:
             if LOCAL_RUN:
-                data = pd.read_csv(f, sep=CSV_SEP, nrows = 1240*4)
+                data = pd.read_csv(f, sep=CSV_SEP, nrows= 1240*20) #
                 print(data['msa_path'].unique())
             else:
                 data = pd.read_csv(f, sep=CSV_SEP)
