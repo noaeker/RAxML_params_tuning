@@ -118,7 +118,10 @@ def filter_full_data(full_data, only_validation, n_validation):
     validation_data_bool = (
             full_data["file_name"].str.contains("ps_new_msa") | full_data["file_name"].str.contains("new_msa_ds") |
             full_data["file_name"].str.contains("iqtree"))
+
     zou_val_data = full_data.loc[validation_data_bool].loc[~full_data["file_name"].str.contains('large')]
+    zou_val_data['file_type'] = zou_val_data['file_name'].apply(
+        lambda x: 'DNA' if 'new_msa_ds' in x or 'iqtree_d' in x else 'AA')
     count_per_msa = zou_val_data.groupby("msa_path")["file_name"].nunique().reset_index()
     valid_msas = count_per_msa.loc[count_per_msa.file_name == 2]["msa_path"]
     valid_msas_and_program = zou_val_data.loc[zou_val_data.msa_path.isin(valid_msas)][
