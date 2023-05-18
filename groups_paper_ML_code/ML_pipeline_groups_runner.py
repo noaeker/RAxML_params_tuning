@@ -113,7 +113,7 @@ def obtain_sampling_results(results_path, raw_results_path,previous_results_path
 
 
 
-def filter_full_data(full_data, only_validation):
+def filter_full_data(full_data, only_validation, n_validation):
     validation_data_bool = (
                 full_data["file_name"].str.contains("ps_new_msa") | full_data["file_name"].str.contains("new_msa_ds") |
                 full_data["file_name"].str.contains("sim") | full_data["file_name"].str.contains("iqtree") | full_data[
@@ -126,9 +126,9 @@ def filter_full_data(full_data, only_validation):
     valid_msas_and_program = zou_val_data.loc[zou_val_data.msa_path.isin(valid_msas)][
         ["msa_path", "file_type"]].sort_values("msa_path").drop_duplicates()
     n_valid_msas = len(pd.unique(valid_msas ))
-    n_samples = min(250, n_valid_msas)
+    n_samples = min(n_validation, n_valid_msas)
     logging.info(f"Subsampling {n_samples} validation MSAs from validation")
-    chosen_MSAs = valid_msas_and_program.groupby('file_type').sample(n=min(200, n_valid_msas))[
+    chosen_MSAs = valid_msas_and_program.groupby('file_type').sample(n=min(n_samples, n_valid_msas))[
             "msa_path"]  # sampling 200 from each type
     validation_data = full_data.loc[
             full_data["msa_path"].isin(chosen_MSAs) | full_data["file_name"].str.contains('large')]
@@ -175,7 +175,7 @@ def main():
 
 
     relevant_data =  unify_raw_data_csvs(args.raw_data_folder)
-    relevant_data = filter_full_data(relevant_data, only_validation = args.only_validation)
+    relevant_data = filter_full_data(relevant_data, only_validation = args.only_validation, n_validation= args.n_validation)
 
     relevant_data["msa_type"] = relevant_data["file_name"].apply(lambda s: get_msa_type(s) )
     relevant_data["program"] = relevant_data["file_name"].apply(lambda s: get_msa_program(s) )
