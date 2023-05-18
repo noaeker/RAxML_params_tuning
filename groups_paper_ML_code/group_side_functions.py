@@ -43,7 +43,7 @@ def group_main_parser():
     parser.add_argument('--only_generate_data', action= 'store_true',default=True)
     parser.add_argument('--perform_topology_tests', action = 'store_true', default= True )
     parser.add_argument('--only_validation', action = 'store_true', default= True )
-    parser.add_argument('--n_validation', type = int, default = 250)
+    parser.add_argument('--n_validation', type = int, default = 200)
     return parser
 
 

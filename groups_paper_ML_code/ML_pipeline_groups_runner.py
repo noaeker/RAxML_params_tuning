@@ -118,24 +118,12 @@ def filter_full_data(full_data, only_validation, n_validation):
     validation_data_bool = (
             full_data["file_name"].str.contains("ps_new_msa") | full_data["file_name"].str.contains("new_msa_ds") |
             full_data["file_name"].str.contains("iqtree"))
-    try:
-        full_data.loc[validation_data_bool]
-    except:
-        logging.error("First part failed")
-        logging.error(full_data.head(5))
-    try:
-
-        zou_val_data = full_data.loc[validation_data_bool].loc[~full_data["file_name"].str.contains('large')]
-    except:
-        logging.info(full_data.index)
-        logging.error("filter problem")
-    zou_val_data['file_type'] = zou_val_data['file_name'].apply(
-        lambda x: 'DNA' if 'new_msa_ds' in x or 'iqtree_d' in x else 'AA')
+    zou_val_data = full_data.loc[validation_data_bool].loc[~full_data["file_name"].str.contains('large')]
     count_per_msa = zou_val_data.groupby("msa_path")["file_name"].nunique().reset_index()
     valid_msas = count_per_msa.loc[count_per_msa.file_name == 2]["msa_path"]
     valid_msas_and_program = zou_val_data.loc[zou_val_data.msa_path.isin(valid_msas)][
         ["msa_path", "file_type"]].sort_values("msa_path").drop_duplicates()
-    n_valid_msas = len(pd.unique(valid_msas ))
+    n_valid_msas = np.min(valid_msas_and_program.groupby('file_type')['msa_path'].nunique())
     n_samples = min(n_validation, n_valid_msas)
     logging.info(f"Subsampling {n_samples} validation MSAs from validation")
     chosen_MSAs = valid_msas_and_program.groupby('file_type').sample(n=min(n_samples, n_valid_msas))[
