@@ -46,11 +46,11 @@ def distribute_MSAS_over_jobs(raw_data, all_jobs_results_folder,existing_msas_fo
         current_raw_data_path = os.path.join(curr_job_folder, f"job_{job_ind}_raw_data{CSV_SUFFIX}")
         current_job_group_output_path = os.path.join(curr_job_folder, f"job_{job_ind}_raw_data_with_features{CSV_SUFFIX}")
         current_job_group_output_raw_path = os.path.join(curr_job_folder, f"job_{job_ind}_raw_data_with_features_raw{CSV_SUFFIX}")
-        curr_job_MSA_output_path = os.path.join(curr_job_folder, f"job_{job_ind}_MSA_data_with_features{CSV_SUFFIX}")
+        #curr_job_MSA_output_path = os.path.join(curr_job_folder, f"job_{job_ind}_MSA_data_with_features{CSV_SUFFIX}")
         current_raw_data = raw_data[raw_data["msa_path"].isin(job_msas)]
         current_raw_data.to_csv(current_raw_data_path, sep=CSV_SEP)
 
-        run_command = f' python {GROUPS_FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --curr_job_group_output_raw_path {current_job_group_output_raw_path} --curr_job_group_output_raw_path {current_job_group_output_path}  {generate_argument_str(args, exclude=["sample_fracs"])}'
+        run_command = f' python {GROUPS_FEATURE_EXTRACTION_CODE} --job_ind {job_ind} --curr_job_folder {curr_job_folder} --curr_job_raw_path {current_raw_data_path} --curr_job_group_output_raw_path {current_job_group_output_raw_path} --curr_job_group_output_path {current_job_group_output_path}  {generate_argument_str(args, exclude=["sample_fracs"])}'
 
         job_name = args.jobs_prefix + str(job_ind)
         if not LOCAL_RUN:
@@ -104,8 +104,8 @@ def obtain_sampling_results(results_path, raw_results_path,previous_results_path
         if not LOCAL_RUN:
             job_names = [jobs_dict[job_ind]["job_name"] for job_ind in jobs_dict]
             finish_all_running_jobs(job_names)
-        results = add_csvs_content(all_csv_paths, results_path)
         raw_results = add_csvs_content(all_csvs_raw_paths, raw_results_path)
+        results = add_csvs_content(all_csv_paths, results_path)
     else:
         logging.info("Reading existing results file")
         results = pd.read_csv(results_path, sep='\t', index_col=False)
