@@ -109,16 +109,21 @@ def obtain_sampling_results(results_path, raw_results_path,previous_results_path
     else:
         logging.info("Reading existing results file")
         results = pd.read_csv(results_path, sep='\t', index_col=False)
-        raw_results = pd.read_csv(raw_results_path,sep='\t', index_col=False)
+        raw_results = pd.read_csv(raw_results_path,sep='\t', index_col=False) if os.path.exists(raw_results_path) else None
     return results,raw_results
 
 
 
-def filter_full_data(full_data, only_validation, n_validation):
+def get_validation_data_bool(full_data):
     validation_data_bool = (
             full_data["file_name"].str.contains("ps_new_msa") | full_data["file_name"].str.contains("new_msa_ds") |
             full_data["file_name"].str.contains("iqtree"))
+    return validation_data_bool
 
+
+
+def filter_full_data(full_data, only_validation, n_validation):
+    validation_data_bool = get_validation_data_bool (full_data)
     zou_val_data = full_data.loc[validation_data_bool].loc[~full_data["file_name"].str.contains('large')]
     zou_val_data['file_type'] = zou_val_data['file_name'].apply(
         lambda x: 'DNA' if 'new_msa_ds' in x or 'iqtree_d' in x else 'AA')
@@ -190,6 +195,12 @@ def main():
     logging.info(f"Number of rows in results is {len(results.index)}")
     logging.info(f"Using sample fracs = {args.sample_fracs}")
     logging.info(f"include_output_tree_features = {args.include_output_tree_features}")
+    if os.path.exists(args.external_validation_data):
+        external_validation = pd.read_csv(args.external_validation_data, sep =CSV_SEP)
+        logging.info("Filtering existing validation data")
+        results = results.loc[~get_validation_data_bool(results)]
+        logging.info("Combining rsults with external validation data")
+        results = pd.concat([results,external_validation])
     sample_fracs = args.sample_fracs if not LOCAL_RUN else [1]
     if args.only_generate_data:
         logging.info("Done generating data")

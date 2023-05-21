@@ -257,9 +257,6 @@ def main():
     curr_run_dir = args.curr_job_folder
     create_dir_if_not_exists(curr_run_dir)
     relevant_data = pd.read_csv(args.curr_job_raw_path, sep = '\t')
-    #relevant_data = relevant_data.loc[relevant_data.feature_msa_pypythia_msa_difficulty>0.2]
-    #msas = relevant_data["msa_path"].unique()[:10]
-    #relevant_data = relevant_data.loc[relevant_data.msa_path.isin(msas)]
     log_file_path = os.path.join(curr_run_dir,"log_file")
     level = logging.INFO if args.level=='info' else logging.DEBUG
     logging.basicConfig(filename=log_file_path, level=level)
