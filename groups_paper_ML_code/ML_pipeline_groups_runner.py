@@ -80,7 +80,8 @@ def finish_all_running_jobs(job_names):
 def obtain_sampling_results(results_path, raw_results_path,previous_results_path,  all_jobs_running_folder, existing_msas_data_path, args):
     if not os.path.exists(results_path):
         logging.info(f"Reading all data from {args.raw_data_folder}")
-        if args.ready_feautres:
+        if args.ready_features:
+            logging.info("Reading with existing features")
             relevant_data = pd.read_csv(args.ready_features_path)
         else:
             relevant_data = unify_raw_data_csvs(args.raw_data_folder).reset_index()
