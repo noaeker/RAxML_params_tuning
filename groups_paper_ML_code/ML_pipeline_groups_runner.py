@@ -77,8 +77,16 @@ def finish_all_running_jobs(job_names):
 
 
 
-def obtain_sampling_results(results_path, raw_results_path,previous_results_path, relevant_data, all_jobs_running_folder, existing_msas_data_path, args):
+def obtain_sampling_results(results_path, raw_results_path,previous_results_path,  all_jobs_running_folder, existing_msas_data_path, args):
     if not os.path.exists(results_path):
+        logging.info(f"Reading all data from {args.raw_data_folder}")
+
+        relevant_data = unify_raw_data_csvs(args.raw_data_folder).reset_index()
+        relevant_data = filter_full_data(relevant_data, only_validation=args.only_validation,
+                                         n_validation=args.n_validation)
+
+        relevant_data["msa_type"] = relevant_data["file_name"].apply(lambda s: get_msa_type(s))
+        relevant_data["program"] = relevant_data["file_name"].apply(lambda s: get_msa_program(s))
         if os.path.exists(previous_results_path):
             logging.info("Using previous results path")
             prev_results = pd.read_csv(previous_results_path, sep='\t')
@@ -177,20 +185,10 @@ def main():
     create_dir_if_not_exists(all_jobs_running_folder)
     existing_msas_data_path = os.path.join(curr_run_dir,'MSAs')
     create_dir_if_not_exists(existing_msas_data_path)
-    logging.info(f"Reading all data from {args.raw_data_folder}")
-
-
-    relevant_data =  unify_raw_data_csvs(args.raw_data_folder).reset_index()
-    relevant_data = filter_full_data(relevant_data, only_validation = args.only_validation, n_validation= args.n_validation)
-
-    relevant_data["msa_type"] = relevant_data["file_name"].apply(lambda s: get_msa_type(s) )
-    relevant_data["program"] = relevant_data["file_name"].apply(lambda s: get_msa_program(s) )
-
-
     results_path = os.path.join(curr_run_dir,f'group_results.tsv')
     raw_results_path = os.path.join(curr_run_dir,f'group_results_raw.tsv')
     previous_results_path= os.path.join(curr_run_dir,f'group_results_prev.tsv')
-    results, raw_results = obtain_sampling_results(results_path, raw_results_path, previous_results_path, relevant_data, all_jobs_running_folder, existing_msas_data_path, args)
+    results, raw_results = obtain_sampling_results(results_path, raw_results_path, previous_results_path, all_jobs_running_folder, existing_msas_data_path, args)
     results = results.sample(frac=1)
     logging.info(f"Number of rows in results is {len(results.index)}")
     logging.info(f"Using sample fracs = {args.sample_fracs}")
