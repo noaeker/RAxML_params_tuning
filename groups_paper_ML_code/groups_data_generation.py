@@ -168,18 +168,21 @@ def single_iteration(i, curr_run_dir, ll_epsilon, n_sample_points, seed, n_pars,
 
 
 
-def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon_values, n_sample_points,seed, n_pars, n_rand, n_sum_range, all_sampling_results,all_raw_results, general_features ):
-    logging.info("Enriching MSA data")
-    msa_data, msa_type = process_all_msa_runs(curr_run_dir,msa_path, msa_data)
-    msa_features = pd.DataFrame.from_dict({msa_path: get_msa_stats(msa_path, msa_type)}, orient= 'index')
-    msa_data = msa_data.merge(msa_features, on = 'msa_path')
+def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon_values, n_sample_points,seed, n_pars, n_rand, n_sum_range, all_sampling_results,all_raw_results, general_features, ready_features ):
+    if ready_features:
+        logging.info("Enriching MSA data")
+        msa_data, msa_type = process_all_msa_runs(curr_run_dir,msa_path, msa_data)
+        msa_features = pd.DataFrame.from_dict({msa_path: get_msa_stats(msa_path, msa_type)}, orient= 'index')
+        msa_data = msa_data.merge(msa_features, on = 'msa_path')
+    else:
+        logging.info("Using existing MSA data")
     if len(msa_data["file_name"].unique())>1: ## use raw data only for
         all_raw_results = pd.concat(
             [all_raw_results, msa_data])
-
     for file in msa_data["file_name"].unique():
         default_data = True if 'iqtree' in file else False
         file_data = msa_data.loc[msa_data.file_name==file]
+        logging.info(f"file = {file}")
         for ll_epsilon in ll_epsilon_values:
             ll_epsilon_msa_data = file_data.copy()
             logging.info(f"Using epsilon={ll_epsilon}")
@@ -194,9 +197,9 @@ def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon_values, n_sample_po
             print(f"Number of distinct true topologies{len(distinct_true_best_topologies)}")
 
 
-        for i in range(n_sample_points):
-            seed = seed+1
-            all_sampling_results = single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, all_sampling_results, general_features, ll_epsilon_msa_data,distinct_true_best_topologies)
+            for i in range(n_sample_points):
+                seed = seed+1
+                all_sampling_results = single_iteration(i,curr_run_dir,ll_epsilon, n_sample_points,seed, n_pars, n_rand, n_sum_range,default_data, all_sampling_results, general_features, ll_epsilon_msa_data,distinct_true_best_topologies)
     return all_sampling_results,all_raw_results, seed
 
 
