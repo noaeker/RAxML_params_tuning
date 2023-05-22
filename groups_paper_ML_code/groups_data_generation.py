@@ -170,12 +170,12 @@ def single_iteration(i, curr_run_dir, ll_epsilon, n_sample_points, seed, n_pars,
 
 def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon_values, n_sample_points,seed, n_pars, n_rand, n_sum_range, all_sampling_results,all_raw_results, general_features, ready_features ):
     if ready_features:
-        logging.info("Enriching MSA data")
+        logging.info("Enriching MSA data, calculating features from beggining")
         msa_data, msa_type = process_all_msa_runs(curr_run_dir,msa_path, msa_data)
         msa_features = pd.DataFrame.from_dict({msa_path: get_msa_stats(msa_path, msa_type)}, orient= 'index')
         msa_data = msa_data.merge(msa_features, on = 'msa_path')
     else:
-        logging.info("Using existing MSA data")
+        logging.info("Using existing MSA data from ready features")
     if len(msa_data["file_name"].unique())>1: ## use raw data only for
         all_raw_results = pd.concat(
             [all_raw_results, msa_data])
@@ -217,7 +217,7 @@ def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon_values, n_sample_po
 
 
 
-def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_points, seed, n_pars, n_rand, n_sum_range = [10, 20]
+def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_points, seed, n_pars, n_rand, n_sum_range = [10, 20], ready_features = False
                              ):
 
     n_sum_limits = [int(n) for n in n_sum_range.split('_')]
@@ -244,7 +244,7 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_poi
         logging.info(f"LL epsilon values are: {ll_epsilon_values}")
         #:
         all_sampling_results, all_raw_results, seed = MSA_pipeline(msa_path, msa_data, curr_run_dir, ll_epsilon_values, n_sample_points, seed, n_pars, n_rand, n_sum_range,
-                                                          all_sampling_results,all_raw_results, general_features)
+                                                          all_sampling_results,all_raw_results, general_features, ready_features= ready_features)
         #except Exception as e:
         #    logging.error(f"Could not run on MSA {msa_path}")
         #    print(e)
@@ -265,7 +265,7 @@ def main():
     logging.basicConfig(filename=log_file_path, level=level)
     logging.info("Generating results file")
     ll_epsilon_values = [float(e) for e in (args.ll_epsilon).split('_')]
-    results, raw_results = get_all_sampling_results(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, ll_epsilon_values= ll_epsilon_values, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, n_sum_range= args.n_sum_range)
+    results, raw_results = get_all_sampling_results(curr_run_dir, relevant_data, n_sample_points=args.n_iterations, seed=SEED, ll_epsilon_values= ll_epsilon_values, n_pars =args.n_pars_trees, n_rand = args.n_rand_trees, n_sum_range= args.n_sum_range, ready_features= args.ready_features)
     results.to_csv(args.curr_job_group_output_path, sep= '\t')
     raw_results.to_csv(args.curr_job_group_output_raw_path, sep= '\t')
 
