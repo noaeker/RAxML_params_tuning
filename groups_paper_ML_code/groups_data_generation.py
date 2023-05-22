@@ -169,7 +169,7 @@ def single_iteration(i, curr_run_dir, ll_epsilon, n_sample_points, seed, n_pars,
 
 
 def MSA_pipeline(msa_path,msa_data, curr_run_dir, ll_epsilon_values, n_sample_points,seed, n_pars, n_rand, n_sum_range, all_sampling_results,all_raw_results, general_features, ready_features ):
-    if ready_features:
+    if not ready_features:
         logging.info("Enriching MSA data, calculating features from beggining")
         msa_data, msa_type = process_all_msa_runs(curr_run_dir,msa_path, msa_data)
         msa_features = pd.DataFrame.from_dict({msa_path: get_msa_stats(msa_path, msa_type)}, orient= 'index')
