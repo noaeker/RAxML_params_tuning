@@ -238,7 +238,7 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_poi
     for i,msa_path in enumerate(data["msa_path"].unique()):
         logging.info(f'msa path = {msa_path}, {i}/{len(data["msa_path"].unique())}')
         # msa_features = generate_calculations_per_MSA(msa_path, curr_run_dir, n_pars_tree_sampled=150)
-        msa_data = data.loc[data.msa_path == msa_path].reset_index()
+        msa_data = data.loc[data.msa_path == msa_path].copy().reset_index(drop=True)
 
         # Filter on MSA data
         logging.info(f"LL epsilon values are: {ll_epsilon_values}")
