@@ -202,6 +202,7 @@ def main():
         results = results.loc[~get_validation_data_bool(results)]
         logging.info("Combining rsults with external validation data")
         results = pd.concat([results,external_validation])
+        results = results.reset_index(drop = True)
     sample_fracs = args.sample_fracs if not LOCAL_RUN else [1]
     if args.only_generate_data:
         logging.info("Done generating data")
