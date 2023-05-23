@@ -8,7 +8,7 @@ from pandas.api.types import is_numeric_dtype
 
 
 
-def write_data_to_csv(curr_run_dir, train, test, X_test, val_expanded_dict, model, name, ):
+def write_data_to_csv(curr_run_dir, train, test, X_test,model, name, val_expanded_dict ):
     final_csv_path_train = os.path.join(curr_run_dir, f"train_data_{name}.tsv")
     train.to_csv(final_csv_path_train, sep='\t')
 
@@ -123,4 +123,5 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
                                     feature_importance=True)
 
     if sample_frac==1 or sample_frac==-1:
-        write_data_to_csv(curr_run_dir, train, test, X_test, model, name, val_expanded_dict= val_expanded_dict)
+        write_data_to_csv(curr_run_dir, train, test, X_test, model, name, val_expanded_dict)
+
