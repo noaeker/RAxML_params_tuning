@@ -227,7 +227,7 @@ def get_all_sampling_results(curr_run_dir, data, ll_epsilon_values, n_sample_poi
     #topology_test_features = ['au_test_sign','wsh_test_sign','wkh_test_sign','sh_test_sign','kh_test_sign','au_test','wsh_test','wkh_test','sh_test','kh_test']
     general_features = ["feature_msa_n_seq", "feature_msa_n_loci", "file_name", "ll_epsilon",
                              "feature_msa_pypythia_msa_difficulty",
-                             "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean","best_msa_ll","best_tree_ll_per_file"
+                             "feature_msa_gap_fracs_per_seq_var", "feature_msa_entropy_mean","best_msa_ll","best_tree_ll_per_file", "program"
                              ]
     general_features = general_features+tree_search_features
     all_sampling_results = pd.DataFrame()

@@ -145,7 +145,7 @@ def filter_full_data(full_data, only_validation, n_validation):
     n_valid_msas = np.min(valid_msas_and_program.groupby('file_type')['msa_path'].nunique())
     n_samples = min(n_validation, n_valid_msas)
     logging.info(f"Subsampling {n_samples} validation MSAs from validation")
-    chosen_MSAs = valid_msas_and_program.groupby('file_type').sample(n=min(n_samples, n_valid_msas))[
+    chosen_MSAs = valid_msas_and_program.groupby('file_type').sample(n=min(n_samples, n_valid_msas), random_state = SEED)[
             "msa_path"]  # sampling 200 from each type
     validation_data = full_data.loc[
             full_data["msa_path"].isin(chosen_MSAs) | full_data["file_name"].str.contains('large')]

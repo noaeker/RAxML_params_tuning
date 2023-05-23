@@ -8,7 +8,7 @@ from pandas.api.types import is_numeric_dtype
 
 
 
-def write_data_to_csv(curr_run_dir, train, test, X_test, model, name, ):
+def write_data_to_csv(curr_run_dir, train, test, X_test, val_expanded_dict, model, name, ):
     final_csv_path_train = os.path.join(curr_run_dir, f"train_data_{name}.tsv")
     train.to_csv(final_csv_path_train, sep='\t')
 
@@ -16,6 +16,12 @@ def write_data_to_csv(curr_run_dir, train, test, X_test, model, name, ):
     test["calibrated_prob"] = model['calibrated_model'].predict_proba((model['selector']).transform(X_test))[:, 1]
     final_csv_path_test = os.path.join(curr_run_dir, f"final_performance_on_test_{name}.tsv")
     test.to_csv(final_csv_path_test, sep='\t')
+    for f in val_expanded_dict:
+        full_val_data = val_expanded_dict[f]["full_validation"]
+        full_val_data["uncalibrated_prob"] = model['best_model'].predict_proba((model['selector']).transform(val_expanded_dict[f]["X"]))[:, 1]
+        full_val_data["calibrated_prob"] = model['calibrated_model'].predict_proba((model['selector']).transform(val_expanded_dict[f]["X"]))[:, 1]
+        final_csv_path_val = os.path.join(curr_run_dir, f"final_performance_on_val_{f}.tsv")
+        full_val_data.to_csv(final_csv_path_val, sep='\t')
 
 
 
@@ -95,7 +101,7 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
         val_expanded_dict[file] = {'size': len(val_dict[file]['msa_path'].unique())}
         val_expanded_dict[file]["X_val"] = val_dict[file][[col for col in train.columns if col in full_features]]
         val_expanded_dict[file]["y_val"] = val_dict[file]["default_status"]
-
+        val_expanded_dict[file]["full_validation"] = val_dict[file]
     model_path = os.path.join(curr_run_dir, f'group_classification_model_eps_{ll_epsilon}')
     vi_path = os.path.join(curr_run_dir, f'group_classification_vi_large_grid_{large_grid}_eps_{ll_epsilon}.tsv')
     error_vs_size_path = os.path.join(curr_run_dir, f'group_error_vs_size_eps_{ll_epsilon}.tsv')
@@ -117,4 +123,4 @@ def ML_pipeline(results, args,curr_run_dir, sample_frac,RFE, large_grid,include_
                                     feature_importance=True)
 
     if sample_frac==1 or sample_frac==-1:
-        write_data_to_csv(curr_run_dir, train, test, X_test,model, name, )
+        write_data_to_csv(curr_run_dir, train, test, X_test, model, name, val_expanded_dict= val_expanded_dict)

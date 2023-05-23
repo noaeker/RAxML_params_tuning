@@ -157,7 +157,7 @@ def enrich_with_single_feature_metrics(var_impt, train_X, y_train, test_X, y_tes
 
 
 
-def print_model_statistics_pipeline(model, train_X, test_X, y_train, y_test, val_dict, is_classification, vi_path, error_vs_size_path,classification_metrics_path,
+def print_model_statistics_pipeline(model, train_X, test_X, y_train, y_test, val_expanded_dict, is_classification, vi_path, error_vs_size_path, classification_metrics_path,
                                     group_metrics_path, name, sampling_frac, feature_importance=True):
     if feature_importance:
         try:
@@ -189,13 +189,13 @@ def print_model_statistics_pipeline(model, train_X, test_X, y_train, y_test, val
     all_metrics.append(test_metrics)
     logging.info(f"{name} test metrics: \n {test_metrics}")
 
-    for file in val_dict:
-        file_validation_metrics = model_metrics(model, val_dict[file]["X_val"], val_dict[file]["y_val"], group_metrics_path, sampling_frac,
-                      is_classification=is_classification,
-                      groups_data=None)
+    for file in val_expanded_dict:
+        file_validation_metrics = model_metrics(model, val_expanded_dict[file]["X_val"], val_expanded_dict[file]["y_val"], group_metrics_path, sampling_frac,
+                                                is_classification=is_classification,
+                                                groups_data=None)
         file_validation_metrics["dataset"] = file
         all_metrics.append(file_validation_metrics)
-        logging.info(f"{file} validation metrics of size {val_dict[file]['size']}: \n { file_validation_metrics}")
+        logging.info(f"{file} validation metrics of size {val_expanded_dict[file]['size']}: \n { file_validation_metrics}")
     classification_metrics_df = pd.DataFrame(all_metrics)
     classification_metrics_df.to_csv(classification_metrics_path, sep= '\t')
 

@@ -119,6 +119,7 @@ def process_all_msa_runs(curr_run_directory,msa_path, msa_data):
                                            )
 
         unique_trees["final_ll"] = trees_ll_on_data
+        msa_data["orig_final_ll"] = msa_data["final_ll"]
         msa_data = msa_data.drop(columns = ['final_ll','final_tree_topology'])
         msa_data = msa_data.merge(unique_trees, on  = ['tree_clusters_ind'] )
 
@@ -130,7 +131,7 @@ def process_all_msa_runs(curr_run_directory,msa_path, msa_data):
     msa_data["best_msa_ll"] = np.float(best_msa_ll)
     msa_data["rf_from_overall_msa_best_topology"] = msa_data["final_tree_topology"].apply(
         lambda x: min_rf_distance(curr_run_directory, x, best_msa_tree_topologies, name="MSA_enrichment_RF_calculations"))
-    msa_data["final_ll"] = msa_data.groupby("tree_clusters_ind")["final_ll"].transform(max)
+    #msa_data["final_ll"] = msa_data.groupby("tree_clusters_ind")["final_ll"].transform(max)
     msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
         (msa_data["rf_from_overall_msa_best_topology"]) > 0, best_msa_ll - msa_data["final_ll"], 0)
     return msa_data, msa_type
