@@ -18,8 +18,8 @@ def write_data_to_csv(curr_run_dir, train, test, X_test,model, name, val_expande
     test.to_csv(final_csv_path_test, sep='\t')
     for f in val_expanded_dict:
         full_val_data = val_expanded_dict[f]["full_validation"]
-        full_val_data["uncalibrated_prob"] = model['best_model'].predict_proba((model['selector']).transform(val_expanded_dict[f]["X"]))[:, 1]
-        full_val_data["calibrated_prob"] = model['calibrated_model'].predict_proba((model['selector']).transform(val_expanded_dict[f]["X"]))[:, 1]
+        full_val_data["uncalibrated_prob"] = model['best_model'].predict_proba((model['selector']).transform(val_expanded_dict[f]["X_val"]))[:, 1]
+        full_val_data["calibrated_prob"] = model['calibrated_model'].predict_proba((model['selector']).transform(val_expanded_dict[f]["X_val"]))[:, 1]
         final_csv_path_val = os.path.join(curr_run_dir, f"final_performance_on_val_{f}.tsv")
         full_val_data.to_csv(final_csv_path_val, sep='\t')
 
