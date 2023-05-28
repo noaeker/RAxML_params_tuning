@@ -9,7 +9,7 @@ import numpy as np
 def group_main_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--raw_data_folder', action='store', type=str,
-                        default="/Users/noa/Workspace/raxml_deep_learning_results/ps_data")
+                        default="/Users/noa/Workspace/raxml_deep_learning_results/ds_data")
     parser.add_argument('--curr_working_dir',
                         default="/Users/noa/Workspace/raxml_deep_learning_results/new_grouping_test")
     parser.add_argument('--n_pars_trees', action='store', type=int, default=-1)
@@ -46,7 +46,7 @@ def group_main_parser():
     parser.add_argument('--n_validation', type = int, default = 200)
     parser.add_argument('--external_validation_data', type = str, default= 'Nope')
     parser.add_argument('--ready_features',action = 'store_true', default= False)
-    parser.add_argument('--ready_features_path', type = str, default = "Nope")
+    parser.add_argument('--ready_features_path', type = str, default = "")
     return parser
 
 
