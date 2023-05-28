@@ -139,7 +139,7 @@ def filter_full_data(full_data, only_validation, n_validation):
     zou_val_data['file_type'] = zou_val_data['file_name'].apply(
         lambda x: 'DNA' if 'new_msa_ds' in x or 'iqtree_d' in x else 'AA')
     count_per_msa = zou_val_data.groupby("msa_path")["file_name"].nunique().reset_index()
-    valid_msas = count_per_msa.loc[count_per_msa.file_name == 2]["msa_path"]
+    valid_msas = count_per_msa.loc[count_per_msa.file_name == 1]["msa_path"]
     valid_msas_and_program = zou_val_data.loc[zou_val_data.msa_path.isin(valid_msas)][
         ["msa_path", "file_type"]].sort_values("msa_path").drop_duplicates()
     n_valid_msas = np.min(valid_msas_and_program.groupby('file_type')['msa_path'].nunique())

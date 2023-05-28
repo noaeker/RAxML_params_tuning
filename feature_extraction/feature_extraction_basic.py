@@ -124,6 +124,8 @@ def process_all_msa_runs(curr_run_directory,msa_path, msa_data):
         msa_data = msa_data.merge(unique_trees, on  = ['tree_clusters_ind'] )
 
         msa_data["best_tree_ll_per_file"] = msa_data.groupby('file_name')['final_ll'].transform('max')
+    else:
+        msa_data["best_tree_ll_per_file"] = -1
 
     best_msa_ll = max(msa_data["final_ll"])
     msa_data = msa_data.sort_values(["starting_tree_type", "starting_tree_ind", "spr_radius", "spr_cutoff"])
@@ -131,7 +133,7 @@ def process_all_msa_runs(curr_run_directory,msa_path, msa_data):
     msa_data["best_msa_ll"] = np.float(best_msa_ll)
     msa_data["rf_from_overall_msa_best_topology"] = msa_data["final_tree_topology"].apply(
         lambda x: min_rf_distance(curr_run_directory, x, best_msa_tree_topologies, name="MSA_enrichment_RF_calculations"))
-    #msa_data["final_ll"] = msa_data.groupby("tree_clusters_ind")["final_ll"].transform(max)
+    msa_data["final_ll"] = msa_data.groupby("tree_clusters_ind")["final_ll"].transform(max)
     msa_data["delta_ll_from_overall_msa_best_topology"] = np.where(
         (msa_data["rf_from_overall_msa_best_topology"]) > 0, best_msa_ll - msa_data["final_ll"], 0)
     return msa_data, msa_type
@@ -144,7 +146,7 @@ def unify_raw_data_csvs(raw_data_folder):
     for f in csv_files_in_folder:
         try:
             if LOCAL_RUN:
-                data = pd.read_csv(f, sep=CSV_SEP, nrows = 1240*20) #
+                data = pd.read_csv(f, sep=CSV_SEP) #
                 print(data['msa_path'].unique())
             else:
                 data = pd.read_csv(f, sep=CSV_SEP)
@@ -155,5 +157,5 @@ def unify_raw_data_csvs(raw_data_folder):
     logging.info(f"Combining CSV files: {csv_files_in_folder}")
     raw_data = pd.concat(dfs_in_folder, sort=False)
 
-    #raw_data = raw_data.loc[raw_data.msa_path=='/groups/pupko/noaeker/data/New_MSAs/Selectome_msas/msas/ENSGT00940000154914.Euteleostomi.002.aa_masked.fas']
+    raw_data = raw_data.loc[raw_data.msa_path=='/groups/pupko/noaeker/data/New_MSAs/Single_gene_PROTEIN/data/6697.aln_WickA3']
     return raw_data
