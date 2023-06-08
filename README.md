@@ -2,10 +2,10 @@
 
 The entire pipeline can be divided to two parts :
 
-A. **Data generation**
+A. **raw data generation- generation of 1,200 single tree runs for each MSA**
 folder: raw_data_generation 
 The main file is tp.py, in which :
-1. Parsimony and random starting trees are generated for each MSA
+1. 20 Parsimony and 20 random starting trees are generated for each MSA
 2. For each starting tree, required tree-searches are formed base on a grid of tree-search parameters (i.e., SPR radius and SPR cutoff)
 Finally, the requird RAxML runs are parallelized, are perfomred using the tunne_params.py file.
 
