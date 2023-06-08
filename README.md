@@ -1,5 +1,9 @@
 # RAxML_params_tuning
 
+A machine-learning model to predict whether heuristic tree search algorithms detect global maximum-likelihood trees. 
+
+
+
 The entire pipeline can be divided to two parts :
 
 A. **raw data generation- generation of 1,200 single tree runs for each MSA**.
