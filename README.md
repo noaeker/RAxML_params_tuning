@@ -8,7 +8,7 @@ folder: raw_data_generation.
 The main file is tp.py, in which :
 1. 20 Parsimony and 20 random starting trees are generated for each MSA
 2. For each starting tree, required tree-searches are formed base on a grid of tree-search parameters (i.e., SPR radius and SPR cutoff)
-Finally, the requird RAxML runs are parallelized, are perfomred using the tunne_params.py file.
+3. Finally, the requird RAxML runs are parallelized, and excecuted using the tunne_params.py file.
 
 B. **Machine-learning pipeline on tree-searches from multiple starting points**.
 folder: groups_paper_ML_code.
