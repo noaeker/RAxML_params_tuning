@@ -1,6 +1,6 @@
 # RAxML_params_tuning
 
-The machine-learning pipeline can be divided to :
+The entire pipeline can be divided to two parts :
 A. **Data generation**
 folder: raw_data_generation 
 The main file is tp.py, in which :
